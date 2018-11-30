@@ -1,0 +1,115 @@
+% !TeX program = LuaLaTeX
+
+\documentclass{article}
+
+\usepackage{fontspec}
+\setmainfont{Libertinus Serif}
+
+\usepackage[margin=18mm]{geometry}
+\usepackage{booktabs}
+
+\begin{document}
+Goal: describe geometrical object like lines and rectangles
+mainly for a barcode drawing library
+
+\section{\texttt{ga} grammar}
+
+A graphic data specification format called '\texttt{ga}' \emph{generic graphic assembler}.
+
+\begin{verbatim}
+ga<DIM, UINT> := generic graphic assembler
+    <DIM>  := numeric type parameter for dimension, for example f64 or i32
+    <UINT> := numeric type parameter for quantity, an unsigned integer, i.e. u8
+
+ga<DIM, UINT> := +Elem<DIM, UINT>
+
+Elem<DIM, UINT> := Code<u8> +Args<DIM, UINT>
+
+Code<u8> := End<u8> | State<u8> | Object<u8> | Fn<u8>
+
+End<u8>    :=   0        -- end sequence symbol (reserved for string serialization)
+State<u8>  :=   1 ->  31 -- graphic properties
+Object<u8> :=  32 -> 239 -- graphic object
+Fn<u8>     := 240 -> 255 -- functions
+
+Args<DIM, UINT> : <x: DIM> | <e: u8> | <n: UINT>
+   <x: DIM> a dimension value of type DIM
+   <e: u8> an enumeration value of type u8 (unsigned byte)
+   <n: UINT> an unsigned integer for multiplicity
+\end{verbatim}
+
+\section{Properties}
+
+Colors, linecap style etc\dots
+
+\noindent\begin{tabular}{lll}
+\toprule
+Code/Mnemonic key & Graphic property & Operation\\
+\midrule
+\ttfamily 1 - pen\_thick & Line thick         & \ttfamily 1 <w: DIM>\\
+\ttfamily 2 - pen\_cap\_style & Line cap style & \ttfamily 2 <e: u8>\\
+\ttfamily 8 - color\\
+\midrule
+\ttfamily 30 - start\_bbox\_group & Stop to check the bounding box & \ttfamily 30\\
+\ttfamily 31 - end\_bbox\_group & Pick bbox and restart to check & \ttfamily 31 <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>\\
+\bottomrule
+\end{tabular}
+
+
+
+\section{Objects}
+
+\subsection{Lines}
+
+A segment that starts from point P1 (x1, y1) and ends in P2 (x2, y2).
+
+\noindent\begin{tabular}{lll}
+\toprule
+Code/Mnemonic key & Graphic object & Operation\\
+\midrule
+\ttfamily 32 - line & Line & \ttfamily 32 <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>\\
+\ttfamily 33 - line\_thick & Line with a thick & \ttfamily 33 <w: DIM> <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>\\
+\midrule
+\ttfamily 36 - vbar & Vertical bars     & \ttfamily 36 <y1: DIM> <y2: DIM> <b: UINT> <x1: DIM> <t1: DIM> ...\\
+\ttfamily 37 - hbar & Horizontal bars   & \ttfamily 37 <x1: DIM> <x2: DIM> <b: UINT> <y1: DIM> <t1: DIM> ...\\
+\midrule
+\ttfamily 38 - polyline & Open polyline     & \ttfamily 38 <n: UINT> <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM> ...\\
+\ttfamily 39 - c\_polyline & Closed polyline   & \ttfamily 39 <n: UINT> <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM> ...\\
+\bottomrule
+\end{tabular}
+
+
+\subsection{Rectangles}
+
+\noindent\begin{tabular}{lll}
+\toprule
+Code/Mnemonic key & Graphic object & Operation\\
+\midrule
+\ttfamily 48 - rect & Rectangle & \ttfamily 48 <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>\\
+\ttfamily 49 - f\_rect & Filled rectangle & \ttfamily 49 <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>\\
+\ttfamily 50 - rect\_size & Rectangle & \ttfamily 50 <x1: DIM> <y1: DIM> <w: DIM> <h: DIM>\\
+\ttfamily 51 - f\_rect\_size & Filled rectangle & \ttfamily 51 <x1: DIM> <y1: DIM> <w: DIM> <h: DIM>\\
+
+\bottomrule
+\end{tabular}
+
+
+\subsection{Function}
+
+
+\noindent\begin{tabular}{lll}
+\toprule
+Code/Mnemonic key & Function & Operation\\
+\midrule
+\ttfamily 240 - move & Translate objects & \ttfamily 240 <n: UINT> <dx: DIM> <dy: UINT>\\
+\ttfamily 241 - copy & Copy object & \ttfamily 241 <n: UINT> <c: UINT> <dx1: DIM> <dy1: UINT> ...\\
+\ttfamily 242 - and\_copy & Place and copy objects & \ttfamily 242 <n: UINT> <c: UINT> <dx1: DIM> <dy1: UINT> ...\\
+\ttfamily 243 - grid & Copy next \(n\) objects on a grid & \ttfamily 243 <n: UINT> <col: UINT> <row: UINT> <dx: DIM> <dy: DIM>\\
+\ttfamily 244 - sl\_grid\\
+\ttfamily 250 - mirror\\
+\ttfamily 255 - comment & A string comment & \ttfamily 255 <b1: u8> <b2: u8> .. 0\\
+\bottomrule
+\end{tabular}
+
+
+\end{document}
