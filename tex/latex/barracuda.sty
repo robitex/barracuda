@@ -1,10 +1,32 @@
+%
+\NeedsTeXFormat{LaTeX2e}[2009/06/27]
+\ProvidesPackage{barracuda}[2018/11/28 v0.1 barcode typesetting package]%
 
+\newbox\barracudabox
+\directlua{
+    barracuda = require "barracuda"
+}
 
-\providepackage{barracuda}
+\newcommand\barracuda[2]{\directlua{
+    local e = [[#1]]
+    local s = [[#2]] 
+    local c39builder, err = barracuda:load_builder(e)
+    assert(not err, err)
 
+    local enc_c39_default, err = c39builder:new_encoder("default")
+    assert(not err, err)
 
+    local symb = enc_c39_default:from_string(s)
 
+    local canvas = barracuda:new_canvas()
+    symb:append_graphic(canvas)
 
+    local drv, err = barracuda:load_driver("native")
+    assert(not err, err)
 
+    drv:ga_to_hbox(canvas, "barracudabox")
+}%
+\box\barracudabox
+}
 
-
+\endinput

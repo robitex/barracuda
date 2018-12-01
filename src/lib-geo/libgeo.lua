@@ -128,7 +128,7 @@ function Vbar:append_graphic(canvas, y1, y2, tx) --> canvas, err
         y1, y2 = y2, y1
     end
     local yl = self._yline
-    local c, err = canvas:add_vbar(tx, y1, y2, yl)
+    local c, err = canvas:vbar(tx, y1, y2, yl)
     return c, err
 end
 

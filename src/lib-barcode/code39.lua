@@ -82,7 +82,7 @@ Code39_factory._par_def = {
         -- consistent with label or form design.
         -- Quiet zones must be at least 10 times the module width or 0.10 inches,
         -- whichever is larger. Default value (100 mils)
-        default = 0.254 * 186467, -- 0.1 inches equal to 100*mils
+        default = 2.54 * 186467, -- 0.1 inches equal to 100*mils
         unit = "sp", -- scaled point
         isReserved = false,
         order = 3,

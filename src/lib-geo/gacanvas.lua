@@ -46,7 +46,7 @@ end
 -- vbar
 -- y1, y2 ordinates
 -- encoding: 36 
-function gaCanvas:add_vbar(x0, y1, y2, bars) --> self, err
+function gaCanvas:vbar(x0, y1, y2, bars) --> self, err
     if not type(x0) == "number" then return nil, "[ArgErr] x0 number expected" end
     if not type(y1) == "number" then return nil, "[ArgErr] y1 number expected" end
     if not type(y2) == "number" then return nil, "[ArgErr] y2 number expected" end

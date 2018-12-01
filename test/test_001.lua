@@ -1,8 +1,6 @@
 
 
-local barracuda = dofile "../src/Barracuda.lua"
-
-barracuda:init("/media/roberto/project/barracuda/src")
+local barracuda = require "barracuda"
 
 local c39builder, err = barracuda:load_encoder("code39")
 assert(not err, err)

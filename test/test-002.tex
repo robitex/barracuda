@@ -4,9 +4,9 @@
 \newbox\mybox
 
 \directlua{
-    pdfnat = dofile [[../src/libdriver/driver-pdfliteral.lua]]
-    local k = 70000
-    local ga = {36, 0, k*30, 2, k*5, k*10, k*100, k*2}
+    pdfnat = require [[lib-driver.driver-pdfliteral]]
+    local k = tex.sp [[1pt]]
+    local ga = {36, 0, k*50, 2, k*5, k*10, k*100, k*2}
     local oga = {_data = ga}
     pdfnat:ga_to_hbox(oga, [[mybox]])
 }
