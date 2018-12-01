@@ -55,7 +55,7 @@ end
 
 -- encoder builder loader
 -- barcode_type: is the encoder type in lowercase chars
-function Barracuda:load_encoder(barcode_type) --> (enc_builder, err)
+function Barracuda:load_builder(barcode_type) --> (enc_builder, err)
     if type(barcode_type) ~= "string" then
         return nil, "[ArgErr] barcode_type is not a string"
     end

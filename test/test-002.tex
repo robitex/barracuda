@@ -1,0 +1,32 @@
+% !TeX program = LuaTeX
+% test
+
+\newbox\mybox
+
+\directlua{
+    pdfnat = dofile [[../src/libdriver/driver-pdfliteral.lua]]
+    local k = 70000
+    local ga = {36, 0, k*30, 2, k*5, k*10, k*100, k*2}
+    local oga = {_data = ga}
+    pdfnat:ga_to_hbox(oga, [[mybox]])
+}
+
+A\copy\mybox\box\mybox A
+
+\directlua{
+    local k = 70000
+    local ga = { _data = {
+    30,
+    36, 0, k*30, 2, k*5, k*10, k*100, k*2,
+    31, 0, 0, k*101, k*30
+    }}
+    pdfnat:ga_to_hbox(ga, [[mybox]])
+}
+
+A\box\mybox A
+
+
+\bye
+
+
+

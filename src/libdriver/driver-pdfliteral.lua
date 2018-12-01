@@ -122,10 +122,6 @@ local function hboxcreate(hboxname, buf, bb_x1, bb_y1, bb_x2, bb_y2)
     tex.box[hboxname] = hbox
 end
 
--- validate a stream
-function PDFnative.ga_check(ga) --> bool, err
-end
-
 -- stream processing and hbox node building
 function PDFnative:ga_to_hbox(ga, hboxname) --> nil
     local op_fn = self.operation_v001

@@ -3,9 +3,9 @@
 -- All dimensions must be in scaled point (sp)
 -- every fields that starts with an undercore sign are intended as private
 
--- Code39_factory is an "encoder builder". It can build a concrete
+-- Code39_factory is an "encoder builder". It is able to build a concrete
 -- Code39 encoder. Read the documentation for more info about the code
--- implementation.
+-- structure.
 
 local Code39_factory = {
     _VERSION     = "code39 v0.0.1",
