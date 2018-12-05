@@ -6,10 +6,10 @@
 -- functionality. It plays the role of loader.
 
 local Barracuda = {
-    _VERSION     = 'barracuda v0.0.1',
+    _VERSION     = 'barracuda v0.0.2',
     _NAME        = "Barracuda",
     _DESCRIPTION = 'Library for barcode typesetting',
-    _URL         = 'http://repo.com',
+    _URL         = 'https://github.com/robitex/barracuda',
     _LICENSE     = [[
         GNU GENERAL PUBLIC LICENSE
         Version 2, June 1991
@@ -27,10 +27,10 @@ Barracuda._drv_instance = {} -- driver instances repository
 -- barcode_type/submodule name
 Barracuda._brc_available_enc = {-- keys must be lowercase
     code39  = "lib-barcode.code39",
-    -- code128 = "Code128.lua",
-    -- ean13   = "Ean13.lua",
-    -- ean5    = "Ean5.lua",
-    -- ean2    = "Ean2.lua",
+    -- code128 = "lib-barcode.code128",
+    -- ean13   = "lib-barcode.ean13",
+    -- ean5    = "lib-barcode.ean5",
+    -- ean2    = "lib-barcode.ean2",
 }
 
 -- driver_type/submodule name

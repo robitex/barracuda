@@ -1,0 +1,50 @@
+
+TODO:
+
+
+Bump to      : new beta dev channel
+?            :
+?            : ?
+?            : ? example directory
+Version 0.5.1: ? visual debug 
+Channel      : open 0.5.0 dev branch
+
+Bump to      : new beta dev channel
+?            :
+?            : ? TiKZ driver
+?            : ? PGF driver
+Version 0.4.1: ? SVG driver
+Channel      : open 0.4.0 dev branch
+
+Bump to      : new beta dev channel
+?            :
+?            :
+?            :
+Version 0.3.1: ? make thing happen: font property for text
+Channel      : open 0.3.0 dev branch
+
+Bump to      : new alpha dev channel
+Version 0.2.2: ? devolop ConTeXt mkiv user module
+Version 0.2.1: ? devolop LaTeX user package
+Channel      : open 0.2.0 dev branch
+
+Bump to      : new alpha dev channel
+Version 0.1.x: ?
+Version 0.1.x: ? coherent error management
+Version 0.1.x: ? proportional options
+Channel      : open 0.1.0 dev branch
+
+Bump to      : new alpha dev channel
+Version 0.0.x: time to get an usable manual even if minimal
+Version 0.0.x: implement eventually new ideas
+Design       : analyze on a new constructor function for encoder builder
+             : for a more easy, clear, compact encoder implementation
+Version 0.0.5: reformat and import previous Ean2/5/8/13 encoders
+Version 0.0.4: reformat and import previous Code128 encoder
+Version 0.0.3: further text option for the code39 encoder
+
+DONE:
+Version 0.0.2: include minimal text ability to the system
+Version 0.0.1: design and implement a basic framework
+Channel      : open 0.0.1 alpha dev branch
+

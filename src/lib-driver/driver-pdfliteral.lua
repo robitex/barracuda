@@ -6,10 +6,48 @@
 
 -- class for drawing elementary geometric elements
 local PDFnative = {
-    _VERSION     = "PDFnative v0.0.1",
+    _VERSION     = "PDFnative v0.0.2",
     _NAME        = "PDFnative",
     _DESCRIPTION = "a LuaTeX native pdfliteral driver for ga graphic stream",
 }
+
+-- text utility functions with node
+
+local function newglue(w)
+    local n = node.new("glue")
+    n.width = w
+    return n
+end
+
+local function newglyph(c) -- U+2423 ␣
+    if c == 32 then
+        return newglue(tex.sp "3.5pt")
+    end
+    local n = node.new("glyph")
+    n.char = c
+    n.font = font.current()
+    return n
+end
+
+local function newpdfliteral(buf)
+    local npdf = node.new("whatsit", "pdf_literal")
+    npdf.mode = 0
+    npdf.data = table.concat(buf, "\n")
+    return npdf
+end
+
+local function append_glyph(head, last, c)
+    if c == 32 then -- space
+        head, last = node.insert_after(head, last, newglue(tex.sp "3.5pt"))
+    else
+        head, last = node.insert_after(head, last, newglyph(c))
+    end
+    return head, last
+end
+
+local function append_glyph_gap(head, last, c, gap)
+    
+end
 
 -- operation functions
 -- operation_v001 corresponds to the version 1 of ga graphic assembler spec
@@ -17,16 +55,17 @@ local PDFnative = {
 -- st: state
 -- pc: program counter
 -- ga: ga stream
--- bf: the output buffer
--- and return the updated program counter pointed to the next operation
+-- bf: the output pdfliteral buffer
+-- xt: the output text object buffer
+-- return the updated program counter pointed to the next operation
 PDFnative.operation_v001 = {
 
-    [30] = function (st, pc, ga, bf) -- start_bbox_group
+    [30] = function (st, pc, ga, bf, xt) -- start_bbox_group
         assert(st.bb_on)
         st.bb_on = false
         return pc
     end,
-    [31] = function (st, pc, ga, bf) -- end_bbox_group
+    [31] = function (st, pc, ga, bf, xt) -- end_bbox_group
         assert(st.bb_on == false)
         st.bb_on = true
         local x1 = ga[pc]; pc = pc + 1
@@ -47,7 +86,7 @@ PDFnative.operation_v001 = {
         return pc
     end,
 
-    [36] = function(st, pc, ga, bf) -- vbar
+    [36] = function(st, pc, ga, bf, xt) -- vbar
         -- we have less memory consumption if inserting a bar as a rectangle
         -- rather than as a vertical line
         local y1   = ga[pc]; pc = pc + 1
@@ -94,27 +133,72 @@ PDFnative.operation_v001 = {
         end
         return pc_next
     end,
+
+    [130] = function(st, pc, ga, bf, xt) -- text: ax ay xpos ypos string
+        local ax = ga[pc]; pc = pc + 1
+        local ay = ga[pc]; pc = pc + 1
+        local xpos = ga[pc]; pc = pc + 1
+        local ypos = ga[pc]; pc = pc + 1
+        assert(ga[pc] ~= 0, "[IntErr] No char")
+        local head, last
+        while ga[pc] ~= 0 do
+            local c = ga[pc]
+            head, last = append_glyph(head, last, c)
+            pc = pc + 1
+        end
+        local hbox = node.hpack(head)
+        local w, h, d = node.dimensions(hbox)
+        local x = xpos - ax*w -- text x, y position
+        local y
+        if ay > 0 then
+            y = ypos - h*ay
+        else
+            y = ypos - d*ay
+        end
+        -- bounding box checking
+        if st.bb_x1 == nil then
+            st.bb_x1 = x
+            st.bb_x2 = x + w
+            st.bb_y1 = y - d
+            st.bb_y2 = y + h
+        else
+            if     x < st.bb_x1 then st.bb_x1 = x end
+            if x + w > st.bb_x2 then st.bb_x2 = x + w end
+            if     y < st.bb_y1 then st.bb_y1 = y end
+            if y + h > st.bb_y2 then st.bb_y2 = y + h end
+        end
+        xt[#xt + 1] = {hbox, x, y - d, w, h}
+        return pc + 1
+    end,
+
+    [131] = function(st, pc, ga, bf, xt) -- text_spaced -- NOT IMPLEMETED
+        assert(false, "Not Implemented!")
+    end,
 }
 
-
 -- drawing function
-local function hboxcreate(hboxname, buf, bb_x1, bb_y1, bb_x2, bb_y2)
+local function hboxcreate(hboxname, buf, txt, bb_x1, bb_y1, bb_x2, bb_y2)
     assert(
         tex.isbox(hboxname),
         string.format("Box register [%s] doesn’t exist", hboxname)
     )
-    -- node whatsit pdfliteral
-    local npdf = node.new("whatsit", "pdf_literal")
-    npdf.mode = 0
-    npdf.data = table.concat(buf, "\n")
+    local npdf = newpdfliteral(buf) -- node whatsit pdfliteral
     -- vboxing, vertical correction
     local vpdf = node.vpack(npdf)
     vpdf.height = -bb_y1
     -- glue, for horizontal correction
-    local ng = node.new("glue")
-    ng.width = -bb_x1
-
-    local head = node.insert_after(ng, ng, vpdf)
+    local ng = newglue(-bb_x1)
+    local head, last = node.insert_after(ng, ng, vpdf)
+    local xprev = 0.0
+    for _, t in ipairs(txt) do -- text processing
+        local gy = newglue(t[3] - bb_y1) -- n, x, y, w, h -- t[3] -t[5] - bb_y1
+        local nvtxt = node.insert_after(t[1], t[1], gy)
+        local vtxt = node.vpack(nvtxt)
+        local gx = newglue(t[2]-xprev)
+        head, last = node.insert_after(head, last, gx)
+        head, last = node.insert_after(head, last, vtxt)
+        xprev = t[2] + t[4]
+    end
     -- hboxing
     local hbox = node.hpack(head)
     hbox.width  = bb_x2 - bb_x1
@@ -126,7 +210,9 @@ end
 function PDFnative:ga_to_hbox(ga, hboxname) --> nil
     local op_fn = self.operation_v001
     local bf = {"q"} -- stack saving
+    local xt = {} -- text buffer
     local st = { -- process state
+        gtext = false, -- text group off
         bb_on = true, -- bounding box checking activation
         bb_x1 = nil,  -- bounding box coordinates in scaled point
         bb_y1 = nil,
@@ -138,10 +224,10 @@ function PDFnative:ga_to_hbox(ga, hboxname) --> nil
     while data[pc] do -- stream processing
         local opcode = data[pc]
         local fn = op_fn[opcode]
-        pc = fn(st, pc + 1, data, bf)
+        pc = fn(st, pc + 1, data, bf, xt)
     end
     bf[#bf + 1] = "Q" -- stack restoring
-    hboxcreate(hboxname, bf, st.bb_x1, st.bb_y1, st.bb_x2, st.bb_y2)
+    hboxcreate(hboxname, bf, xt, st.bb_x1, st.bb_y1, st.bb_x2, st.bb_y2)
 end
 
 
@@ -149,133 +235,35 @@ return PDFnative
 
 --[[
 
+local function hpack_text_list( tlist )
+    local h, l
+    local w
+    local x, xp, xs
+    local isglue = false
+    for _, elem in ipairs(tlist) do
+        if elem.glue then
+            isglue = true
+            x  = elem.glue
+            xp = elem.axprec
+            xs = elem.axsucc
+        else
+            if isglue then
+                local hbox = hpack_text(elem)
+                local ws = hbox.width
+                local g = x - w*(1 - xp) - ws*xs
+                h, l = node.insert_after(h, l, newglue(g))
+                h, l = node.insert_after(h, l, hbox)
+                isglue = false
+                w = ws
+            else
+                local hbox = hpack_text(elem)
+                w = hbox.width
+                h, l = node.insert_after(h, l, hbox)
+            end
+        end
+    end
+    return node.hpack(h)
+end
 
-    -- node whatsit pdfliteral
-    local npdf = node.new("whatsit", "pdf_literal")
-    npdf.mode = 0
-    npdf.data = table.concat(self.buffer, "\n")
-    local nvpdf = node.vpack(npdf)
-    nvpdf.height = -self.bbox[2]
-    local gx = newglue(-self.bbox[1])
-    local head, last = node.insert_after(gx, gx, nvpdf)
-    -- text processing
-    local xprev = 0.0
-    for _, txt in ipairs(txtnodes) do
-        local gy = newglue(txt[3] -txt[5] - self.bbox[2])
-        local nvtxt = node.insert_after(txt[1], txt[1], gy)
-        local vtxt = node.vpack(nvtxt)
-        local gx = newglue(txt[2]-xprev)
-        head, last = node.insert_after(head, last, gx)
-        head, last = node.insert_after(head, last, vtxt)
-        xprev = txt[2] + txt[4]
-    end
-    local hbox = node.hpack(head)
-    hbox.width  = self.bbox[3] - self.bbox[1]
-    hbox.height = self.bbox[4] - self.bbox[2]
-    node.write(hbox)
-
-    --
-    --
-    --
-    --
-    --
-    --
-    --
-    --
-    --
-    --
-    --
-    
-    -- insert in the buffer a hard copy information about the istruction
-    -- to draw a text. All lenghts are in sp
-    -- bounding boxing must be re-adjusted at the moment of drawing
-    function PDFliteralDriver:add_text(geotext)
-        local t = self.text
-        t[#t+1] = geotext
-    end
-    
-    -- text utility functions
-    
-    local function newglyph(c)
-        local n = node.new("glyph")
-        n.char = c
-        n.font = font.current()
-        return n
-    end
-    
-    local function newglue(w)
-        local n = node.new("glue")
-        n.width = w
-        return n
-    end
-    
-    local function hpack_text(char_array)
-        local h, l
-        for _, c in ipairs(char_array) do
-            if c == " " then
-                h, l = node.insert_after(h, l, newglue(tex.sp "3.5pt"))
-            else
-                h, l = node.insert_after(h, l, newglyph(c))
-            end
-        end
-        return node.hpack(h)
-    end
-    
-    local function hpack_text_list( tlist )
-        local h, l
-        local w
-        local x, xp, xs
-        local isglue = false
-        for _, elem in ipairs(tlist) do
-            if elem.glue then
-                isglue = true
-                x  = elem.glue
-                xp = elem.axprec
-                xs = elem.axsucc
-            else
-                if isglue then
-                    local hbox = hpack_text(elem)
-                    local ws = hbox.width
-                    local g = x - w*(1 - xp) - ws*xs
-                    h, l = node.insert_after(h, l, newglue(g))
-                    h, l = node.insert_after(h, l, hbox)
-                    isglue = false
-                    w = ws
-                else
-                    local hbox = hpack_text(elem)
-                    w = hbox.width
-                    h, l = node.insert_after(h, l, hbox)
-                end
-            end
-        end
-        return node.hpack(h)
-    end
-    
-    -- it builds the node text object and checks the bounding box
-    -- process_text() return the array {{nt, tx, ty, w, d}}
-    function PDFliteralDriver:process_text()
-        local tt = self.text
-        local res = {}
-        for _, txt in ipairs(tt) do
-            local ntext = hpack_text_list(txt.text_list)
-            local xpos, ax = txt.xpos, txt.ax
-            local w, d, h = ntext.width, ntext.depth, ntext.height
-            local tx = xpos - ax*w -- text x, y position
-            local ty, ay = txt.ypos, txt.ay
-            if ay > 0 then
-                ty = ty - ntext.height*ay
-            else
-                ty = ty - d*ay
-            end
-            
-            -- bb check
-            self:bounding_box(tx, ty - d, tx + w, ty + h)
-            res[#res+1] = {ntext, tx, ty, w, d}
-        end
-        return res
-    end
-    
-    
-    
-    --]]
+--]]
     

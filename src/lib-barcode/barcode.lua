@@ -138,15 +138,20 @@ function barcode:info_tab() --> table
 end
 
 -- make accessible by name parameter values
--- pname: parameter identifier
+-- id: parameter identifier
 function barcode:get_param(id) --> value, err
     if type(id) ~= "string" then
-        return nil, "[ArgErr] parameter id must be a string"
+        return nil, "[ArgErr] 'id' must be a string"
     end
     if string.sub(id, 1, 1) == "_" then
-        return nil, "[Err] 'id_par' starts with an underscore that is reserved"
+        return nil, "[Err] 'id' starts with an underscore that is for private fields"
     end
-   if not self._par_id[id] then
+    local idpar = self._par_id
+    local parkey = {}
+    for i, kid in ipairs(idpar) do
+        parkey[kid] = true
+    end
+    if not parkey[id] then
         return nil, "[Err] Parameter '"..id.."' doesn't exist"
     end
     assert(self[id.."_def"], "[InternalErr] '"..id.."_def' not defined")
@@ -172,21 +177,23 @@ function barcode:set_param(arg1, arg2) --> self, err
         targ[arg1] = arg2
     end
 
-    -- check and eventually set every parameter within targ in order
+    -- check, and eventually set, every parameter within targ in order
     local parid = self._par_id
     local check_val = self:_get_param_for_checking()
-    for par, val in pairs(targ) do
-        if targ[par] then
-            local pdef = self[par.."_def"]
+    for _, id_par in ipairs(parid) do
+        if targ[id_par] ~= nil then
+            local pdef = self[id_par.."_def"]
             -- is parameter reserved?
             if pdef.isReserved then
-                return nil, "[Err] '"..par.."' is reserved, you need to create further encoder"
+                return nil, "[Err] '"..id_par.."' is reserved, create a further encoder with the builder"
             end
-            local ok, err = pdef.fncheck(val, check_val)
+            local new_val = targ[id_par]
+            local ok, err = pdef.fncheck(new_val, check_val)
             if err then return nil, err end
-            self[par] = val -- OK, save the new parameter value
+            assert(ok, "[InternalErr] ok, err disarmony")
+            self[id_par] = new_val -- OK, set a new parameter value
             -- update checking value
-            if check_val[par] then check_val[par] = val end
+            if check_val[id_par] then check_val[id_par] = new_val end
         end
     end
     return self, nil

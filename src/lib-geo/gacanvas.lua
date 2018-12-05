@@ -107,6 +107,106 @@ function gaCanvas:stop_bbox_group(x1, y1, x2, y2) --> self, err
 end
 
 
+-- [text] 130 ax ay x y string
+function gaCanvas:text(xpos, ypos, ax, ay, chars)
+    if not type(xpos) == "number" then return nil, "[ArgErr] 'xpos' number expected" end
+    if not type(ypos) == "number" then return nil, "[ArgErr] 'ypos' number expected" end
+    if not type(ax) == "number" then return nil, "[ArgErr] 'ax' number expected" end
+    if not type(ay) == "number" then return nil, "[ArgErr] 'ay' number expected" end
+    if not type(chars) == "table" then return nil, "[ArgErr] 'chars' table expected" end
+    local data = self._data
+    data[#data + 1] = 130
+    data[#data + 1] = ax -- anchor relative x-coordinate
+    data[#data + 1] = ay -- anchor relative y-coordinate
+    data[#data + 1] = xpos -- text x-coordinate
+    data[#data + 1] = ypos -- text y-coordinate
+    for _, c in ipairs(chars) do
+        data[#data + 1] = c
+    end
+    data[#data + 1] = 0 -- end string signal
+    return self, nil
+end
+
+-- [text_spaced] 131 ax ay x y string gap
+function gaCanvas:text_spaced(xpos, ypos, ax, ay, chars, gap)
+    if not type(xpos) == "number" then return nil, "[ArgErr] 'xpos' number expected" end
+    if not type(ypos) == "number" then return nil, "[ArgErr] 'ypos' number expected" end
+    if not type(ax) == "number" then return nil, "[ArgErr] 'ax' number expected" end
+    if not type(ay) == "number" then return nil, "[ArgErr] 'ay' number expected" end
+    if not type(chars) == "table" then return nil, "[ArgErr] 'chars' table expected" end
+    if not type(gap) == "number" then return nil, "[ArgErr] 'gap' number expected" end
+    local data = self._data
+    data[#data + 1] = 131
+    data[#data + 1] = ax   -- anchor relative x-coordinate
+    data[#data + 1] = ay   -- anchor relative y-coordinate
+    data[#data + 1] = xpos -- text x-coordinate
+    data[#data + 1] = ypos -- text y-coordinate
+    data[#data + 1] = gap  -- axial distance among gliphs
+    for _, c in ipairs(chars) do
+        data[#data + 1] = c
+    end
+    data[#data + 1] = 0    -- end string signal
+    return self, nil
+end
+
+-- [start_text_group] 132
+function gaCanvas:start_text_group()
+    local data = self._data
+    data[#data + 1] = 132
+    return self, nil
+end
+
+-- [gtext] 133
+function gaCanvas:gtext(chars)
+    if not type(chars) == "table" then return nil, "[ArgErr] 'chars' table expected" end
+    local data = self._data
+    data[#data + 1] = 133
+    for _, c in ipairs(chars) do
+        data[#data + 1] = c
+    end
+    data[#data + 1] = 0 -- end string signal
+    return self, nil
+end
+
+-- [gtext_spaced] 134 gap string
+function gaCanvas:gtext_spaced(gap, chars)
+    if not type(gap) == "number" then return nil, "[ArgErr] 'gap' number expected" end
+    if not type(chars) == "table" then return nil, "[ArgErr] 'chars' table expected" end
+    local data = self._data
+    data[#data + 1] = 134
+    data[#data + 1] = gap
+    for _, c in ipairs(chars) do
+        data[#data + 1] = c
+    end
+    data[#data + 1] = 0 -- end string signal
+    return self, nil
+end
+
+-- [gtext_space] 135 gap 
+function gaCanvas:gtext_spaced(gap)
+    if not type(gap) == "number" then return nil, "[ArgErr] 'gap' number expected" end
+    local data = self._data
+    data[#data + 1] = 135
+    data[#data + 1] = gap
+    return self, nil
+end
+
+
+-- [end_text_group] 140 ax ay x y
+function gaCanvas:end_text_group(xpos, ypos, ax, ay)
+    if not type(xpos) == "number" then return nil, "[ArgErr] 'xpos' number expected" end
+    if not type(ypos) == "number" then return nil, "[ArgErr] 'ypos' number expected" end
+    if not type(ax) == "number" then return nil, "[ArgErr] 'ax' number expected" end
+    if not type(ay) == "number" then return nil, "[ArgErr] 'ay' number expected" end
+    local data = self._data
+    data[#data + 1] = 140
+    data[#data + 1] = ax   -- anchor relative x-coordinate
+    data[#data + 1] = ay   -- anchor relative y-coordinate
+    data[#data + 1] = xpos -- text x-coordinate
+    data[#data + 1] = ypos -- text y-coordinate
+    return self, nil
+end
+
 
 -- amazing...
 function gaCanvas:to_string()

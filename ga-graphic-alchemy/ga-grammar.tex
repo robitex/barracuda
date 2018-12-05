@@ -4,9 +4,14 @@
 
 \usepackage{fontspec}
 \setmainfont{Libertinus Serif}
+\setmonofont{Ubuntu Mono}
 
 \usepackage[margin=18mm]{geometry}
+\usepackage{array}
 \usepackage{booktabs}
+
+\newcolumntype{C}{>{\ttfamily}c}
+\newcolumntype{L}{>{\ttfamily}l}
 
 \begin{document}
 Goal: describe geometrical object like lines and rectangles
@@ -14,7 +19,8 @@ mainly for a barcode drawing library
 
 \section{\texttt{ga} grammar}
 
-A graphic data specification format called '\texttt{ga}' \emph{generic graphic assembler}.
+A graphic data specification format called '\texttt{ga}' \emph{graphic alchemy},
+or if you want \emph{generic graphic assembler}.
 
 \begin{verbatim}
 ga<DIM, UINT> := generic graphic assembler
@@ -38,20 +44,22 @@ Args<DIM, UINT> : <x: DIM> | <e: u8> | <n: UINT>
    <n: UINT> an unsigned integer for multiplicity
 \end{verbatim}
 
+
+
 \section{Properties}
 
 Colors, linecap style etc\dots
 
-\noindent\begin{tabular}{lll}
+\noindent\begin{tabular}{CLlL}
 \toprule
-Code/Mnemonic key & Graphic property & Operation\\
+OpCode & Mnemonic key & Graphic property & Operands\\
 \midrule
-\ttfamily 1 - pen\_thick & Line thick         & \ttfamily 1 <w: DIM>\\
-\ttfamily 2 - pen\_cap\_style & Line cap style & \ttfamily 2 <e: u8>\\
-\ttfamily 8 - color\\
+ 1 & pen\_thick & Line thick          &  <w: DIM>\\
+ 2 & pen\_cap\_style & Line cap style &  <e: u8>\\
+ 8 & color & ... \\
 \midrule
-\ttfamily 30 - start\_bbox\_group & Stop to check the bounding box & \ttfamily 30\\
-\ttfamily 31 - end\_bbox\_group & Pick bbox and restart to check & \ttfamily 31 <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>\\
+ 30 &  start\_bbox\_group & Stop to check the bounding box & -\\
+ 31 &  end\_bbox\_group   & Set a bounding box and restart to check &  <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>\\
 \bottomrule
 \end{tabular}
 
@@ -63,33 +71,62 @@ Code/Mnemonic key & Graphic property & Operation\\
 
 A segment that starts from point P1 (x1, y1) and ends in P2 (x2, y2).
 
-\noindent\begin{tabular}{lll}
+\noindent\begin{tabular}{CLlL}
 \toprule
-Code/Mnemonic key & Graphic object & Operation\\
+OpCode & Mnemonic key & Graphic object & Operands\\
 \midrule
-\ttfamily 32 - line & Line & \ttfamily 32 <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>\\
-\ttfamily 33 - line\_thick & Line with a thick & \ttfamily 33 <w: DIM> <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>\\
+32 & line & Line & <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>\\
+33 & line\_thick & Line with a thick & <w: DIM> <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>\\
 \midrule
-\ttfamily 36 - vbar & Vertical bars     & \ttfamily 36 <y1: DIM> <y2: DIM> <b: UINT> <x1: DIM> <t1: DIM> ...\\
-\ttfamily 37 - hbar & Horizontal bars   & \ttfamily 37 <x1: DIM> <x2: DIM> <b: UINT> <y1: DIM> <t1: DIM> ...\\
+36 & vbar & Vertical bars     & <y1: DIM> <y2: DIM> <b: UINT> <x1: DIM> <t1: DIM> ...\\
+37 & hbar & Horizontal bars   & <x1: DIM> <x2: DIM> <b: UINT> <y1: DIM> <t1: DIM> ...\\
 \midrule
-\ttfamily 38 - polyline & Open polyline     & \ttfamily 38 <n: UINT> <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM> ...\\
-\ttfamily 39 - c\_polyline & Closed polyline   & \ttfamily 39 <n: UINT> <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM> ...\\
+38 & polyline & Open polyline  & <n: UINT> <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM> ...\\
+39 & c\_polyline & Closed polyline   & <n: UINT> <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM> ...\\
 \bottomrule
 \end{tabular}
 
 
 \subsection{Rectangles}
 
-\noindent\begin{tabular}{lll}
+\noindent\begin{tabular}{CLlL}
 \toprule
-Code/Mnemonic key & Graphic object & Operation\\
+OpCode & Mnemonic key & Graphic object & Operands\\
 \midrule
-\ttfamily 48 - rect & Rectangle & \ttfamily 48 <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>\\
-\ttfamily 49 - f\_rect & Filled rectangle & \ttfamily 49 <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>\\
-\ttfamily 50 - rect\_size & Rectangle & \ttfamily 50 <x1: DIM> <y1: DIM> <w: DIM> <h: DIM>\\
-\ttfamily 51 - f\_rect\_size & Filled rectangle & \ttfamily 51 <x1: DIM> <y1: DIM> <w: DIM> <h: DIM>\\
+ 48 & rect & Rectangle & <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>\\
+ 49 & f\_rect & Filled rectangle & <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>\\
+ 50 & rect\_size & Rectangle & <x1: DIM> <y1: DIM> <w: DIM> <h: DIM>\\
+ 51 & f\_rect\_size & Filled rectangle & <x1: DIM> <y1: DIM> <w: DIM> <h: DIM>\\
 
+\bottomrule
+\end{tabular}
+
+
+\subsection{Text}
+
+\noindent\begin{tabular}{CLl}
+\toprule
+OpCode & Mnemonic key & Graphic object/Operands\\
+\midrule
+ 130 & text         & A text with several gliphs\\
+     & & \ttfamily <ax: FLOAT> <ay: FLOAT> <x: DIM> <y: DIM> <s: STRING>\\
+\midrule
+ 131 & text\_spaced & A text line with gliphs equally spaced \\
+     & & \ttfamily <ax: FLOAT> <ay: FLOAT> <x: DIM> <y: DIM> <gap: DIM> <s: STRING>\\
+\midrule
+ 132 & start\_text\_group & Texts on the same baseline \\
+\midrule
+ 133 & gtext         & A sequence of gliphs sharing a baseline\\
+     & & \ttfamily <s: STRING> \\
+\midrule
+ 134 & gtext\_spaced & Gliphs separated by a fixed distance sharing a baseline\\
+     & & \ttfamily <gap: DIM> <s: STRING> \\
+\midrule
+ 135 & gtext\_space  & A distance between to consecutive text sharing a baseline\\
+     & & \ttfamily <gap: DIM>\\
+\midrule
+ 140 & end\_text\_group & End text group\\
+     & & \ttfamily <ax: FLOAT> <ay: FLOAT> <x: DIM> <y: DIM>\\
 \bottomrule
 \end{tabular}
 
@@ -97,17 +134,17 @@ Code/Mnemonic key & Graphic object & Operation\\
 \subsection{Function}
 
 
-\noindent\begin{tabular}{lll}
+\noindent\begin{tabular}{CLlL}
 \toprule
-Code/Mnemonic key & Function & Operation\\
+OpCode & Mnemonic key & Function & Operands\\
 \midrule
-\ttfamily 240 - move & Translate objects & \ttfamily 240 <n: UINT> <dx: DIM> <dy: UINT>\\
-\ttfamily 241 - copy & Copy object & \ttfamily 241 <n: UINT> <c: UINT> <dx1: DIM> <dy1: UINT> ...\\
-\ttfamily 242 - and\_copy & Place and copy objects & \ttfamily 242 <n: UINT> <c: UINT> <dx1: DIM> <dy1: UINT> ...\\
-\ttfamily 243 - grid & Copy next \(n\) objects on a grid & \ttfamily 243 <n: UINT> <col: UINT> <row: UINT> <dx: DIM> <dy: DIM>\\
-\ttfamily 244 - sl\_grid\\
-\ttfamily 250 - mirror\\
-\ttfamily 255 - comment & A string comment & \ttfamily 255 <b1: u8> <b2: u8> .. 0\\
+ 240 & move & Translate objects &  <n: UINT> <dx: DIM> <dy: UINT>\\
+ 241 & copy & Copy object &  <n: UINT> <c: UINT> <dx1: DIM> <dy1: UINT> ...\\
+ 242 & and\_copy & Place and copy objects &  <n: UINT> <c: UINT> <dx1: DIM> <dy1: UINT> ...\\
+ 243 & grid & Copy next \(n\) objects on a grid &  <n: UINT> <col: UINT> <row: UINT> <dx: DIM> <dy: DIM>\\
+ 244 & sl\_grid\\
+ 250 & mirror\\
+ 255 & comment & A string comment &  <s: STRING>\\
 \bottomrule
 \end{tabular}
 

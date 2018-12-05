@@ -8,13 +8,28 @@ local barracuda = require "barracuda"
 local c39builder, err = barracuda:load_builder("code39")
 assert(not err, err)
 
+
 local enc_c39_default, err = c39builder:new_encoder("default")
 assert(not err, err)
 
-enc_c39_default:set_param("quietzone", tex.sp "5mm")
+enc_c39_default:set_param("quietzone", tex.sp "2mm")
 
-local symb = enc_c39_default:from_string("ORTEIL")
-symb:set_param("height" ,4000000)
+local symb = enc_c39_default:from_string("ABC12345")
+symb:set_param("height", 3000000)
+
+local _, err1 = symb:set_param("text_enabled", true)
+if err1 then tex.print(err1) end
+
+local te, err2 = symb:get_param([[text_enabled]])
+if err2 then tex.print(err2) end
+
+if te == true then
+    tex.print("text-enabled is true")
+elseif te == false then
+    tex.print("true")
+else
+    error("Ops")
+end
 
 local canvas = barracuda:new_canvas()
 symb:append_graphic(canvas)

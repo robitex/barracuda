@@ -3,7 +3,7 @@
 -- All dimension must be in scaled point (sp)
 
 local libgeo = {
-    _VERSION     = "libgeo v0.0.1",
+    _VERSION     = "libgeo v0.0.2",
     _NAME        = "libgeo",
     _DESCRIPTION = "simple geometric library",
 }
@@ -141,82 +141,98 @@ local Text = libgeo.Text
 Text.__index = Text
 
 -- costructors
+-- internally it keeps text as a sequence of codepoint
+function Text:from_string(s, gap) --> object
+    assert(type(s) == "string", "[ArgErr] 's' not a valid string")
+    assert(#s > 0, "[Err] 's' empty string not allowed")
+    if gap then
+        assert(type(gap) == "number", "[ArgErr] 'gap' is not a number")
+    end
 
--- internally gets text as a byte codepoint sequence
-
-function Text:new(xpos, ypos, ax, ay)
-    assert(type(xpos) == "number", "Number required")
-    assert(type(ypos) == "number", "Number required")
-    ax = ax or 0
-    ay = ay or 0
+    local cp = {} -- codepoint array
+    for b in string.bytes(s) do
+        cp[#cp + 1] = b
+    end
     local o = {
-        text_list = {},
-        xpos = xpos,
-        ypos = ypos,
-        ax = ax,
-        ay = ay,
+        codepoint = cp,
+        gap  = gap, -- centered distance among gliphs, nil means no gap at all
     }
     setmetatable(o, self)
-    return o, nil
+    return o
 end
 
-function Text:from_string(s, xpos, ypos, ax, ay)
-    assert(type(s) == "string", "Not a valid string")
-    if #s == 0  then return nil, "Empty string"  end
-    local txt = self:new(xpos, ypos, ax, ay)
-
-    local arr = {}
-    for b in string.bytes(s) do
-        arr[#arr+1] = b
-    end
-    local ta = txt.text_list
-    ta[1] = {arr}
-    return txt, nil
-end
-
-function Text:from_int(n, digits, xpos, ypos, ax, ay)
-    if not n then return nil, "Mandatory arg"   end
-    if n < 0 then return nil, "Negative number" end
-    if (n - math.floor(n)) > 0 then
-        return nil, "Not an integer number"
-    end
-    local txt = self:new(xpos, ypos, ax, ay)
-    local p = n
-    local d = 0
-    while p > 0 do
-        d = d + 1
-        p = math.floor(p / 10)
-    end
-    digits = digits or d
-    if d > digits then
-        return nil, "The number has more digits than the requested argument"
+-- from an array of chars
+function Text:from_chars(chars, gap)
+    assert(type(chars) == "table", "[ArgErr] 'chars' must be a table")
+    if gap then
+        assert(type(gap) == "number", "[ArgErr] 'gap' is not a number")
     end
     local arr = {}
-    for i = digits, 1, -1 do
-        if n > 0 then
-            local dg = n % 10
-            arr[i] = dg + 48
-            n = (n - dg)/10
-        else
-            arr[i] = 48
-        end
+    for _, c in ipairs(chars) do
+        arr[#arr + 1] = string.byte(c)
     end
-    local ta = txt.text_list
-    ta[1] = arr
-    return txt, nil
+
+    local o = {
+        codepoint = arr,
+        gap = gap, -- centered distance among gliphs, nil means no gap at all
+    }
+    setmetatable(o, self)
+    return o
 end
 
-function Text:from_chars(c_arr, xpos, ypos, ax, ay)
-    if not c_arr then return nil, "Mandatory arg" end
-    local txt = self:new(xpos, ypos, ax, ay)
-    local arr = {}
-    for i, c in ipairs(c_arr) do
-        arr[i] = string.byte(c)
+-- provide an integer to build a Text object
+function Text:from_int(n, gap)
+    assert(type(n) == "number", "[ArgErr] 'n' must be a number")
+    assert( n > 0, "[Err] 'n' must be a positive number")
+    assert( n == math.floor(n), "[Err] 'n' must be an integer")
+    if gap then
+        assert(type(gap) == "number", "[ArgErr] 'gap' is not a number")
     end
-    local ta = txt.text_list
-    ta[1] = arr
-    return txt, nil
+
+    local cp = {}
+    while n > 0 do
+        local d = n % 10
+        cp[#cp + 1] = d + 48
+        n = (n - d)/10
+    end
+    local digits = #cp
+    for i = 1, digits/2 do -- reverse the array
+        local d = cp[digits - i + 1]
+        cp[digits - i + 1] = cp[i]
+        cp[i] = d
+    end
+    local o = {
+        codepoint = cp,
+        gap = gap, -- centered distance among gliphs, nil means no gap at all
+    }
+    setmetatable(o, self)
+    return o
 end
+
+function Text:append_graphic(canvas, xpos, ypos, ax, ay) --> canvas, err
+    assert(type(canvas) == "table", "[ArgErr] 'canvas' object must be provided")
+    assert(type(xpos) == "number", "[ArgErr] 'xpos' number required")
+    assert(type(ypos) == "number", "[ArgErr] 'ypos' number required")
+    ax = ax or 0; assert(type(ax) == "number", "[ArgErr] 'ax' is not a number")
+    ay = ay or 0; assert(type(ay) == "number", "[ArgErr] 'ay' is not a number")
+    
+    local chars = self.codepoint
+    local gap = self.gap
+    local c, err
+    if gap then
+        c, err = canvas:text_spaced(xpos, ypos, ax, ay, chars, gap)
+    else
+        c, err = canvas:text(xpos, ypos, ax, ay, chars)
+    end
+    return c, err
+end
+
+
+return libgeo
+
+
+
+--[=[
 
 function Text:from_intarray(n_arr, xpos, ypos, ax, ay, i, j)
     if not n_arr then return nil, "Mandatory arg" end
@@ -282,6 +298,4 @@ function Text:append_intarray(n_arr, xspace, axprec, axsucc, i, j)
     return self
 end
 
-
-return libgeo
-
+--]=]

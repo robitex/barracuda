@@ -8,12 +8,12 @@
 -- structure.
 
 local Code39_factory = {
-    _VERSION     = "code39 v0.0.1",
+    _VERSION     = "code39 v0.0.2",
     _NAME        = "Code39",
     _DESCRIPTION = "Code39 barcode encoder",
 }
 
-Code39_factory._enc_instance = {} -- encoder reference archive
+Code39_factory._enc_instance = {} -- central encoder reference archive
 Code39_factory._symb_def = {-- symbol definition
     ["0"] = 112122111, ["1"] = 211112112, ["2"] = 211112211,
     ["3"] = 111112212, ["4"] = 211122111, ["5"] = 111122112,
@@ -34,116 +34,128 @@ Code39_factory._symb_def = {-- symbol definition
 Code39_factory._star_def  = 112121121 -- '*' start/stop character
 
 -- parameters definition
-Code39_factory._par_def = {
-    module = {
-        -- Narrow element X-dimension is the width of the smallest element in a
-        -- barcode symbol.
-        -- The X-dimension impacts scan-ability. Within the allowed range, it is
-        -- recommended to use the largest possible X-dimension that is consistent
-        -- with label or form design.
-        -- The module width (width of narrow element) should be at least 7.5 mils
-        -- or 0.1905mm (a mil is 1/1000 inch).
-        default = 7.5 * 0.0254 * 186467, -- 7.5 mils (sp) unit misure,
-        unit = "sp", -- scaled point
-        isReserved = true,
-        order = 1, -- the the first to be modified
-        fncheck = function (mod, _) --> boolean, err
-            local mils = 0.0254 * 186467
-            if mod >= 7.5*mils then return true, nil end
-            return nil, "[OutOfRange] too small value for module"
-        end,
-    },
-    ratio = {
-        -- The "wide" element is a multiple of the "narrow" element and this
-        -- multiple must remain the same throughout the symbol. This multiple can
-        -- range between 2.0 and 3.0. Preferred value is 3.0.
-        -- The multiple for the wide element should be between 2.0 and 3.0 if the
-        -- narrow element is greater than 20 mils. If the narrow element is less
-        -- than 20 mils (0.508mm), the multiple can only range between 2.0 and 2.2.
-        default = 2.0, -- the minimum
-        unit = "absolute-number",
-        isReserved = true,
-        order = 2,
-        fncheck = function (ratio, tparcheck) --> boolean, err
-            local mils = 0.0254 * 186467
-            local mod = tparcheck.module
-            local maxr; if mod < 20*mils then maxr = 2.2 else maxr = 3.0 end
-            if ratio < 2.0 then
-                return false, "[OutOfRange] too small ratio (min 2.0)"
-            end
-            if ratio > maxr then
-                return false, "[OutOfRange] too big ratio (max "..maxr..")"
-            end
+Code39_factory._par_def = {}
+local pardef = Code39_factory._par_def
+
+-- module main parameter
+pardef.module = {
+    -- Narrow element X-dimension is the width of the smallest element in a
+    -- barcode symbol.
+    -- The X-dimension impacts scan-ability. Within the allowed range, it is
+    -- recommended to use the largest possible X-dimension that is consistent
+    -- with label or form design.
+    -- The module width (width of narrow element) should be at least 7.5 mils
+    -- or 0.1905mm (a mil is 1/1000 inch).
+    default = 7.5 * 0.0254 * 186467, -- 7.5 mils (sp) unit misure,
+    unit = "sp", -- scaled point
+    isReserved = true,
+    order = 1, -- the the first to be modified
+    fncheck = function (mod, _) --> boolean, err
+        local mils = 0.0254 * 186467
+        if mod >= 7.5*mils then return true, nil end
+        return nil, "[OutOfRange] too small value for module"
+    end,
+}
+
+pardef.ratio = {
+    -- The "wide" element is a multiple of the "narrow" element and this
+    -- multiple must remain the same throughout the symbol. This multiple can
+    -- range between 2.0 and 3.0. Preferred value is 3.0.
+    -- The multiple for the wide element should be between 2.0 and 3.0 if the
+    -- narrow element is greater than 20 mils. If the narrow element is less
+    -- than 20 mils (0.508mm), the multiple can only range between 2.0 and 2.2.
+    default = 2.0, -- the minimum
+    unit = "absolute-number",
+    isReserved = true,
+    order = 2,
+    fncheck = function (ratio, tparcheck) --> boolean, err
+        local mils = 0.0254 * 186467
+        local mod = tparcheck.module
+        local maxr; if mod < 20*mils then maxr = 2.2 else maxr = 3.0 end
+        if ratio < 2.0 then
+            return false, "[OutOfRange] too small ratio (min 2.0)"
+        end
+        if ratio > maxr then
+            return false, "[OutOfRange] too big ratio (max "..maxr..")"
+        end
+        return true, nil
+    end,
+}
+
+pardef.quietzone = {
+    -- It is recommended to use the largest possible quiet zone, that is
+    -- consistent with label or form design.
+    -- Quiet zones must be at least 10 times the module width or 0.10 inches,
+    -- whichever is larger. Default value (100 mils)
+    default = 2.54 * 186467, -- 0.1 inches equal to 100*mils
+    unit = "sp", -- scaled point
+    isReserved = false,
+    order = 3,
+    fncheck = function (qz, tparcheck) --> boolean, err
+        local mils = 0.0254 * 186467
+        local mod = tparcheck.module
+        local min = math.max(10*mod, 100*mils)
+        if qz >= min then
             return true, nil
-        end,
-    },
-    quietzone = {
-        -- It is recommended to use the largest possible quiet zone, that is
-        -- consistent with label or form design.
-        -- Quiet zones must be at least 10 times the module width or 0.10 inches,
-        -- whichever is larger. Default value (100 mils)
-        default = 2.54 * 186467, -- 0.1 inches equal to 100*mils
-        unit = "sp", -- scaled point
-        isReserved = false,
-        order = 3,
-        fncheck = function (qz, tparcheck) --> boolean, err
-            local mils = 0.0254 * 186467
-            local mod = tparcheck.module
-            local min = math.max(10*mod, 100*mils)
-            if qz >= min then
-                return true, nil
-            end
-            return false, "[OutOfRange] quietzone too small"
-        end,
-    },
-    interspace = { -- Intercharacter gap
-        -- The intercharacter gap width (igw) is 5.3 times the module width (mw) if
-        -- mw is less than 10 mils. If mw is 10 mils or greater, the value for igw
-        -- is 3mw or 53 mils, whichever is greater. However, for quality printers,
-        -- igw often equals mw.
-        default = 7.5 * 0.0254 * 186467, -- 1 module, for quality printer
-        unit = "sp", -- scaled point
-        isReserved = false,
-        order = 4,
-        fncheck = function (igw, tparcheck)
-            local mod = tparcheck.module
-            if igw >= mod then return true, nil end
-            return false, "[OutOfRange] interspace too small"
-        end,
-    },
-    height = {
-        -- To enhance readability, it is recommended that the barcode be designed
-        -- to be as tall as possible, taking into consideration the aspects of label
-        -- and forms design.
-        -- The height should be at least 0.15 times the barcode's length or 0.25 inch.
-        default = 8 * 186467, -- 8 mm -- TODO: better assessment for symbol length
-        unit = "sp", -- scaled point
-        isReserved = false,
-        order = 5,
-        fncheck = function (h, _)
-            local mils = 0.0254 * 186467
-            if h >= 250*mils then return true, nil end
-            return false, "[OutOfRange] height too small"
-        end,
-    },
+        end
+        return false, "[OutOfRange] quietzone too small"
+    end,
+}
+
+pardef.interspace = { -- Intercharacter gap
+    -- The intercharacter gap width (igw) is 5.3 times the module width (mw) if
+    -- mw is less than 10 mils. If mw is 10 mils or greater, the value for igw
+    -- is 3mw or 53 mils, whichever is greater. However, for quality printers,
+    -- igw often equals mw.
+    default = 7.5 * 0.0254 * 186467, -- 1 module, for quality printer
+    unit = "sp", -- scaled point
+    isReserved = false,
+    order = 4,
+    fncheck = function (igw, tparcheck) --> boolean, err
+        local mod = tparcheck.module
+        if igw >= mod then return true, nil end
+        return false, "[OutOfRange] interspace too small"
+    end,
+}
+
+pardef.height = {
+    -- To enhance readability, it is recommended that the barcode be designed
+    -- to be as tall as possible, taking into consideration the aspects of label
+    -- and forms design.
+    -- The height should be at least 0.15 times the barcode's length or 0.25 inch.
+    default = 8 * 186467, -- 8 mm -- TODO: better assessment for symbol length
+    unit = "sp", -- scaled point
+    isReserved = false,
+    order = 5,
+    fncheck = function (h, _) --> boolean, err
+        local mils = 0.0254 * 186467
+        if h >= 250*mils then return true, nil end
+        return false, "[OutOfRange] height too small"
+    end,
+}
+
+-- text yes or not
+pardef.text_enabled = { -- boolean type
+    -- enable/disable a text label upon the barcode symbol
+    default = true,
+    isReserved = false,
+    order = 6,
+    fncheck = function (f, _) --> boolean, err
+        if type(f) == "boolean" then
+            return true, nil
+        else
+            return false, "[TypeErr] not a boolean value"
+        end
+    end,
 }
 
 -- other possible parameter
 -- text-compact
 -- text-up
 -- text-down
-
--- text yes or not
--- param.text_enabled = true
--- check.text_enabled = BoolCheck:new(param.text_enabled)
-
 -- decide if the start/stop char will be printed
 -- param.text_startstop = false
--- check.text_startstop = BoolCheck:new(param.text_startstop)
-
 -- param.text_placement = "bottom"
--- check.text_placement = EnumCheck:new(param.text_placement, {"top","bottom"})
-
 
 -- parameter identifier array _par_id
 Code39_factory._par_id = {}
@@ -163,7 +175,6 @@ function Code39_factory:init(libgeo, bc_class)
         parid[#parid + 1] = id
     end
 end
-
 
 -- main factory function for Code39 encoders
 -- enc_name  : encoder identifier in the Code39 namespace
@@ -231,7 +242,7 @@ function Code39_factory:new_encoder(enc_name, user_param) --> <encoder object>, 
             end
             -- build the Code39 symbol object
             local obj = {
-                code = symb, -- array of code chars
+                code = symb, -- array of chars
             }
             setmetatable(obj, o)
             return obj, nil
@@ -278,7 +289,12 @@ function Code39_factory:new_encoder(enc_name, user_param) --> <encoder object>, 
             -- if 0.15 * w > h then
                 -- message("The height of the barcode is to small")
             -- end
-            -- TODO: text human readable
+            -- text human readable
+            if o.text_enabled then
+                local Text = o._libgeo.Text
+                local t = Text:from_chars(o.code)
+                t:append_graphic(canvas, 0.0, -tex.sp "2pt", 0.0, 1.0)
+            end
             return canvas
         end,
     }
