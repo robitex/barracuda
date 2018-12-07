@@ -174,7 +174,7 @@ function Text:from_chars(chars, gap)
 
     local o = {
         codepoint = arr,
-        gap = gap, -- centered distance among gliphs, nil means no gap at all
+        gap = gap, -- axial distance among gliphs, nil means no gap at all
     }
     setmetatable(o, self)
     return o
@@ -220,7 +220,7 @@ function Text:append_graphic(canvas, xpos, ypos, ax, ay) --> canvas, err
     local gap = self.gap
     local c, err
     if gap then
-        c, err = canvas:text_spaced(xpos, ypos, ax, ay, chars, gap)
+        c, err = canvas:text_spaced(xpos, ypos, ax, ay, gap, chars)
     else
         c, err = canvas:text(xpos, ypos, ax, ay, chars)
     end

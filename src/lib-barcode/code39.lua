@@ -8,7 +8,7 @@
 -- structure.
 
 local Code39_factory = {
-    _VERSION     = "code39 v0.0.2",
+    _VERSION     = "code39 v0.0.3",
     _NAME        = "Code39",
     _DESCRIPTION = "Code39 barcode encoder",
 }
@@ -46,13 +46,12 @@ pardef.module = {
     -- with label or form design.
     -- The module width (width of narrow element) should be at least 7.5 mils
     -- or 0.1905mm (a mil is 1/1000 inch).
-    default = 7.5 * 0.0254 * 186467, -- 7.5 mils (sp) unit misure,
-    unit = "sp", -- scaled point
+    default    = 7.5 * 0.0254 * 186467, -- 7.5 mils (sp) unit misure,
+    unit       = "sp", -- scaled point
     isReserved = true,
-    order = 1, -- the the first to be modified
-    fncheck = function (mod, _) --> boolean, err
-        local mils = 0.0254 * 186467
-        if mod >= 7.5*mils then return true, nil end
+    order      = 1, -- the the first to be modified
+    fncheck    = function (self, mod, _) --> boolean, err
+        if mod >= self.default then return true, nil end
         return nil, "[OutOfRange] too small value for module"
     end,
 }
@@ -64,11 +63,11 @@ pardef.ratio = {
     -- The multiple for the wide element should be between 2.0 and 3.0 if the
     -- narrow element is greater than 20 mils. If the narrow element is less
     -- than 20 mils (0.508mm), the multiple can only range between 2.0 and 2.2.
-    default = 2.0, -- the minimum
-    unit = "absolute-number",
+    default    = 2.0, -- the minimum
+    unit       = "absolute-number",
     isReserved = true,
-    order = 2,
-    fncheck = function (ratio, tparcheck) --> boolean, err
+    order      = 2,
+    fncheck    = function (self, ratio, tparcheck) --> boolean, err
         local mils = 0.0254 * 186467
         local mod = tparcheck.module
         local maxr; if mod < 20*mils then maxr = 2.2 else maxr = 3.0 end
@@ -87,11 +86,11 @@ pardef.quietzone = {
     -- consistent with label or form design.
     -- Quiet zones must be at least 10 times the module width or 0.10 inches,
     -- whichever is larger. Default value (100 mils)
-    default = 2.54 * 186467, -- 0.1 inches equal to 100*mils
-    unit = "sp", -- scaled point
+    default    = 2.54 * 186467, -- 0.1 inches equal to 100*mils
+    unit       = "sp", -- scaled point
     isReserved = false,
-    order = 3,
-    fncheck = function (qz, tparcheck) --> boolean, err
+    order      = 3,
+    fncheck    = function (self, qz, tparcheck) --> boolean, err
         local mils = 0.0254 * 186467
         local mod = tparcheck.module
         local min = math.max(10*mod, 100*mils)
@@ -107,11 +106,11 @@ pardef.interspace = { -- Intercharacter gap
     -- mw is less than 10 mils. If mw is 10 mils or greater, the value for igw
     -- is 3mw or 53 mils, whichever is greater. However, for quality printers,
     -- igw often equals mw.
-    default = 7.5 * 0.0254 * 186467, -- 1 module, for quality printer
-    unit = "sp", -- scaled point
+    default    = 7.5 * 0.0254 * 186467, -- 1 module, for quality printer
+    unit       = "sp", -- scaled point
     isReserved = false,
-    order = 4,
-    fncheck = function (igw, tparcheck) --> boolean, err
+    order      = 4,
+    fncheck    = function (self, igw, tparcheck) --> boolean, err
         local mod = tparcheck.module
         if igw >= mod then return true, nil end
         return false, "[OutOfRange] interspace too small"
@@ -123,11 +122,11 @@ pardef.height = {
     -- to be as tall as possible, taking into consideration the aspects of label
     -- and forms design.
     -- The height should be at least 0.15 times the barcode's length or 0.25 inch.
-    default = 8 * 186467, -- 8 mm -- TODO: better assessment for symbol length
-    unit = "sp", -- scaled point
+    default    = 8 * 186467, -- 8 mm -- TODO: better assessment for symbol length
+    unit       = "sp", -- scaled point
     isReserved = false,
-    order = 5,
-    fncheck = function (h, _) --> boolean, err
+    order      = 5,
+    fncheck = function (self, h, _) --> boolean, err
         local mils = 0.0254 * 186467
         if h >= 250*mils then return true, nil end
         return false, "[OutOfRange] height too small"
@@ -137,11 +136,11 @@ pardef.height = {
 -- text yes or not
 pardef.text_enabled = { -- boolean type
     -- enable/disable a text label upon the barcode symbol
-    default = true,
+    default    = true,
     isReserved = false,
-    order = 6,
-    fncheck = function (f, _) --> boolean, err
-        if type(f) == "boolean" then
+    order      = 6,
+    fncheck    = function (self, flag, _) --> boolean, err
+        if type(flag) == "boolean" then
             return true, nil
         else
             return false, "[TypeErr] not a boolean value"
@@ -149,13 +148,114 @@ pardef.text_enabled = { -- boolean type
     end,
 }
 
--- other possible parameter
--- text-compact
--- text-up
--- text-down
--- decide if the start/stop char will be printed
--- param.text_startstop = false
--- param.text_placement = "bottom"
+-- define a text label layout
+pardef.text_pos = { -- enumeration
+    default       = "bottom-left",
+    isReserved    = false,
+    order         = 7,
+    text_pos_enum = { -- i.e. "center-top" or even "top-center" or simply "top"
+        vpos = {"top", "bottom"},
+        hpos = {"left", "center", "right", "spaced"},
+    },
+    fncheck    = function (self, e, _) --> boolean, err
+        if type(e) ~= "string" then return false, "[TypeErr] not a string" end
+        local enum_vpos = self.text_pos_enum.vpos
+        local enum_hpos = self.text_pos_enum.hpos
+        local vkey = {}; for _, k in ipairs(enum_vpos) do vkey[k] = true end
+        local hkey = {}; for _, k in ipairs(enum_hpos) do hkey[k] = true end
+        -- parsing
+        local p1 = e:find("-")
+        if p1 then
+            local s1 = e:sub(1, p1 - 1)
+            local s2 = e:sub(p1 + 1)
+            if vkey[s1] then
+                if hkey[s2] then
+                    return true, nil
+                else
+                    return false, "[Err] incorrect option"
+                end
+            elseif hkey[s1] then
+                if vkey[s2] then
+                    return true, nil
+                else
+                    return false, "[Err] incorrect option"
+                end
+            else
+                return false, "[Err] option not found"
+            end
+        else -- single option
+            if vkey[e] or hkey[e] then
+                return true, nil
+            else
+                return false, "[Err] option not found"
+            end
+        end
+    end,
+    fnparse = function (self, e, v, h) --> vopt, hopt
+        local enum_vpos = self.text_pos_enum.vpos
+        local enum_hpos = self.text_pos_enum.hpos
+        local vkey = {}; for _, k in ipairs(enum_vpos) do vkey[k] = true end
+        local hkey = {}; for _, k in ipairs(enum_hpos) do hkey[k] = true end
+        -- parsing
+        local p1 = e:find("-")
+        if p1 then
+            local s1 = e:sub(1, p1 - 1)
+            local s2 = e:sub(p1 + 1)
+            if vkey[s1] and hkey[s2] then
+                v = s1
+                h = s2
+            elseif hkey[s1] and vkey[s2] then
+                v = s2
+                h = s1
+            end
+        else -- single option
+            if vkey[e] then
+                v = e
+            elseif hkey[e] then
+                h = e
+            end
+        end
+        return v, h
+    end
+}
+
+-- vertical dimension between symbol and text
+pardef.text_gap = {
+    default    = "0.22em",
+    isReserved = false,
+    order      = 8,
+    fncheck    = function(self, g, _) --> boolean, err
+        if type(g) == "string" then
+            if g == "auto" then
+                return true, nil
+            else
+                return false, "[OptErr] string not allowed"
+            end
+        elseif type(g) == "number" then
+            if g > 0 then
+                return true, nil
+            else
+                return false, "[OptErr] negative number"
+            end
+        else
+            return false, "[TypeErr] not valid type for gap opt"
+        end
+    end,
+}
+
+-- star character appearing
+pardef.text_star = {
+    default    = false,
+    isReserved = false,
+    order      = 9,
+    fncheck    = function(self, flag, _) --> boolean, err
+        if type(flag) == "boolean" then
+            return true, nil
+        else
+            return false, "[TypeErr] not a boolean value"
+        end
+    end,
+}
 
 -- parameter identifier array _par_id
 Code39_factory._par_id = {}
@@ -208,8 +308,14 @@ function Code39_factory:new_encoder(enc_name, user_param) --> <encoder object>, 
         from_string = function (o, s, opt) --> symbol, err
             if type(s) ~= "string" then return nil, "[ArgErr] not a string" end
             if #s == 0 then return nil, "[ArgErr] Empty string" end
+            local symb_def = o._symb_def
             local chars = {}
             for c in string.gmatch(s, ".") do
+                local n = symb_def[c]
+                if not n then
+                    local fmt = "[Err] '%s' is not a valid Code 39 symbol"
+                    return nil, string.format(fmt, c)
+                end
                 chars[#chars+1] = c
             end
             return o:from_chars(chars, opt)
@@ -231,12 +337,12 @@ function Code39_factory:new_encoder(enc_name, user_param) --> <encoder object>, 
             local mod, ratio = o.module, o.ratio
             -- create every vbar object needed for symbol if not already present
             for _, s in ipairs(symb) do
+                local n = symb_def[s]
+                if not n then
+                    local fmt = "[Err] '%s' is not a valid Code 39 symbol"
+                    return nil, string.format(fmt, s)
+                end
                 if not vbar[s] then
-                    local n = symb_def[s]
-                    if not n then
-                        local fmt = "[Err] '%s' is not a valid Code 39 symbol"
-                        return nil, string.format(fmt, s)
-                    end
                     vbar[s] = g_Vbar:from_int_revpair(n, mod, mod*ratio)
                 end
             end
@@ -250,20 +356,20 @@ function Code39_factory:new_encoder(enc_name, user_param) --> <encoder object>, 
         -- 
         -- tx, ty is an optional translator vector
         append_graphic = function (o, canvas, tx, ty)
-            local code = o.code
-            local ns = #code -- number of chars inside the symbol
+            local code       = o.code
+            local ns         = #code -- number of chars inside the symbol
             local mod        = o.module
             local ratio      = o.ratio
             local interspace = o.interspace
             local h          = o.height
-            local xs = mod*(6 + 3*ratio)
-            local xgap = xs + interspace
+            local xs         = mod*(6 + 3*ratio)
+            local xgap       = xs + interspace
             local w = xgap*(ns + 1) + xs -- (ns + 2) * xgap - interspace
             local ax, ay = o.ax, o.ay
-            local x0 = (tx or 0) - ax * w
-            local y0 = (ty or 0) - ay * h
-            local x1 = x0 + w
-            local y1 = y0 + h
+            local x0   = (tx or 0) - ax * w
+            local y0   = (ty or 0) - ay * h
+            local x1   = x0 + w
+            local y1   = y0 + h
             local xpos = x0
             canvas:start_bbox_group()
             -- start/stop symbol
@@ -285,15 +391,51 @@ function Code39_factory:new_encoder(enc_name, user_param) --> <encoder object>, 
             canvas:stop_bbox_group(x0 - qz, y0, x1 + qz, y1)
 
             -- check height as the minimum of 15% of length
-            -- TODO: message function warning the user
+            -- TODO: message could warn the user
             -- if 0.15 * w > h then
                 -- message("The height of the barcode is to small")
             -- end
-            -- text human readable
-            if o.text_enabled then
+            if o.text_enabled then -- human readable text
+                local pdef = o.text_pos_def
+                local default = pdef.default
+                local vopt_d, hopt_d = pdef:fnparse(default)
+                local vo, ho = pdef:fnparse(o.text_pos, vopt_d, hopt_d)
+                local xpos, ypos, tax, tay, gap
+                if vo == "top" then -- vertical setup
+                    ypos = y1 + tex.sp "2pt" -- TODO: option text_gap
+                    tay = 0.0
+                else
+                    ypos = y0 - tex.sp "2pt"
+                    tay = 1.0
+                end
+                if ho == "left" then -- horizontal setup
+                    xpos = x0
+                    tax = 0.0
+                elseif ho == "center" then
+                    xpos = (x1 - x0)/2
+                    tax = 0.5
+                elseif ho == "right" then
+                    xpos = x1
+                    tax = 1.0
+                elseif ho == "spaced" then
+                    xpos = (x1 - x0)/2
+                    tax = 0.5
+                    gap = xgap
+                else
+                    error("[InternalErr] wrong option for text_pos")
+                end
+                local chars; if o.text_star then
+                    chars = {"*"}
+                    for _, c in ipairs(o.code) do
+                        chars[#chars + 1] = c
+                    end
+                    chars[#chars + 1] = "*"
+                else
+                    chars = o.code
+                end
                 local Text = o._libgeo.Text
-                local t = Text:from_chars(o.code)
-                t:append_graphic(canvas, 0.0, -tex.sp "2pt", 0.0, 1.0)
+                local txt = Text:from_chars(chars, gap)
+                txt:append_graphic(canvas, xpos, ypos, tax, tay)
             end
             return canvas
         end,
@@ -317,7 +459,7 @@ function Code39_factory:new_encoder(enc_name, user_param) --> <encoder object>, 
     for _, par in ipairs(p_ord) do
         if user_param[par] then
             local val = user_param[par]
-            local ok, err = pardef[par].fncheck(val, cktab)
+            local ok, err = pardef[par]:fncheck(val, cktab)
             if ok then
                 enc[par] = val
                 if cktab[par] then cktab[par] = val end
@@ -340,8 +482,6 @@ function Code39_factory:new_encoder(enc_name, user_param) --> <encoder object>, 
     setmetatable(enc, self._barcode)
     return enc, nil
 end
-
-
 
 return Code39_factory
 

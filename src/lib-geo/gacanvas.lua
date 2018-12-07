@@ -96,9 +96,10 @@ function gaCanvas:stop_bbox_group(x1, y1, x2, y2) --> self, err
     if not type(y1) == "number" then return nil, "[ArgErr] y1 number expected" end
     if not type(x2) == "number" then return nil, "[ArgErr] x2 number expected" end
     if not type(y2) == "number" then return nil, "[ArgErr] y2 number expected" end
+    if x1 > x2 then x1, x2 = x2, x1 end -- reorder coordinates
+    if y1 > y2 then y1, y2 = y2, y1 end
     local data = self._data
     data[#data + 1] = 31 -- bounding box of the object group
-    -- reorder bbox coordinates TODO:
     data[#data + 1] = x1
     data[#data + 1] = y1
     data[#data + 1] = x2
@@ -127,14 +128,14 @@ function gaCanvas:text(xpos, ypos, ax, ay, chars)
     return self, nil
 end
 
--- [text_spaced] 131 ax ay x y string gap
-function gaCanvas:text_spaced(xpos, ypos, ax, ay, chars, gap)
+-- [text_spaced] 131 ax ay x y gap string
+function gaCanvas:text_spaced(xpos, ypos, ax, ay, gap, chars)
     if not type(xpos) == "number" then return nil, "[ArgErr] 'xpos' number expected" end
     if not type(ypos) == "number" then return nil, "[ArgErr] 'ypos' number expected" end
     if not type(ax) == "number" then return nil, "[ArgErr] 'ax' number expected" end
     if not type(ay) == "number" then return nil, "[ArgErr] 'ay' number expected" end
-    if not type(chars) == "table" then return nil, "[ArgErr] 'chars' table expected" end
     if not type(gap) == "number" then return nil, "[ArgErr] 'gap' number expected" end
+    if not type(chars) == "table" then return nil, "[ArgErr] 'chars' table expected" end
     local data = self._data
     data[#data + 1] = 131
     data[#data + 1] = ax   -- anchor relative x-coordinate

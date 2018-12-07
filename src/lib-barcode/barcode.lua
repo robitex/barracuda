@@ -165,7 +165,7 @@ end
 function barcode:set_param(arg1, arg2) --> self, err
     -- processing arguments
     local targ; if type(arg1) == "table" then
-        if type(arg2) ~= nil then
+        if arg2 ~= nil then
             return nil, "[ArgErr] Further arguments not allowed"
         end
         targ = arg1
@@ -188,7 +188,7 @@ function barcode:set_param(arg1, arg2) --> self, err
                 return nil, "[Err] '"..id_par.."' is reserved, create a further encoder with the builder"
             end
             local new_val = targ[id_par]
-            local ok, err = pdef.fncheck(new_val, check_val)
+            local ok, err = pdef:fncheck(new_val, check_val)
             if err then return nil, err end
             assert(ok, "[InternalErr] ok, err disarmony")
             self[id_par] = new_val -- OK, set a new parameter value

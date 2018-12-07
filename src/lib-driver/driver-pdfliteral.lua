@@ -13,13 +13,13 @@ local PDFnative = {
 
 -- text utility functions with node
 
-local function newglue(w)
+local function newglue(w) --> node
     local n = node.new("glue")
     n.width = w
     return n
 end
 
-local function newglyph(c) -- U+2423 ␣
+local function newglyph(c) --> node -- ? U+2423 ␣ for whitespace?
     if c == 32 then
         return newglue(tex.sp "3.5pt")
     end
@@ -29,24 +29,24 @@ local function newglyph(c) -- U+2423 ␣
     return n
 end
 
-local function newpdfliteral(buf)
+local function newpdfliteral(buf) --> node
     local npdf = node.new("whatsit", "pdf_literal")
     npdf.mode = 0
     npdf.data = table.concat(buf, "\n")
     return npdf
 end
 
-local function append_glyph(head, last, c)
+local function append_glyph(head, last, c) --> head, last, xdim
     if c == 32 then -- space
-        head, last = node.insert_after(head, last, newglue(tex.sp "3.5pt"))
+        local space = tex.sp "3.5pt"
+        head, last = node.insert_after(head, last, newglue(space))
+        return head, last, space
     else
-        head, last = node.insert_after(head, last, newglyph(c))
+        local g = newglyph(c)
+        local xdim = g.width
+        head, last = node.insert_after(head, last, g)
+        return head, last, xdim
     end
-    return head, last
-end
-
-local function append_glyph_gap(head, last, c, gap)
-    
 end
 
 -- operation functions
@@ -135,16 +135,15 @@ PDFnative.operation_v001 = {
     end,
 
     [130] = function(st, pc, ga, bf, xt) -- text: ax ay xpos ypos string
-        local ax = ga[pc]; pc = pc + 1
-        local ay = ga[pc]; pc = pc + 1
+        local ax   = ga[pc]; pc = pc + 1
+        local ay   = ga[pc]; pc = pc + 1
         local xpos = ga[pc]; pc = pc + 1
         local ypos = ga[pc]; pc = pc + 1
-        assert(ga[pc] ~= 0, "[IntErr] No char")
+        assert(ga[pc] ~= 0, "[InternalErr] No char")
         local head, last
         while ga[pc] ~= 0 do
-            local c = ga[pc]
+            local c = ga[pc]; pc = pc + 1
             head, last = append_glyph(head, last, c)
-            pc = pc + 1
         end
         local hbox = node.hpack(head)
         local w, h, d = node.dimensions(hbox)
@@ -159,7 +158,7 @@ PDFnative.operation_v001 = {
         if st.bb_x1 == nil then
             st.bb_x1 = x
             st.bb_x2 = x + w
-            st.bb_y1 = y - d
+            st.bb_y1 = y
             st.bb_y2 = y + h
         else
             if     x < st.bb_x1 then st.bb_x1 = x end
@@ -171,8 +170,51 @@ PDFnative.operation_v001 = {
         return pc + 1
     end,
 
-    [131] = function(st, pc, ga, bf, xt) -- text_spaced -- NOT IMPLEMETED
-        assert(false, "Not Implemented!")
+    [131] = function(st, pc, ga, bf, xt) -- text_spaced
+        local ax   = ga[pc]; pc = pc + 1
+        local ay   = ga[pc]; pc = pc + 1
+        local xpos = ga[pc]; pc = pc + 1
+        local ypos = ga[pc]; pc = pc + 1
+        local gap  = ga[pc]; pc = pc + 1
+        assert(ga[pc] ~= 0, "[InternalErr] No char")
+        local head, last -- node list
+        local c1 = ga[pc]; pc = pc + 1 -- first char
+        head, last, xc = append_glyph(head, last, c1)
+        local w1 = xc
+        while ga[pc] ~= 0 do
+            local g = newglyph(ga[pc]); pc = pc + 1
+            local xdim = g.width
+            local isp = gap - (xc + xdim)/2
+            --assert(isp >= 0, "[InternalErr] have you decided what to do?")
+            local s = newglue(isp)
+            head, last = node.insert_after(head, last, s)
+            head, last = node.insert_after(head, last, g)
+            xc = xdim
+        end
+        local hbox = node.hpack(head)
+        local w, h, d = node.dimensions(hbox)
+        local x = xpos - ax*w -- text x, y position
+        local x = x - (w1 - xc)/4 -- gliph correction
+        local y
+        if ay > 0 then
+            y = ypos - h*ay
+        else
+            y = ypos - d*ay
+        end
+        -- bounding box checking
+        if st.bb_x1 == nil then
+            st.bb_x1 = x
+            st.bb_x2 = x + w
+            st.bb_y1 = y
+            st.bb_y2 = y + h
+        else
+            if     x < st.bb_x1 then st.bb_x1 = x end
+            if x + w > st.bb_x2 then st.bb_x2 = x + w end
+            if     y < st.bb_y1 then st.bb_y1 = y end
+            if y + h > st.bb_y2 then st.bb_y2 = y + h end
+        end
+        xt[#xt + 1] = {hbox, x, y - d, w, h}
+        return pc + 1
     end,
 }
 
@@ -230,40 +272,5 @@ function PDFnative:ga_to_hbox(ga, hboxname) --> nil
     hboxcreate(hboxname, bf, xt, st.bb_x1, st.bb_y1, st.bb_x2, st.bb_y2)
 end
 
-
 return PDFnative
 
---[[
-
-local function hpack_text_list( tlist )
-    local h, l
-    local w
-    local x, xp, xs
-    local isglue = false
-    for _, elem in ipairs(tlist) do
-        if elem.glue then
-            isglue = true
-            x  = elem.glue
-            xp = elem.axprec
-            xs = elem.axsucc
-        else
-            if isglue then
-                local hbox = hpack_text(elem)
-                local ws = hbox.width
-                local g = x - w*(1 - xp) - ws*xs
-                h, l = node.insert_after(h, l, newglue(g))
-                h, l = node.insert_after(h, l, hbox)
-                isglue = false
-                w = ws
-            else
-                local hbox = hpack_text(elem)
-                w = hbox.width
-                h, l = node.insert_after(h, l, hbox)
-            end
-        end
-    end
-    return node.hpack(h)
-end
-
---]]
-    

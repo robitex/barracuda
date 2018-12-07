@@ -1,50 +1,49 @@
 
-TODO:
+Development program alias TODO:
+
 
 
 Bump to      : new beta dev channel
 ?            :
 ?            : ?
 ?            : ? example directory
-Version 0.5.1: ? visual debug 
-Channel      : open 0.5.0 dev branch
+Task    0.5.1: ? visual debug 
 
 Bump to      : new beta dev channel
 ?            :
 ?            : ? TiKZ driver
 ?            : ? PGF driver
-Version 0.4.1: ? SVG driver
-Channel      : open 0.4.0 dev branch
+Task    0.4.1: ? SVG driver
 
 Bump to      : new beta dev channel
 ?            :
 ?            :
 ?            :
-Version 0.3.1: ? make thing happen: font property for text
-Channel      : open 0.3.0 dev branch
+Task    0.3.1: ? make thing happen: font property for text
 
 Bump to      : new alpha dev channel
-Version 0.2.2: ? devolop ConTeXt mkiv user module
-Version 0.2.1: ? devolop LaTeX user package
-Channel      : open 0.2.0 dev branch
+Task    0.2.2: ? devolop ConTeXt mkiv user module
+Task    0.2.1: ? devolop LaTeX user package
+Task    0.1.x: ?
+Task    0.1.x: ? coherent error management
+Task    0.1.x: ? proportional options
+Task    x: time to get an usable manual even if minimal
+Task    9: implement eventually new ideas
+Task    8: analyze on a new constructor function for encoder builder
+           for a more easy, clear, compact encoder implementation
 
-Bump to      : new alpha dev channel
-Version 0.1.x: ?
-Version 0.1.x: ? coherent error management
-Version 0.1.x: ? proportional options
-Channel      : open 0.1.0 dev branch
+<Version 0.0.3><20__-__-__>
+Task    7: do the same with previous Ean2/5/8/13 encoders code      <20__-__-__>
+Task    6: import and refactoring previous Code128 encoder code     <20__-__-__>
 
-Bump to      : new alpha dev channel
-Version 0.0.x: time to get an usable manual even if minimal
-Version 0.0.x: implement eventually new ideas
-Design       : analyze on a new constructor function for encoder builder
-             : for a more easy, clear, compact encoder implementation
-Version 0.0.5: reformat and import previous Ean2/5/8/13 encoders
-Version 0.0.4: reformat and import previous Code128 encoder
-Version 0.0.3: further text option for the code39 encoder
+<Version 0.0.2><20__-__-__>
+Task    5: option text_gap for code39                               <20__-__-__>
+Task    4: a number parameter can be a string? unit measure...      <20__-__-__>
 
-DONE:
-Version 0.0.2: include minimal text ability to the system
-Version 0.0.1: design and implement a basic framework
-Channel      : open 0.0.1 alpha dev branch
 
+TASK COMPLETED:
+Task    3: further text option for the Code39 encoder               <2018-12-06>
+Task    2: include minimal text ability to the system
+Task    1: design and implement a basic framework
+
+<Version 0.0.1> open 0.0.1 alpha dev master branch
