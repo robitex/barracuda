@@ -31,19 +31,21 @@ Task    x: time to get an usable manual even if minimal
 Task    9: implement eventually new ideas
 Task    8: analyze on a new constructor function for encoder builder
            for a more easy, clear, compact encoder implementation
+Task  x.5: a number parameter can be a string? unit measure...      <20__-__-__>
 
-<Version 0.0.3><20__-__-__>
-Task    7: do the same with previous Ean2/5/8/13 encoders code      <20__-__-__>
-Task    6: import and refactoring previous Code128 encoder code     <20__-__-__>
 
-<Version 0.0.2><20__-__-__>
-Task    5: option text_gap for code39                               <20__-__-__>
-Task    4: a number parameter can be a string? unit measure...      <20__-__-__>
+<Version 0.0.3>                                                     <20__-__-__>
+Task  3.2: do the same with previous Ean2/5/8/13 encoders code      <20__-__-__>
+Task  3.1: import and refactoring previous Code128 encoder code     <20__-__-__>
 
 
 TASK COMPLETED:
-Task    3: further text option for the Code39 encoder               <2018-12-06>
-Task    2: include minimal text ability to the system
-Task    1: design and implement a basic framework
+
+<Version 0.0.2>                                                     <2018-12-11>
+Task  2.5: option text_gap for code39                               <2018-12-11>
+Task  2.4: resolve the horizontal correction in spaced text         <2018-12-11>
+Task  2.3: further text option for the Code39 encoder               <2018-12-06>
+Task  2.2: include minimal text ability to the system
+Task  2.1: design and implement a basic framework
 
 <Version 0.0.1> open 0.0.1 alpha dev master branch

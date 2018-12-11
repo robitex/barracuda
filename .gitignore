@@ -2,4 +2,4 @@
 *.aux
 *.log
 *.synctex.gz
-.vscode/
+.vscode/*

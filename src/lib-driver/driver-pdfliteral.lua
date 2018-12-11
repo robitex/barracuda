@@ -170,21 +170,20 @@ PDFnative.operation_v001 = {
         return pc + 1
     end,
 
-    [131] = function(st, pc, ga, bf, xt) -- text_spaced
-        local ax   = ga[pc]; pc = pc + 1
+    [131] = function(st, pc, ga, bf, xt) -- text_xspaced
+        local x1   = ga[pc]; pc = pc + 1
+        local xgap = ga[pc]; pc = pc + 1
         local ay   = ga[pc]; pc = pc + 1
-        local xpos = ga[pc]; pc = pc + 1
         local ypos = ga[pc]; pc = pc + 1
-        local gap  = ga[pc]; pc = pc + 1
         assert(ga[pc] ~= 0, "[InternalErr] No char")
         local head, last -- node list
         local c1 = ga[pc]; pc = pc + 1 -- first char
         head, last, xc = append_glyph(head, last, c1)
-        local w1 = xc
+        local x = x1 - xc/2 -- x hbox coordinate
         while ga[pc] ~= 0 do
             local g = newglyph(ga[pc]); pc = pc + 1
             local xdim = g.width
-            local isp = gap - (xc + xdim)/2
+            local isp = xgap - (xc + xdim)/2
             --assert(isp >= 0, "[InternalErr] have you decided what to do?")
             local s = newglue(isp)
             head, last = node.insert_after(head, last, s)
@@ -193,9 +192,7 @@ PDFnative.operation_v001 = {
         end
         local hbox = node.hpack(head)
         local w, h, d = node.dimensions(hbox)
-        local x = xpos - ax*w -- text x, y position
-        local x = x - (w1 - xc)/4 -- gliph correction
-        local y
+        local y -- y hbox coordinate
         if ay > 0 then
             y = ypos - h*ay
         else

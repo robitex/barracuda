@@ -31,17 +31,16 @@ ga<DIM, UINT> := +Elem<DIM, UINT>
 
 Elem<DIM, UINT> := Code<u8> +Args<DIM, UINT>
 
-Code<u8> := End<u8> | State<u8> | Object<u8> | Fn<u8>
+Code<u8> := State<u8> | Object<u8> | Fn<u8>
+    State<u8>  :=   1 ->  31 -- graphic properties
+    Object<u8> :=  32 -> 239 -- graphic object
+    Fn<u8>     := 240 -> 255 -- functions
 
-End<u8>    :=   0        -- end sequence symbol (reserved for string serialization)
-State<u8>  :=   1 ->  31 -- graphic properties
-Object<u8> :=  32 -> 239 -- graphic object
-Fn<u8>     := 240 -> 255 -- functions
-
-Args<DIM, UINT> : <x: DIM> | <e: u8> | <n: UINT>
-   <x: DIM> a dimension value of type DIM
-   <e: u8> an enumeration value of type u8 (unsigned byte)
-   <n: UINT> an unsigned integer for multiplicity
+Args<DIM, UINT> : <x: DIM> | <e: u8> | <n: UINT> | <c: CHARS>
+   <x: DIM>    := a dimension value of type DIM
+   <e: u8>     := an enumeration value of type u8 (unsigned byte)
+   <n: UINT>   := an unsigned integer for multiplicity
+   <c: CHARS>  := chars sequence ended with 0
 \end{verbatim}
 
 
@@ -108,24 +107,24 @@ OpCode & Mnemonic key & Graphic object & Operands\\
 \toprule
 OpCode & Mnemonic key & Graphic object/Operands\\
 \midrule
- 130 & text         & A text with several gliphs\\
-     & & \ttfamily <ax: FLOAT> <ay: FLOAT> <x: DIM> <y: DIM> <s: STRING>\\
+ 130 & text         & A text with several glyphs\\
+     & & \ttfamily <ax: FLOAT> <ay: FLOAT> <xpos: DIM> <ypos: DIM> <c: CHARS>\\
 \midrule
- 131 & text\_spaced & A text line with gliphs equally spaced \\
-     & & \ttfamily <ax: FLOAT> <ay: FLOAT> <x: DIM> <y: DIM> <gap: DIM> <s: STRING>\\
+ 131 & text\_xspaced & A text line with glyphs equally spaced \\
+     & & \ttfamily <x1: FLOAT> <xgap: FLOAT> <ay: DIM> <ypos: DIM> <c: CHARS>\\
 \midrule
- 132 & start\_text\_group & Texts on the same baseline \\
+ 140 & start\_text\_group & Texts on the same baseline \\
 \midrule
- 133 & gtext         & A sequence of gliphs sharing a baseline\\
-     & & \ttfamily <s: STRING> \\
+ 141 & gtext         & A sequence of glyphs sharing a baseline\\
+     & & \ttfamily <c: CHARS> \\
 \midrule
- 134 & gtext\_spaced & Gliphs separated by a fixed distance sharing a baseline\\
-     & & \ttfamily <gap: DIM> <s: STRING> \\
+ 142 & gtext\_spaced & Gliphs separated by a fixed distance sharing a baseline\\
+     & & \ttfamily <gap: DIM> <c: CHARS> \\
 \midrule
- 135 & gtext\_space  & A distance between to consecutive text sharing a baseline\\
+ 143 & gtext\_gap    & A distance between to consecutive text sharing a baseline\\
      & & \ttfamily <gap: DIM>\\
 \midrule
- 140 & end\_text\_group & End text group\\
+ 149 & end\_text\_group & End text group\\
      & & \ttfamily <ax: FLOAT> <ay: FLOAT> <x: DIM> <y: DIM>\\
 \bottomrule
 \end{tabular}

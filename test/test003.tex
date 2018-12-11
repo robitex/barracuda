@@ -35,7 +35,8 @@ end
 local _, err3 = symbo:set_param{
     text_pos = "spaced-top",
     interspace = 300000,
-    text_star = false,
+    text_star = true,
+    text_gap = 65536 * 10,
 }
 assert(not err3, err3)
 

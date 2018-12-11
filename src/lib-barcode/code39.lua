@@ -221,17 +221,12 @@ pardef.text_pos = { -- enumeration
 
 -- vertical dimension between symbol and text
 pardef.text_gap = {
-    default    = "0.22em",
+    default    = 2.2 * 65536, -- 2.2 pt
     isReserved = false,
     order      = 8,
+    unit       = "em",
     fncheck    = function(self, g, _) --> boolean, err
-        if type(g) == "string" then
-            if g == "auto" then
-                return true, nil
-            else
-                return false, "[OptErr] string not allowed"
-            end
-        elseif type(g) == "number" then
+        if type(g) == "number" then
             if g > 0 then
                 return true, nil
             else
@@ -364,13 +359,13 @@ function Code39_factory:new_encoder(enc_name, user_param) --> <encoder object>, 
             local h          = o.height
             local xs         = mod*(6 + 3*ratio)
             local xgap       = xs + interspace
-            local w = xgap*(ns + 1) + xs -- (ns + 2) * xgap - interspace
-            local ax, ay = o.ax, o.ay
-            local x0   = (tx or 0) - ax * w
-            local y0   = (ty or 0) - ay * h
-            local x1   = x0 + w
-            local y1   = y0 + h
-            local xpos = x0
+            local w          = xgap*(ns + 1) + xs -- (ns + 2) * xgap - interspace
+            local ax, ay     = o.ax, o.ay
+            local x0         = (tx or 0) - ax * w
+            local y0         = (ty or 0) - ay * h
+            local x1         = x0 + w
+            local y1         = y0 + h
+            local xpos       = x0
             canvas:start_bbox_group()
             -- start/stop symbol
             local term_vbar = o._vbar['*']
@@ -396,34 +391,6 @@ function Code39_factory:new_encoder(enc_name, user_param) --> <encoder object>, 
                 -- message("The height of the barcode is to small")
             -- end
             if o.text_enabled then -- human readable text
-                local pdef = o.text_pos_def
-                local default = pdef.default
-                local vopt_d, hopt_d = pdef:fnparse(default)
-                local vo, ho = pdef:fnparse(o.text_pos, vopt_d, hopt_d)
-                local xpos, ypos, tax, tay, gap
-                if vo == "top" then -- vertical setup
-                    ypos = y1 + tex.sp "2pt" -- TODO: option text_gap
-                    tay = 0.0
-                else
-                    ypos = y0 - tex.sp "2pt"
-                    tay = 1.0
-                end
-                if ho == "left" then -- horizontal setup
-                    xpos = x0
-                    tax = 0.0
-                elseif ho == "center" then
-                    xpos = (x1 - x0)/2
-                    tax = 0.5
-                elseif ho == "right" then
-                    xpos = x1
-                    tax = 1.0
-                elseif ho == "spaced" then
-                    xpos = (x1 - x0)/2
-                    tax = 0.5
-                    gap = xgap
-                else
-                    error("[InternalErr] wrong option for text_pos")
-                end
                 local chars; if o.text_star then
                     chars = {"*"}
                     for _, c in ipairs(o.code) do
@@ -431,11 +398,46 @@ function Code39_factory:new_encoder(enc_name, user_param) --> <encoder object>, 
                     end
                     chars[#chars + 1] = "*"
                 else
-                    chars = o.code
+                    chars = code
                 end
                 local Text = o._libgeo.Text
-                local txt = Text:from_chars(chars, gap)
-                txt:append_graphic(canvas, xpos, ypos, tax, tay)
+                local txt  = Text:from_chars(chars)
+                -- setup text position
+                local pdef = o.text_pos_def
+                local default = pdef.default
+                local vopt_d, hopt_d = pdef:fnparse(default)
+                local vo, ho = pdef:fnparse(o.text_pos, vopt_d, hopt_d)
+                local txtgap = o.text_gap
+                local ypos, tay; if vo == "top" then  -- vertical setup
+                    ypos = y1 + txtgap
+                    tay = 0.0
+                else
+                    ypos = y0 - txtgap
+                    tay = 1.0
+                end
+                if ho == "spaced" then -- horizontal setup
+                    local xaxis = x0
+                    if not o.text_star then
+                        xaxis = xaxis + xgap
+                    end
+                    xaxis = xaxis + xs/2
+                    txt:append_graphic_xspaced(canvas, xaxis, xgap, ypos, ay)
+                else
+                    local xpos, tax
+                    if ho == "left" then
+                        xpos = x0
+                        tax = 0.0
+                    elseif ho == "center" then
+                        xpos = (x1 - x0)/2
+                        tax = 0.5
+                    elseif ho == "right" then
+                        xpos = x1
+                        tax = 1.0
+                    else
+                        error("[InternalErr] wrong option for text_pos")
+                    end
+                    txt:append_graphic(canvas, xpos, ypos, tax, tay)
+                end
             end
             return canvas
         end,

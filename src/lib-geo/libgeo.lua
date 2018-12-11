@@ -142,12 +142,9 @@ Text.__index = Text
 
 -- costructors
 -- internally it keeps text as a sequence of codepoint
-function Text:from_string(s, gap) --> object
+function Text:from_string(s) --> object
     assert(type(s) == "string", "[ArgErr] 's' not a valid string")
     assert(#s > 0, "[Err] 's' empty string not allowed")
-    if gap then
-        assert(type(gap) == "number", "[ArgErr] 'gap' is not a number")
-    end
 
     local cp = {} -- codepoint array
     for b in string.bytes(s) do
@@ -155,40 +152,30 @@ function Text:from_string(s, gap) --> object
     end
     local o = {
         codepoint = cp,
-        gap  = gap, -- centered distance among gliphs, nil means no gap at all
     }
     setmetatable(o, self)
     return o
 end
 
 -- from an array of chars
-function Text:from_chars(chars, gap)
+function Text:from_chars(chars)
     assert(type(chars) == "table", "[ArgErr] 'chars' must be a table")
-    if gap then
-        assert(type(gap) == "number", "[ArgErr] 'gap' is not a number")
-    end
     local arr = {}
     for _, c in ipairs(chars) do
         arr[#arr + 1] = string.byte(c)
     end
-
     local o = {
         codepoint = arr,
-        gap = gap, -- axial distance among gliphs, nil means no gap at all
     }
     setmetatable(o, self)
     return o
 end
 
 -- provide an integer to build a Text object
-function Text:from_int(n, gap)
+function Text:from_int(n)
     assert(type(n) == "number", "[ArgErr] 'n' must be a number")
-    assert( n > 0, "[Err] 'n' must be a positive number")
+    assert( n > 0, "[Err] 'n' must be positive")
     assert( n == math.floor(n), "[Err] 'n' must be an integer")
-    if gap then
-        assert(type(gap) == "number", "[ArgErr] 'gap' is not a number")
-    end
-
     local cp = {}
     while n > 0 do
         local d = n % 10
@@ -203,7 +190,6 @@ function Text:from_int(n, gap)
     end
     local o = {
         codepoint = cp,
-        gap = gap, -- centered distance among gliphs, nil means no gap at all
     }
     setmetatable(o, self)
     return o
@@ -217,16 +203,31 @@ function Text:append_graphic(canvas, xpos, ypos, ax, ay) --> canvas, err
     ay = ay or 0; assert(type(ay) == "number", "[ArgErr] 'ay' is not a number")
     
     local chars = self.codepoint
-    local gap = self.gap
-    local c, err
-    if gap then
-        c, err = canvas:text_spaced(xpos, ypos, ax, ay, gap, chars)
-    else
-        c, err = canvas:text(xpos, ypos, ax, ay, chars)
-    end
+    local c, err = canvas:text(xpos, ypos, ax, ay, chars)
     return c, err
 end
 
+-- glyph equally spaced along the baseline
+function Text:append_graphic_xspaced(canvas, x1, xgap, ypos, ay) --> canvas, err
+    assert(type(canvas) == "table", "[ArgErr] 'canvas' object must be provided")
+    assert(type(x1) == "number", "[ArgErr] 'x1' number required")
+    assert(type(xgap) == "number", "[ArgErr] 'xgap' is not a number")
+    assert(type(ypos) == "number", "[ArgErr] 'ypos' number required")
+    ay = ay or 0; assert(type(ay) == "number", "[ArgErr] 'ay' is not a number")
+    local chars = self.codepoint
+    local c, err
+    if xgap > 0 then
+        c, err = canvas:text_xspaced(x1, xgap, ay, ypos, chars)
+    elseif xgap < 0 then
+        local n = #chars
+        x1 = x1 + (n - 1) * xgap
+        xgap = -xgap
+        c, err = canvas:text_xspaced(x1, xgap, ay, ypos, chars)
+    else -- xgap == 0
+        error("xgap is zero")
+    end
+    return c, err
+end
 
 return libgeo
 

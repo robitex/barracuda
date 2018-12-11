@@ -128,21 +128,19 @@ function gaCanvas:text(xpos, ypos, ax, ay, chars)
     return self, nil
 end
 
--- [text_spaced] 131 ax ay x y gap string
-function gaCanvas:text_spaced(xpos, ypos, ax, ay, gap, chars)
-    if not type(xpos) == "number" then return nil, "[ArgErr] 'xpos' number expected" end
+-- [text_xspaced] 131 x1 xgap ay ypos chars
+function gaCanvas:text_xspaced(x1, xgap, ay, ypos, chars)
+    if not type(x1)   == "number" then return nil, "[ArgErr] 'x1' number expected" end
+    if not type(xgap) == "number" then return nil, "[ArgErr] 'xgap' number expected" end
+    if not type(ay)   == "number" then return nil, "[ArgErr] 'ay' number expected" end
     if not type(ypos) == "number" then return nil, "[ArgErr] 'ypos' number expected" end
-    if not type(ax) == "number" then return nil, "[ArgErr] 'ax' number expected" end
-    if not type(ay) == "number" then return nil, "[ArgErr] 'ay' number expected" end
-    if not type(gap) == "number" then return nil, "[ArgErr] 'gap' number expected" end
     if not type(chars) == "table" then return nil, "[ArgErr] 'chars' table expected" end
     local data = self._data
     data[#data + 1] = 131
-    data[#data + 1] = ax   -- anchor relative x-coordinate
+    data[#data + 1] = x1   -- x-coordinate of the first axis from left to right
+    data[#data + 1] = xgap  -- axial distance among gliphs
     data[#data + 1] = ay   -- anchor relative y-coordinate
-    data[#data + 1] = xpos -- text x-coordinate
     data[#data + 1] = ypos -- text y-coordinate
-    data[#data + 1] = gap  -- axial distance among gliphs
     for _, c in ipairs(chars) do
         data[#data + 1] = c
     end
@@ -150,18 +148,18 @@ function gaCanvas:text_spaced(xpos, ypos, ax, ay, gap, chars)
     return self, nil
 end
 
--- [start_text_group] 132
+-- [start_text_group] 140
 function gaCanvas:start_text_group()
     local data = self._data
-    data[#data + 1] = 132
+    data[#data + 1] = 140
     return self, nil
 end
 
--- [gtext] 133
+-- [gtext] 141
 function gaCanvas:gtext(chars)
     if not type(chars) == "table" then return nil, "[ArgErr] 'chars' table expected" end
     local data = self._data
-    data[#data + 1] = 133
+    data[#data + 1] = 141
     for _, c in ipairs(chars) do
         data[#data + 1] = c
     end
@@ -169,12 +167,12 @@ function gaCanvas:gtext(chars)
     return self, nil
 end
 
--- [gtext_spaced] 134 gap string
+-- [gtext_spaced] 142 gap string
 function gaCanvas:gtext_spaced(gap, chars)
     if not type(gap) == "number" then return nil, "[ArgErr] 'gap' number expected" end
     if not type(chars) == "table" then return nil, "[ArgErr] 'chars' table expected" end
     local data = self._data
-    data[#data + 1] = 134
+    data[#data + 1] = 142
     data[#data + 1] = gap
     for _, c in ipairs(chars) do
         data[#data + 1] = c
@@ -183,24 +181,24 @@ function gaCanvas:gtext_spaced(gap, chars)
     return self, nil
 end
 
--- [gtext_space] 135 gap 
-function gaCanvas:gtext_spaced(gap)
+-- [gtext_space] 143 gap 
+function gaCanvas:gtext_gap(gap)
     if not type(gap) == "number" then return nil, "[ArgErr] 'gap' number expected" end
     local data = self._data
-    data[#data + 1] = 135
+    data[#data + 1] = 143
     data[#data + 1] = gap
     return self, nil
 end
 
 
--- [end_text_group] 140 ax ay x y
+-- [end_text_group] 149 ax ay x y
 function gaCanvas:end_text_group(xpos, ypos, ax, ay)
     if not type(xpos) == "number" then return nil, "[ArgErr] 'xpos' number expected" end
     if not type(ypos) == "number" then return nil, "[ArgErr] 'ypos' number expected" end
     if not type(ax) == "number" then return nil, "[ArgErr] 'ax' number expected" end
     if not type(ay) == "number" then return nil, "[ArgErr] 'ay' number expected" end
     local data = self._data
-    data[#data + 1] = 140
+    data[#data + 1] = 149
     data[#data + 1] = ax   -- anchor relative x-coordinate
     data[#data + 1] = ay   -- anchor relative y-coordinate
     data[#data + 1] = xpos -- text x-coordinate
