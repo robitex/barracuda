@@ -1,5 +1,5 @@
 
-Development program alias TODO:
+Development program, alias what TODO:
 
 
 
@@ -39,7 +39,7 @@ Task  3.2: do the same with previous Ean2/5/8/13 encoders code      <20__-__-__>
 Task  3.1: import and refactoring previous Code128 encoder code     <20__-__-__>
 
 
-TASK COMPLETED:
+COMPLETED TASK:
 
 <Version 0.0.2>                                                     <2018-12-11>
 Task  2.5: option text_gap for code39                               <2018-12-11>

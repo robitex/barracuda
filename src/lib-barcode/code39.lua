@@ -49,7 +49,7 @@ pardef.module = {
     default    = 7.5 * 0.0254 * 186467, -- 7.5 mils (sp) unit misure,
     unit       = "sp", -- scaled point
     isReserved = true,
-    order      = 1, -- the the first to be modified
+    order      = 1, -- the one first to be modified
     fncheck    = function (self, mod, _) --> boolean, err
         if mod >= self.default then return true, nil end
         return nil, "[OutOfRange] too small value for module"
@@ -393,12 +393,15 @@ function Code39_factory:new_encoder(enc_name, user_param) --> <encoder object>, 
             if o.text_enabled then -- human readable text
                 local chars; if o.text_star then
                     chars = {"*"}
-                    for _, c in ipairs(o.code) do
+                    for _, c in ipairs(code) do
                         chars[#chars + 1] = c
                     end
                     chars[#chars + 1] = "*"
                 else
-                    chars = code
+                    chars = {}
+                    for _, c in ipairs(code) do
+                        chars[#chars + 1] = c
+                    end
                 end
                 local Text = o._libgeo.Text
                 local txt  = Text:from_chars(chars)

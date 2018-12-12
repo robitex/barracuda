@@ -1,5 +1,8 @@
 
+# exclude auxiliary TeX file resulting from to compile documents
 *.aux
 *.log
 *.synctex.gz
-.vscode/*
+
+# exclude VSC configuration dir
+.vscode/
