@@ -39,6 +39,44 @@ function Vbar:from_array(yl_arr)
     return o
 end
 
+-- costructor useful for Code128 encoder
+-- from an integer: 21231 -> binary 11 0 11 000 1 -> symbol 110110001
+-- is_bar :: boolean :: bar or space as first element, default true
+function Vbar:from_int(ngen, mod, is_bar) --> <vbar object>
+    assert(type(ngen) == "number", "Invalid argument for n")
+    assert(type(mod) == "number", "Invalid argument for module width")
+    if is_bar == nil then is_bar = true else
+        assert(type(is_bar) == "boolean", "Invalid argument for is_bar")
+    end
+    -- scan ngen for digits
+    local digits = {}
+    while ngen > 0 do
+        local d = ngen % 10
+        digits[#digits + 1] = d
+        ngen = (ngen - d)/10
+    end
+    
+    local x0 = 0.0 -- axis reference
+    local yl = {}
+    for k = #digits, 1, -1 do
+        local d = digits[k]
+        local w = d*mod   -- bar width
+        if is_bar then    -- bar
+            yl[#yl + 1] = x0 + w/2
+            yl[#yl + 1] = w
+        end
+        x0 = x0 + w
+        is_bar = not is_bar
+    end
+    assert(not is_bar, "[InternalErr] the last element in not a bar")
+    local o = {
+        _yline = yl,   -- [<xcenter>, <width>, ...] flat array
+        _x_lim = x0, -- right external coordinate
+    }
+    setmetatable(o, self)
+    return o
+end
+
 -- costructor useful for EAN encoder
 -- from an integer to read from right to left
 -- 13212 ->rev 21231 ->binary 11 0 11 000 1 -> symbol 110110001

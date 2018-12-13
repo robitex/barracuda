@@ -52,7 +52,7 @@ pardef.module = {
     order      = 1, -- the one first to be modified
     fncheck    = function (self, mod, _) --> boolean, err
         if mod >= self.default then return true, nil end
-        return nil, "[OutOfRange] too small value for module"
+        return false, "[OutOfRange] too small value for module"
     end,
 }
 
@@ -99,6 +99,10 @@ pardef.quietzone = {
         end
         return false, "[OutOfRange] quietzone too small"
     end,
+    fndefault = function(self, tck) --> default value respect to a set of param
+        local mod = tck.module
+        return math.max(10*mod, self.default)
+    end,
 }
 
 pardef.interspace = { -- Intercharacter gap
@@ -114,6 +118,9 @@ pardef.interspace = { -- Intercharacter gap
         local mod = tparcheck.module
         if igw >= mod then return true, nil end
         return false, "[OutOfRange] interspace too small"
+    end,
+    fndefault = function(self, tck) --> default value respect to a set of param
+        return tck.module
     end,
 }
 
@@ -224,7 +231,7 @@ pardef.text_gap = {
     default    = 2.2 * 65536, -- 2.2 pt
     isReserved = false,
     order      = 8,
-    unit       = "em",
+    unit       = "em", --> TODO: please analyzing this asap
     fncheck    = function(self, g, _) --> boolean, err
         if type(g) == "number" then
             if g > 0 then
@@ -252,23 +259,32 @@ pardef.text_star = {
     end,
 }
 
--- parameter identifier array _par_id
-Code39_factory._par_id = {}
-local parid = Code39_factory._par_id
-for id, tpar in pairs(Code39_factory._par_def) do
-    parid[tpar.order] = id
+-- parameter identifier ordered array _par_id
+Code39_factory._par_id = {}; local parid = Code39_factory._par_id
+local i = 0
+for id, tpar in pairs(pardef) do
+    local ord = tpar.order
+    assert(not parid[ord], "[InternalErr] duplicate order in parameter definition")
+    parid[ord] = id
+    i = i + 1
 end
+assert(#parid == i, "[InternalErr] failure to order paramenters")
 
 -- init function
 function Code39_factory:init(libgeo, bc_class)
     self._libgeo  = assert(libgeo, "[InternalErr] libgeo is nil")
     self._barcode = assert(bc_class, "[InternalErr] bc_class is nil")
-    -- append the superclass parameter identifier
+    -- append in order the superclass parameter identifiers
     local super_parid = bc_class._par_id
     local parid = self._par_id
     for _, id in ipairs(super_parid) do
         parid[#parid + 1] = id
     end
+    -- connecting pardef
+    local pardef       = self._par_def
+    local super_pardef = bc_class._par_def
+    pardef.__index = pardef
+    setmetatable(pardef, super_pardef)
 end
 
 -- main factory function for Code39 encoders
@@ -285,7 +301,7 @@ function Code39_factory:new_encoder(enc_name, user_param) --> <encoder object>, 
         return nil, "[ArgErr] space char not allowed for enc_name"
     end
     if self._enc_instance[enc_name] then
-        return nil, "[Err] enc_name also declared"
+        return nil, "[Err] enc_name already declared"
     end
     
     local enc = { -- the new encoder
@@ -294,9 +310,9 @@ function Code39_factory:new_encoder(enc_name, user_param) --> <encoder object>, 
         _DESCRIPTION = self._DESCRIPTION,
         _libgeo      = self._libgeo,   -- a reference to the geometric library
         _symb_def    = self._symb_def, -- reference to symbol definition table
-        _par_id      = self._par_id,   -- array of parameter identifier
+        _par_id      = self._par_id,   -- ordered array of parameters identifier
+        _par_def     = self._par_def,  -- ref to paramenter definitions
         _vbar        = {},             -- where we dynamically place vbar symbol
-        _get_param_for_checking = function (o) return {module = o.module} end,
         
         -- symbol costructors
         -- return the symbol object or an error message
@@ -359,7 +375,7 @@ function Code39_factory:new_encoder(enc_name, user_param) --> <encoder object>, 
             local h          = o.height
             local xs         = mod*(6 + 3*ratio)
             local xgap       = xs + interspace
-            local w          = xgap*(ns + 1) + xs -- (ns + 2) * xgap - interspace
+            local w          = xgap*(ns + 1) + xs -- (ns + 2)*xgap - interspace
             local ax, ay     = o.ax, o.ay
             local x0         = (tx or 0) - ax * w
             local y0         = (ty or 0) - ay * h
@@ -406,7 +422,8 @@ function Code39_factory:new_encoder(enc_name, user_param) --> <encoder object>, 
                 local Text = o._libgeo.Text
                 local txt  = Text:from_chars(chars)
                 -- setup text position
-                local pdef = o.text_pos_def
+                local pardef = o._par_def
+                local pdef = pardef.text_pos
                 local default = pdef.default
                 local vopt_d, hopt_d = pdef:fnparse(default)
                 local vo, ho = pdef:fnparse(o.text_pos, vopt_d, hopt_d)
@@ -446,33 +463,32 @@ function Code39_factory:new_encoder(enc_name, user_param) --> <encoder object>, 
         end,
     }
     local pardef = self._par_def
-    local p_ord = {}
-    local i = 0
-    for pk, tdef in pairs(pardef) do
-        enc[pk.."_def"] = tdef -- copy a reference to the param definition table
-        p_ord[tdef.order] = pk
-        i = i + 1
-    end
-    assert(#p_ord == i)
+    local p_ord = self._par_id
+
     -- generate parameters value
     user_param = user_param or {}
     if type(user_param) ~= "table" then
         return nil, "[ArgErr] 'user_param' must be a table"
     end
     -- check and eventually set every parameter within user_param
-    local cktab = { module = true }
+    local cktab = {}
     for _, par in ipairs(p_ord) do
-        if user_param[par] then
+        local pdef = pardef[par]
+        if user_param[par] ~= nil then
             local val = user_param[par]
-            local ok, err = pardef[par]:fncheck(val, cktab)
+            local ok, err = pdef:fncheck(val, cktab)
             if ok then
                 enc[par] = val
-                if cktab[par] then cktab[par] = val end
             else
                 return nil, err
             end
         else
-            enc[par] = pardef[par].default
+            local val; if pdef.fndefault then
+                val = pdef:fndefault(cktab)
+            else
+                val = pdef.default
+            end
+            enc[par] = val
         end
         cktab[par] = enc[par]
     end
@@ -487,6 +503,20 @@ function Code39_factory:new_encoder(enc_name, user_param) --> <encoder object>, 
     setmetatable(enc, self._barcode)
     return enc, nil
 end
+
+-- retrive encoder object already created
+function Code39_factory:enc_by_name(name) --> <encoder object>, <err>
+    if type(name) ~= "string" then
+        return nil, "[ArgErr] code39 encoder name must be a string"
+    end
+    local repo = self._enc_instance
+    if repo[name] then
+        return repo[name], nil
+    else
+        return nil, "[Err] code39 encoder '"..name.."' not found"
+    end
+end
+
 
 return Code39_factory
 

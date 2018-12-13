@@ -35,10 +35,12 @@ Code128_factory._codeset = {
 }
 
 Code128_factory._switch = { -- codes for to switch from a codeset to another one
-    [103] = {[104] = 100, [105] =  99}, -- from A to others
-    [104] = {[103] = 101, [105] =  99}, -- from B to others
-    [105] = {[103] = 101, [104] = 100}, -- from C to others
+    [103] = {[104] = 100, [105] =  99}, -- from A to B or C
+    [104] = {[103] = 101, [105] =  99}, -- from B to A or C
+    [105] = {[103] = 101, [104] = 100}, -- from C to A or B
 }
+
+Code128_factory._enc_instance = {}
 
 -- parameters definition
 Code128_factory._par_def = {}
@@ -54,7 +56,7 @@ pardef.xdim = {
         if x >= self.default then
             return true, nil
         else
-            return nil, "[OutOfRange] too small value for xdim"
+            return false, "[OutOfRange] too small value for xdim"
         end
     end,
 }
@@ -69,7 +71,7 @@ pardef.ydim = {
         if y >= 10*xdim then
             return true, nil
         else
-            return nil, "[OutOfRange] too small value for ydim"
+            return false, "[OutOfRange] too small value for ydim"
         end
     end,
 }
@@ -83,7 +85,7 @@ pardef.quite_zone_factor = {
         if z >= 10 then
             return true, nil
         else
-            return nil, "[OutOfRange] too small value for quite_zone_factor"
+            return false, "[OutOfRange] too small value for quite_zone_factor"
         end
     end,
 }
@@ -107,9 +109,23 @@ function Code128_factory:init(libgeo, bc_class)
     end
 end
 
+
+
+
+
+
+
+
+
+
+
+
+-- costructors section
+
+
 -- symbol costructors
 -- return the symbol object or an error message
-from_string = function (o, s, opt) --> symbol, err
+local from_string = function (o, s, opt) --> symbol, err
     if type(s) ~= "string" then return nil, "[ArgErr] not a string" end
     if #s == 0 then return nil, "[ArgErr] Empty string" end
     local symb_def = o._symb_def
@@ -125,9 +141,90 @@ from_string = function (o, s, opt) --> symbol, err
     return o:from_chars(chars, opt)
 end
 
+
+
+-- costructor: from an array of chars
+-- no error checking
+function Code128:from_array(arr)
+    -- build the Code128 object
+    local o = {
+        code = arr, -- array of code chars
+        data = encode128(arr,
+            self.codesetA, self.codesetB, self.codesetC,
+            self.stopChar, self.switch
+        ),
+    }
+    -- load dynamically the geometric bar definition
+    for _, char in ipairs(o.data) do
+        if not self.vbar[char] then
+            local n   = self.integer_def_bar[char]
+            local mod = self.xdim
+            local yline = build_vbar(n, mod, 6)
+            local Vbar = self.libgeo.Vbar
+            self.vbar[char] = Vbar:from_array(yline)
+        end
+    end
+    setmetatable(o, self)
+    return o
+end
+
+-- costructor: from an ASCII string
+-- no error checking
+-- string.utfvalues() is a LuaTeX only function
+function Code128:from_string(s)
+    if not s then return nil, "Mandatory arg" end
+    if not type(s) == "string" then return nil, "Not a string" end
+    if #s == 0 then return nil, "Empty string" end
+
+    local symb = {}
+    for codepoint in string.utfvalues(s) do
+        if codepoint > 255 then
+            local fmt = "The codepoint '%d' is not representable in Code128"
+            return nil, string.format(fmt, codepoint)
+        end
+        if codepoint > 127 then
+            local fmt = "The '%d' char is ASCII extented not yet implemented"
+            return nil, string.format(fmt, codepoint)
+        end
+        symb[#symb + 1] = codepoint
+    end
+
+    local o = {
+        code = symb, -- array of code chars
+        data = encode128(symb,
+            self.codesetA, self.codesetB, self.codesetC,
+            self.stopChar, self.switch
+        ),
+    }
+    -- load dynamically the geometric bar definition
+    for _, char in ipairs(o.data) do
+        if not self.vbar[char] then
+            local n   = self.integer_def_bar[char]
+            local mod = self.xdim
+            local yline =  build_vbar(n, mod, 6)
+            local Vbar = self.libgeo.Vbar
+            self.vbar[char] = Vbar:from_array(yline)
+        end
+    end
+    setmetatable(o, self)
+    return o, nil
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
 -- symbol costructor: from an array of chars
 -- return the symbol object or an error message
-from_chars = function (o, symb, opt)
+local from_chars = function (o, symb, opt)
     if type(symb) ~= "table" then
         return nil, "[ArgErr] symb is not a table"
     end
@@ -158,9 +255,53 @@ from_chars = function (o, symb, opt)
     return obj, nil
 end
 
--- 
+
+
+
+-- Drawing into the provided channel the geometrical barcode data
+-- tx, ty is the optional translation vector
+-- the function return the canvas reference to allow call chaining
+local function append_graphic(o, canvas, tx, ty)
+    local xdim, h = o.xdim, o.ydim
+    local sw = 11*xdim -- the width of a symbol
+    local data = o.data
+    local w = #data*sw + 2*xdim -- with the stop char correction
+    local ax, ay = o.ax or 0, o.ay or 0
+    local x0 = (tx or 0) - ax * w
+    local y0 = (ty or 0) - ay * h
+    local x1 = x0 + w
+    local y1 = y0 + h
+
+    local xpos = x0
+    canvas:start_bbox_group()
+    -- drawing the symbols
+    for _, char in ipairs(data) do
+        local ref = o._vbar[char]
+        ref:draw_to_canvas(canvas, y0, y1, xpos)
+        xpos = xpos + sw
+    end
+
+    -- bounding box setting
+    local qz = o.quite_zone_factor * xdim
+    canvas:bounding_box(x0 - qz, y0, x1 + qz, y1) -- {xmin, ymin, xmax, ymax}
+
+    -- check height as the minimum of 15% of length
+    if 0.15 * w > h then
+        -- TODO: message function for warning the user
+        -- message("The height of the barcode is to small")
+    end
+    return canvas
+end
+
+
+
+
+
+
+
+
 -- tx, ty is an optional translator vector
-append_graphic = function (o, canvas, tx, ty)
+local append_graphic = function (o, canvas, tx, ty)
     local code       = o.code
     local ns         = #code -- number of chars inside the symbol
     local mod        = o.module
@@ -272,18 +413,19 @@ function Code128_factory:new_encoder(enc_name, user_param) --> <encoder object>,
     if self._enc_instance[enc_name] then
         return nil, "[Err] enc_name also declared"
     end
-    
+    local codeset = self._codeset
+    local int_def = self._int_def_bar
     local enc = { -- the new encoder
         _NAME          = self._NAME,
         _VERSION       = self._VERSION,
         _DESCRIPTION   = self._DESCRIPTION,
-        _libgeo        = self._libgeo,     -- a ref to the geometric library
-        _int_def_bar   = self._int_def_bar,-- ref to symbol definition table
-        _codeset       = self._codeset,    -- codeset and other codes
-        _switch        = self._switch,     -- switch code table
-        _par_id        = self._par_id,     -- array of parameter identifier
-        _vbar          = {},               -- where we dynamically place vbars
-        from_array     = from_array,       -- copying methods
+        _libgeo        = self._libgeo, -- a ref to the geometric library
+        _int_def_bar   = int_def,      -- ref to symbol definition table
+        _codeset       = codeset,      -- codeset and other codes
+        _switch        = self._switch, -- switch code table
+        _par_id        = self._par_id, -- array of parameter identifier
+        _vbar          = {},           -- where we dynamically place vbars
+        from_string    = from_string,  -- copying methods
         from_chars     = from_chars,
         append_graphic = append_graphic,
         _get_param_for_checking = function (o) return {xdim = o.xdim} end,
@@ -321,12 +463,13 @@ function Code128_factory:new_encoder(enc_name, user_param) --> <encoder object>,
         end
         cktab[par] = enc[par]
     end
-    TODO:
     -- build Vbar object for the start/stop symbol
-    local mod, ratio = enc.module, enc.ratio
-    local n_star = self._star_def
+    local mod = enc.xdim
+    local sc = codeset.stopChar-- build the stop char
+    local n = int_def[sc]
     local Vbar = self._libgeo.Vbar -- Vbar class
-    enc._vbar = {['*'] = Vbar:from_int_revpair(n_star, mod, mod*ratio)}
+    local b = enc._vbar
+    b[sc] = Vbar:from_int(n, mod, true)
     --save locally the encoder reference
     self._enc_instance[enc_name] = enc
     enc.__index = enc
@@ -334,15 +477,6 @@ function Code128_factory:new_encoder(enc_name, user_param) --> <encoder object>,
     return enc, nil
 end
 
-
-
- 
-    local sc = self.stopChar-- build the stop char
-    local n = self.integer_def_bar[sc]
-    local mod = self.xdim
-    local yline = build_vbar(n, mod, 7)
-    local Vbar = self.libgeo.Vbar
-    self.vbar[sc] = Vbar:from_array(yline)
 
 
 
@@ -400,25 +534,6 @@ local function ctrl_or_lowercase(pos, data)
         end
     end
     return false -- no such data
-end
-
-local function build_vbar(n, mod, ndigit)
-    local x0 = 0
-    local isbar = true
-    local div = 10^(ndigit - 1)
-    local yline = {} -- flat array of yline: [<xcenter>, <width>, ...]
-    while div > 0 do
-        local digit = math.floor(n/div) % 10
-        local w = mod*digit
-        if isbar then
-            yline[#yline + 1] = x0 + w/2
-            yline[#yline + 1] = w
-        end
-        x0 = x0 + w
-        isbar = not isbar
-        div = math.floor(div/10)
-    end
-    return yline
 end
 
 -- encode the provided char respect to the codeset
@@ -543,118 +658,12 @@ end
 
 
 
--- costructors section
-
--- costructor: from an array of chars
--- no error checking
-function Code128:from_array(arr)
-    -- build the Code128 object
-    local o = {
-        code = arr, -- array of code chars
-        data = encode128(arr,
-            self.codesetA, self.codesetB, self.codesetC,
-            self.stopChar, self.switch
-        ),
-    }
-    -- load dynamically the geometric bar definition
-    for _, char in ipairs(o.data) do
-        if not self.vbar[char] then
-            local n   = self.integer_def_bar[char]
-            local mod = self.xdim
-            local yline =  build_vbar(n, mod, 6)
-            local Vbar = self.libgeo.Vbar
-            self.vbar[char] = Vbar:from_array(yline)
-        end
-    end
-    setmetatable(o, self)
-    return o
-end
-
--- costructor: from an ASCII string
--- no error checking
--- string.utfvalues() is a LuaTeX only function
-function Code128:from_string(s)
-    if not s then return nil, "Mandatory arg" end
-    if not type(s) == "string" then return nil, "Not a string" end
-    if #s == 0 then return nil, "Empty string" end
-
-    local symb = {}
-    for codepoint in string.utfvalues(s) do
-        if codepoint > 255 then
-            local fmt = "The codepoint '%d' is not representable in Code128"
-            return nil, string.format(fmt, codepoint)
-        end
-        if codepoint > 127 then
-            local fmt = "The '%d' char is ASCII extented not yet implemented"
-            return nil, string.format(fmt, codepoint)
-        end
-        symb[#symb + 1] = codepoint
-    end
-
-    local o = {
-        code = symb, -- array of code chars
-        data = encode128(symb,
-            self.codesetA, self.codesetB, self.codesetC,
-            self.stopChar, self.switch
-        ),
-    }
-    -- load dynamically the geometric bar definition
-    for _, char in ipairs(o.data) do
-        if not self.vbar[char] then
-            local n   = self.integer_def_bar[char]
-            local mod = self.xdim
-            local yline =  build_vbar(n, mod, 6)
-            local Vbar = self.libgeo.Vbar
-            self.vbar[char] = Vbar:from_array(yline)
-        end
-    end
-    setmetatable(o, self)
-    return o, nil
-end
-
-
-
--- methods
 
 
 
 
 
 
--- Drawing in the provided channel the geometrical
--- data of the barcode
--- tx, ty is the optional traslation vector
--- the function return the canvas reference to accomplish chaining
-function Code128:draw_to_canvas(canvas, tx, ty)
-    local xdim, h = self.xdim, self.ydim
-    local sw = 11*xdim -- the width of a symbol
-    local data = self.data
-    local w = #data*sw + 2*xdim -- with the stop char correction
-    local ax, ay = self.ax or 0, self.ay or 0
-    local x0 = (tx or 0) - ax * w
-    local y0 = (ty or 0) - ay * h
-    local x1 = x0 + w
-    local y1 = y0 + h
-
-    local xpos = x0
-    -- drawing the symbols
-    for _, char in ipairs(data) do
-        local ref = self.vbar[char]
-        ref:draw_to_canvas(canvas, y0, y1, xpos)
-        xpos = xpos + sw
-    end
-
-    -- bounding box setting
-    local qz = self.quite_zone_factor * xdim
-    canvas:bounding_box(x0 - qz, y0, x1 + qz, y1) -- {xmin, ymin, xmax, ymax}
-
-    -- check height as the minimum of 15% of length
-    if 0.15 * w > h then
-        -- TODO message function for warning the user
-        -- message("The height of the barcode is to small")
-    end
-    return canvas
-end
 
 
 return Code128
