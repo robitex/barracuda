@@ -55,7 +55,6 @@ function Vbar:from_int(ngen, mod, is_bar) --> <vbar object>
         digits[#digits + 1] = d
         ngen = (ngen - d)/10
     end
-    
     local x0 = 0.0 -- axis reference
     local yl = {}
     for k = #digits, 1, -1 do
@@ -68,7 +67,6 @@ function Vbar:from_int(ngen, mod, is_bar) --> <vbar object>
         x0 = x0 + w
         is_bar = not is_bar
     end
-    assert(not is_bar, "[InternalErr] the last element in not a bar")
     local o = {
         _yline = yl,   -- [<xcenter>, <width>, ...] flat array
         _x_lim = x0, -- right external coordinate

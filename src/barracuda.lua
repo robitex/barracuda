@@ -45,7 +45,7 @@ Barracuda._drv_instance = {} -- driver instances repository
 -- barcode_type/submodule name
 Barracuda._brc_available_enc = {-- keys must be lowercase
     code39  = "lib-barcode.code39",
-    -- code128 = "lib-barcode.code128",
+    code128 = "lib-barcode.code128",
     -- ean13   = "lib-barcode.ean13",
     -- ean5    = "lib-barcode.ean5",
     -- ean2    = "lib-barcode.ean2",
@@ -74,6 +74,7 @@ function Barracuda:load_builder(brc) --> enc_builder, err
     else -- loading the encoder builder
         local mod = self._brc_available_enc[brc]
         local builder = require(mod)
+        assert(builder)
         builder:init(self._libgeo, self._barcode)
         tenc[brc] = builder
         return builder, nil --> enc_builder, no error

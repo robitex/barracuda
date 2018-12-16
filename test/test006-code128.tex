@@ -1,0 +1,29 @@
+% !TeX program = LuaTeX
+
+\newbox\mybox
+\nopagenumbers
+
+\directlua{
+local barracuda = require "barracuda"
+
+local c128builder, err = barracuda:load_builder("code128")
+assert(not err, err)
+
+local enc_c128_default, err = c128builder:new_encoder("default")
+assert(not err, err)
+
+local symbo, err = enc_c128_default:from_string("5465468132546812")
+assert(not err, err)
+
+local canvas = barracuda:new_canvas()
+symbo:append_graphic(canvas)
+
+local drv, err = barracuda:load_driver("native")
+assert(not err, err)
+
+drv:ga_to_hbox(canvas, "mybox")
+}
+\vrule A\vrule\box\mybox \vrule A\vrule
+\bye
+
+

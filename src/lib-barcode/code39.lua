@@ -295,10 +295,10 @@ function Code39_factory:new_encoder(enc_name, user_param) --> <encoder object>, 
         return nil, "[ArgErr] enc_name, is not a string"
     end
     if enc_name == "" then
-        return nil, "[ArgErr] empty string is not allowed for enc_name"
+        return nil, "[ArgErr] empty string is not allowed in enc_name"
     end
     if string.match(enc_name, " ") then
-        return nil, "[ArgErr] space char not allowed for enc_name"
+        return nil, "[ArgErr] space char not allowed in enc_name"
     end
     if self._enc_instance[enc_name] then
         return nil, "[Err] enc_name already declared"
@@ -314,27 +314,9 @@ function Code39_factory:new_encoder(enc_name, user_param) --> <encoder object>, 
         _par_def     = self._par_def,  -- ref to paramenter definitions
         _vbar        = {},             -- where we dynamically place vbar symbol
         
-        -- symbol costructors
-        -- return the symbol object or an error message
-        from_string = function (o, s, opt) --> symbol, err
-            if type(s) ~= "string" then return nil, "[ArgErr] not a string" end
-            if #s == 0 then return nil, "[ArgErr] Empty string" end
-            local symb_def = o._symb_def
-            local chars = {}
-            for c in string.gmatch(s, ".") do
-                local n = symb_def[c]
-                if not n then
-                    local fmt = "[Err] '%s' is not a valid Code 39 symbol"
-                    return nil, string.format(fmt, c)
-                end
-                chars[#chars+1] = c
-            end
-            return o:from_chars(chars, opt)
-        end,
-
         -- symbol costructor: from an array of chars
         -- return the symbol object or an error message
-        from_chars = function (o, symb, opt)
+        from_chars = function (o, symb, opt) --> symbol, err
             if type(symb) ~= "table" then
                 return nil, "[ArgErr] symb is not a table"
             end
@@ -363,6 +345,24 @@ function Code39_factory:new_encoder(enc_name, user_param) --> <encoder object>, 
             }
             setmetatable(obj, o)
             return obj, nil
+        end,
+        --
+        -- symbol costructors
+        -- return the symbol object or an error message
+        from_string = function (o, s, opt) --> symbol, err
+            if type(s) ~= "string" then return nil, "[ArgErr] not a string" end
+            if #s == 0 then return nil, "[ArgErr] Empty string" end
+            local symb_def = o._symb_def
+            local chars = {}
+            for c in string.gmatch(s, ".") do
+                local n = symb_def[c]
+                if not n then
+                    local fmt = "[Err] '%s' is not a valid Code 39 symbol"
+                    return nil, string.format(fmt, c)
+                end
+                chars[#chars+1] = c
+            end
+            return o:from_chars(chars, opt)
         end,
         -- 
         -- tx, ty is an optional translator vector
