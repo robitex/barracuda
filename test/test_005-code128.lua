@@ -1,3 +1,5 @@
+-- Copyright (C) 2018 Roberto Giacomelli
+
 local barracuda = require "barracuda"
 
 local c128, err = barracuda:load_builder("code128")

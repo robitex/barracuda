@@ -1,16 +1,16 @@
---
 -- Code128 barcode generator module
+-- Copyright (C) 2018 Roberto Giacomelli
 --
 -- All dimension must be in scaled point (sp)
 -- every fields that starts with an undercore sign are intended as private
 
-local Code128_factory = {
+local Code128 = {
     _VERSION     = "code128 v0.0.3",
     _NAME        = "Code128",
     _DESCRIPTION = "Code128 barcode encoder",
 }
 
-Code128_factory._int_def_bar = {-- code bar definitions
+Code128._int_def_bar = {-- code bar definitions
     [0] = 212222,   222122, 222221, 121223, 121322, 131222, 122213, 122312,
     132212, 221213, 221312, 231212, 112232, 122132, 122231, 113222, 123122,
     123221, 223211, 221132, 221231, 213212, 223112, 312131, 311222, 321122,
@@ -26,7 +26,7 @@ Code128_factory._int_def_bar = {-- code bar definitions
     2331112, -- stop char [106]
 }
 
-Code128_factory._codeset = {
+Code128._codeset = {
     A        = 103, -- Start char for Codeset A
     B        = 104, -- Start char for Codeset B
     C        = 105, -- Start char for Codeset C
@@ -34,17 +34,15 @@ Code128_factory._codeset = {
     shift    =  98, -- A to B or B to A
 }
 
-Code128_factory._switch = { -- codes for to switch from a codeset to another one
+Code128._switch = { -- codes for switching from a codeset to another one
     [103] = {[104] = 100, [105] =  99}, -- from A to B or C
     [104] = {[103] = 101, [105] =  99}, -- from B to A or C
     [105] = {[103] = 101, [104] = 100}, -- from C to A or B
 }
 
-Code128_factory._enc_instance = {}
-
 -- parameters definition
-Code128_factory._par_def = {}
-local pardef = Code128_factory._par_def
+Code128._par_def = {}
+local pardef = Code128._par_def
 
 -- module main parameter
 pardef.xdim = {
@@ -90,33 +88,18 @@ pardef.quietzone_factor = {
     end,
 }
 
--- parameter identifier array _par_id: { [order] = par_identifier, }
-Code128_factory._par_id = {}; local parid = Code128_factory._par_id
-local i = 0
-for id, tpar in pairs(pardef) do
-    local ord = tpar.order
-    assert(not parid[ord], "[InternalErr] duplicate order in parameter definition")
-    parid[ord] = id
-    i = i + 1
+-- create vbar objects
+function Code128:config()
+    -- build Vbar object for the start/stop symbol
+    local mod = self.xdim
+    local sc = self._codeset.stopChar -- build the stop char
+    local n = self._int_def_bar[sc]
+    local Vbar = self._libgeo.Vbar -- Vbar class
+    self._vbar = {}
+    local b = self._vbar
+    b[sc] = Vbar:from_int(n, mod, true)
+    --save locally the encoder reference
 end
-
--- init function
-function Code128_factory:init(libgeo, bc_class)
-    self._libgeo  = assert(libgeo, "[InternalErr] libgeo is nil")
-    self._barcode = assert(bc_class, "[InternalErr] bc_class is nil")
-    -- append the superclass parameter identifier
-    local super_parid = bc_class._par_id
-    local parid = self._par_id
-    for _, id in ipairs(super_parid) do
-        parid[#parid + 1] = id
-    end
-    -- connecting pardef
-    local pardef       = self._par_def
-    local super_pardef = bc_class._par_def
-    pardef.__index = pardef
-    setmetatable(pardef, super_pardef)    
-end
-
 
 -- utility functions
 
@@ -286,7 +269,7 @@ end
 -- Code 128 costructors
 
 -- costructor: from an array of chars
-local function from_chars(o, arr, opt) --> symbol, err
+function Code128:from_chars(arr, opt) --> symbol, err
     if type(arr) ~= "table" then return nil, "[ArgErr] arr must be a table" end
     if #arr == 0 then return nil, "[ArgErr] arr is an empty array" end
     local chr = {}
@@ -298,48 +281,47 @@ local function from_chars(o, arr, opt) --> symbol, err
         end
         chr[#chr + 1] = b
     end
-    local data, err = encode128(chr, o._codeset, o._switch)
+    local data, err = encode128(chr, self._codeset, self._switch)
     if err then return nil, err end
     -- load dynamically the geometric bar definition
-    local vbar = o._vbar
-    local oVbar = o._libgeo.Vbar
+    local vbar = self._vbar
+    local oVbar = self._libgeo.Vbar
     for _, c in ipairs(data) do
         if not vbar[c] then
-            local n = o._int_def_bar[c]
-            local mod = o.xdim
+            local n = self._int_def_bar[c]
+            local mod = self.xdim
             vbar[c] = oVbar:from_int(n, mod, true)
         end
     end
-    -- build the Code128 object
-    local symb = {
+    local symb = { -- build the Code128 object
         code = arr, -- array of chars
-        data = data,-- array with encoded chars
+        data = data,-- array with encoded byte
     }
-    setmetatable(symb, o)
+    setmetatable(symb, self)
     return symb
 end
 
 -- costructor: from an ASCII string
 -- string.utfvalues() is a LuaTeX only function
-local function from_string(o, s, opt) --> symbol, err
+function Code128:from_string(s, opt) --> symbol, err
     if type(s) ~= "string" then return nil, "[ArgErr] not a string" end
     if #s == 0 then return nil, "[ArgErr] Empty string" end
     local symb = {}
     for c in string.gmatch(s, ".") do
         symb[#symb + 1] = c
     end
-    return o:from_chars(symb, opt)
+    return self:from_chars(symb, opt)
 end
 
 -- Drawing into the provided channel the geometrical barcode data
 -- tx, ty is the optional translator vector
 -- the function return the canvas reference to allow call chaining
-local function append_graphic(o, canvas, tx, ty)
-    local xdim, h = o.xdim, o.ydim
+function Code128:append_graphic(canvas, tx, ty)
+    local xdim, h = self.xdim, self.ydim
     local sw = 11*xdim -- the width of a symbol
-    local data = o.data
+    local data = self.data
     local w = #data * sw + 2 * xdim -- total symbol width
-    local ax, ay = o.ax, o.ay
+    local ax, ay = self.ax, self.ay
     local x0 = (tx or 0) - ax * w
     local y0 = (ty or 0) - ay * h
     local x1 = x0 + w
@@ -348,105 +330,15 @@ local function append_graphic(o, canvas, tx, ty)
     -- drawing the symbol
     canvas:start_bbox_group()
     for _, c in ipairs(data) do
-        local vb = o._vbar[c]
+        local vb = self._vbar[c]
         vb:append_graphic(canvas, y0, y1, xpos)
         xpos = xpos + sw
     end
     -- bounding box setting
-    local qz = o.quietzone_factor * xdim
+    local qz = self.quietzone_factor * xdim
     canvas:stop_bbox_group(x0 - qz, y0, x1 + qz, y1) --{xmin, ymin, xmax, ymax}
     return canvas
 end
 
-
--- main factory function for Code128 encoders
--- enc_name  : encoder identifier in the Code128 namespace
--- user_param: a table with the user defined parameters for Code128 encoder class
-function Code128_factory:new_encoder(enc_name, user_param) --> <encoder object>, <err>
-    if type(enc_name) ~= "string" then
-        return nil, "[ArgErr] enc_name, is not a string"
-    end
-    if enc_name == "" then
-        return nil, "[ArgErr] empty string is not allowed in enc_name"
-    end
-    if string.match(enc_name, " ") then
-        return nil, "[ArgErr] space char not allowed in enc_name"
-    end
-    if self._enc_instance[enc_name] then
-        return nil, "[Err] enc_name also declared"
-    end
-    local codeset = self._codeset
-    local int_def = self._int_def_bar
-    local enc = { -- the new encoder
-        _NAME          = self._NAME,
-        _VERSION       = self._VERSION,
-        _DESCRIPTION   = self._DESCRIPTION,
-        _libgeo        = self._libgeo, -- a ref to the geometric library
-        _int_def_bar   = int_def,      -- ref to symbol definition table
-        _codeset       = codeset,      -- codeset and other codes
-        _switch        = self._switch, -- switch code table
-        _par_id        = self._par_id, -- array of parameter identifier
-        _vbar          = {},           -- where we dynamically place vbars
-        from_chars     = from_chars,   -- copying methods
-        from_string    = from_string,
-        append_graphic = append_graphic,
-    }
-    local pardef = self._par_def
-    local p_ord = self._par_id
-    -- generate parameters value
-    user_param = user_param or {}
-    if type(user_param) ~= "table" then
-        return nil, "[ArgErr] 'user_param' must be a table"
-    end
-    -- check and eventually set every parameter within user_param
-    local cktab = {}
-    for _, par in ipairs(p_ord) do
-        local pdef = pardef[par]
-        if user_param[par] ~= nil then
-            local val = user_param[par]
-            local ok, err = pdef:fncheck(val, cktab)
-            if ok then
-                enc[par] = val
-            else
-                return nil, err
-            end
-        else
-            local val; if pdef.fndefault then
-                val = pdef:fndefault(cktab)
-            else
-                val = pdef.default
-            end
-            enc[par] = val
-        end
-        cktab[par] = enc[par]
-    end
-    -- build Vbar object for the start/stop symbol
-    local mod = enc.xdim
-    local sc = codeset.stopChar -- build the stop char
-    local n = int_def[sc]
-    local Vbar = self._libgeo.Vbar -- Vbar class
-    local b = enc._vbar
-    b[sc] = Vbar:from_int(n, mod, true)
-    --save locally the encoder reference
-    self._enc_instance[enc_name] = enc
-    enc.__index = enc
-    setmetatable(enc, self._barcode)
-    return enc, nil
-end
-
-
--- retrive encoder object already created
-function Code128_factory:enc_by_name(name) --> <encoder object>, <err>
-    if type(name) ~= "string" then
-        return nil, "[ArgErr] code128 encoder name must be a string"
-    end
-    local repo = self._enc_instance
-    if repo[name] then
-        return repo[name], nil
-    else
-        return nil, "[Err] code128 encoder '"..name.."' not found"
-    end
-end
-
-return Code128_factory
+return Code128
 --

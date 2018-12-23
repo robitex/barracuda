@@ -1,51 +1,54 @@
 
-Development program, alias what TODO:
+Development program, alias what we must TODO:
 
+Bump to   : new beta dev channel                                      20__-__-__
+?         :                                                           20__-__-__
+?         : ?                                                         20__-__-__
+?         : ? example directory                                       20__-__-__
+Task   x.1: ? visual debug                                            20__-__-__
 
+Bump to   : new beta dev channel                                      20__-__-__
+?         :                                                           20__-__-__
+?         : ? TiKZ driver                                             20__-__-__
+?         : ? PGF driver                                              20__-__-__
+Task   x.1: ? SVG driver                                              20__-__-__
 
-Bump to      : new beta dev channel
-?            :
-?            : ?
-?            : ? example directory
-Task    0.5.1: ? visual debug 
+Bump to   : new beta dev channel
+?         :                                                           20__-__-__
+?         :                                                           20__-__-__
+?         :                                                           20__-__-__
+?         :                                                           20__-__-__
+Task   x.1: ? make thing happen: font property for text               20__-__-__
 
-Bump to      : new beta dev channel
-?            :
-?            : ? TiKZ driver
-?            : ? PGF driver
-Task    0.4.1: ? SVG driver
+Bump to   : new alpha dev channel                                     20__-__-__
+Task   x.2: ? develop ConTeXt mkiv user module                        20__-__-__
+Task   x.1: ? develop LaTeX user package                              20__-__-__
+Task   x.x: ?                                                         20__-__-__
+Task   x.x: ? coherent error management                               20__-__-__
+Task   x.x: ? proportional options                                    20__-__-__
+Task     x: time to get an usable manual even if minimal              20__-__-__
+Task     9: implement eventually new ideas                            20__-__-__
+Task   x.5: a number parameter can be a string? unit measure...       20__-__-__
 
-Bump to      : new beta dev channel
-?            :
-?            :
-?            :
-Task    0.3.1: ? make thing happen: font property for text
+<Version 0.1>                                                         20__-__-__
+Task   4.3: test the local system of option set up for Code128        20__-__-__
+Task   4.2: test the local system of option set up for Code39         20__-__-__
+Task   4.1: test for ga-canvas                                        20__-__-__
 
-Bump to      : new alpha dev channel
-Task    0.2.2: ? devolop ConTeXt mkiv user module
-Task    0.2.1: ? devolop LaTeX user package
-Task    0.1.x: ?
-Task    0.1.x: ? coherent error management
-Task    0.1.x: ? proportional options
-Task    x: time to get an usable manual even if minimal
-Task    9: implement eventually new ideas
-Task    8: analyze on a new constructor function for encoder builder
-           for a more easy, clear, compact encoder implementation
-Task  x.5: a number parameter can be a string? unit measure...      <20__-__-__>
-
-
-<Version 0.0.3>                                                     <20__-__-__>
-Task  3.2: do the same with previous Ean2/5/8/13 encoders code      <20__-__-__>
-Task  3.1: import and refactoring previous Code128 encoder code     <20__-__-__>
-
+<Version 0.0.3>                                                       20__-__-__
+Task   3.4: do the same with previous Ean2/5/8/13 encoders code       20__-__-__
+Task   3.3: implement opt in Code 39 and Code 128 constructor         20__-__-__
+Task   3.2: focus on a new constructor in Barcode Class for
+            better encoder implementation                           ☑ 2018-12-21
+Task   3.1: import and refactoring previous Code128 encoder code    ☑ 2018-12-16
 
 COMPLETED TASK:
 
-<Version 0.0.2>                                                     <2018-12-11>
-Task  2.5: option text_gap for code39                               <2018-12-11>
-Task  2.4: resolve the horizontal correction in spaced text         <2018-12-11>
-Task  2.3: further text option for the Code39 encoder               <2018-12-06>
-Task  2.2: include minimal text ability to the system
-Task  2.1: design and implement a basic framework
+<Version 0.0.2>                                                    🎉 2018-12-11
+Task   2.5: option text_gap for code39                              ☑ 2018-12-11
+Task   2.4: resolve the horizontal correction in spaced text        ☑ 2018-12-11
+Task   2.3: further text option for the Code39 encoder              ☑ 2018-12-06
+Task   2.2: include minimal text ability to the system
+Task   2.1: design and implement a basic framework
 
-<Version 0.0.1> open 0.0.1 alpha dev master branch
+<Version 0.0.1> open 0.0.1 alpha dev master branch                 🎉 2018-11-30

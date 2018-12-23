@@ -1,5 +1,7 @@
 
 -- libgeo simple Geometric Library
+-- Copyright (C) 2018 Roberto Giacomelli
+
 -- All dimension must be in scaled point (sp)
 
 local libgeo = {
@@ -244,12 +246,12 @@ function Text:append_graphic(canvas, xpos, ypos, ax, ay) --> canvas, err
 end
 
 -- glyph equally spaced along the baseline
-function Text:append_graphic_xspaced(canvas, x1, xgap, ypos, ay) --> canvas, err
+function Text:append_graphic_xspaced(canvas, x1, xgap, ay, ypos) --> canvas, err
     assert(type(canvas) == "table", "[ArgErr] 'canvas' object must be provided")
     assert(type(x1) == "number", "[ArgErr] 'x1' number required")
     assert(type(xgap) == "number", "[ArgErr] 'xgap' is not a number")
+    assert(type(ay) == "number", "[ArgErr] 'ay' is not a number")
     assert(type(ypos) == "number", "[ArgErr] 'ypos' number required")
-    ay = ay or 0; assert(type(ay) == "number", "[ArgErr] 'ay' is not a number")
     local chars = self.codepoint
     local c, err
     if xgap > 0 then

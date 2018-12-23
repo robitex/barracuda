@@ -1,5 +1,5 @@
 -- class gaCanvas
-
+-- Copyright (C) 2018 Roberto Giacomelli
 
 -- ga -- basic function
 
@@ -129,16 +129,17 @@ function gaCanvas:text(xpos, ypos, ax, ay, chars)
 end
 
 -- [text_xspaced] 131 x1 xgap ay ypos chars
-function gaCanvas:text_xspaced(x1, xgap, ay, ypos, chars)
+function gaCanvas:text_xspaced(x1, xgap, ay, ypos, chars) --> self, err
     if not type(x1)   == "number" then return nil, "[ArgErr] 'x1' number expected" end
     if not type(xgap) == "number" then return nil, "[ArgErr] 'xgap' number expected" end
     if not type(ay)   == "number" then return nil, "[ArgErr] 'ay' number expected" end
     if not type(ypos) == "number" then return nil, "[ArgErr] 'ypos' number expected" end
     if not type(chars) == "table" then return nil, "[ArgErr] 'chars' table expected" end
+    if #chars == 0 then return nil, "[ArgErr] 'chars' table is empty" end
     local data = self._data
     data[#data + 1] = 131
     data[#data + 1] = x1   -- x-coordinate of the first axis from left to right
-    data[#data + 1] = xgap  -- axial distance among gliphs
+    data[#data + 1] = xgap -- axial distance among gliphs
     data[#data + 1] = ay   -- anchor relative y-coordinate
     data[#data + 1] = ypos -- text y-coordinate
     for _, c in ipairs(chars) do

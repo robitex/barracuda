@@ -1,7 +1,8 @@
 --
 -- ga Intermediate Graphic Language for barcode drawing
--- All dimension must be in scaled point (sp)
+-- Copyright (C) 2018 Roberto Giacomelli
 --
+-- All dimension must be in scaled point (sp)
 -- ga Driver LuaTeX native implementation (node+pdfliteral)
 
 -- class for drawing elementary geometric elements
@@ -170,7 +171,7 @@ PDFnative.operation_v001 = {
         return pc + 1
     end,
 
-    [131] = function(st, pc, ga, bf, xt) -- text_xspaced
+    [131] = function(st, pc, ga, bf, xt) -- text_xspaced x1 xgap ay ypos chars
         local x1   = ga[pc]; pc = pc + 1
         local xgap = ga[pc]; pc = pc + 1
         local ay   = ga[pc]; pc = pc + 1
@@ -202,7 +203,7 @@ PDFnative.operation_v001 = {
         if st.bb_x1 == nil then
             st.bb_x1 = x
             st.bb_x2 = x + w
-            st.bb_y1 = y
+            st.bb_y1 = y      -- no depth
             st.bb_y2 = y + h
         else
             if     x < st.bb_x1 then st.bb_x1 = x end

@@ -1,4 +1,5 @@
 % !TeX program = LuaTeX
+% Copyright (C) 2018 Roberto Giacomelli
 
 \newbox\mybox
 \nopagenumbers
@@ -6,13 +7,10 @@
 \directlua{
 local barracuda = require "barracuda"
 
-local c128builder, err = barracuda:load_builder("code128")
+local c128, err = barracuda:new_encoder("code128")
 assert(not err, err)
 
-local enc_c128_default, err = c128builder:new_encoder("default")
-assert(not err, err)
-
-local symbo, err = enc_c128_default:from_string("5465468132546812")
+local symbo, err = c128:from_string("5465468132546812")
 assert(not err, err)
 
 local canvas = barracuda:new_canvas()

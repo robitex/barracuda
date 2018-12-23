@@ -1,20 +1,16 @@
 -- Code39 barcode encoder implementation
+-- Copyright (C) 2018 Roberto Giacomelli
 --
 -- All dimensions must be in scaled point (sp)
 -- every fields that starts with an undercore sign are intended as private
 
--- Code39_factory is an "encoder builder". It is able to build a concrete
--- Code39 encoder. Read the documentation for more info about the code
--- structure.
-
-local Code39_factory = {
+local Code39 = {
     _VERSION     = "code39 v0.0.3",
     _NAME        = "Code39",
     _DESCRIPTION = "Code39 barcode encoder",
 }
 
-Code39_factory._enc_instance = {} -- central encoder reference archive
-Code39_factory._symb_def = {-- symbol definition
+Code39._symb_def = {-- symbol definition
     ["0"] = 112122111, ["1"] = 211112112, ["2"] = 211112211,
     ["3"] = 111112212, ["4"] = 211122111, ["5"] = 111122112,
     ["6"] = 111122211, ["7"] = 212112111, ["8"] = 112112112,
@@ -31,11 +27,11 @@ Code39_factory._symb_def = {-- symbol definition
     ["$"] = 111212121, ["/"] = 121112121, ["+"] = 121211121,
     ["%"] = 121212111,
 }
-Code39_factory._star_def  = 112121121 -- '*' start/stop character
+Code39._star_def  = 112121121 -- '*' start/stop character
 
 -- parameters definition
-Code39_factory._par_def = {}
-local pardef = Code39_factory._par_def
+Code39._par_def = {}
+local pardef = Code39._par_def
 
 -- module main parameter
 pardef.module = {
@@ -259,265 +255,159 @@ pardef.text_star = {
     end,
 }
 
--- parameter identifier ordered array _par_id
-Code39_factory._par_id = {}; local parid = Code39_factory._par_id
-local i = 0
-for id, tpar in pairs(pardef) do
-    local ord = tpar.order
-    assert(not parid[ord], "[InternalErr] duplicate order in parameter definition")
-    parid[ord] = id
-    i = i + 1
-end
-assert(#parid == i, "[InternalErr] failure to order paramenters")
-
--- init function
-function Code39_factory:init(libgeo, bc_class)
-    self._libgeo  = assert(libgeo, "[InternalErr] libgeo is nil")
-    self._barcode = assert(bc_class, "[InternalErr] bc_class is nil")
-    -- append in order the superclass parameter identifiers
-    local super_parid = bc_class._par_id
-    local parid = self._par_id
-    for _, id in ipairs(super_parid) do
-        parid[#parid + 1] = id
-    end
-    -- connecting pardef
-    local pardef       = self._par_def
-    local super_pardef = bc_class._par_def
-    pardef.__index = pardef
-    setmetatable(pardef, super_pardef)
-end
-
--- main factory function for Code39 encoders
--- enc_name  : encoder identifier in the Code39 namespace
--- user_param: a table with the user defined parameters for Code39 encoder class
-function Code39_factory:new_encoder(enc_name, user_param) --> <encoder object>, <err>
-    if type(enc_name) ~= "string" then
-        return nil, "[ArgErr] enc_name, is not a string"
-    end
-    if enc_name == "" then
-        return nil, "[ArgErr] empty string is not allowed in enc_name"
-    end
-    if string.match(enc_name, " ") then
-        return nil, "[ArgErr] space char not allowed in enc_name"
-    end
-    if self._enc_instance[enc_name] then
-        return nil, "[Err] enc_name already declared"
-    end
-    
-    local enc = { -- the new encoder
-        _NAME        = self._NAME,
-        _VERSION     = self._VERSION,
-        _DESCRIPTION = self._DESCRIPTION,
-        _libgeo      = self._libgeo,   -- a reference to the geometric library
-        _symb_def    = self._symb_def, -- reference to symbol definition table
-        _par_id      = self._par_id,   -- ordered array of parameters identifier
-        _par_def     = self._par_def,  -- ref to paramenter definitions
-        _vbar        = {},             -- where we dynamically place vbar symbol
-        
-        -- symbol costructor: from an array of chars
-        -- return the symbol object or an error message
-        from_chars = function (o, symb, opt) --> symbol, err
-            if type(symb) ~= "table" then
-                return nil, "[ArgErr] symb is not a table"
-            end
-            if #symb == 0 then
-                return nil, "[ArgErr] symb is an empty array"
-            end
-            -- loading the Vbar definitions on the fly (dynamic loading)
-            local g_Vbar     = o._libgeo.Vbar
-            local vbar       = o._vbar
-            local symb_def   = o._symb_def
-            local mod, ratio = o.module, o.ratio
-            -- create every vbar object needed for symbol if not already present
-            for _, s in ipairs(symb) do
-                local n = symb_def[s]
-                if not n then
-                    local fmt = "[Err] '%s' is not a valid Code 39 symbol"
-                    return nil, string.format(fmt, s)
-                end
-                if not vbar[s] then
-                    vbar[s] = g_Vbar:from_int_revpair(n, mod, mod*ratio)
-                end
-            end
-            -- build the Code39 symbol object
-            local obj = {
-                code = symb, -- array of chars
-            }
-            setmetatable(obj, o)
-            return obj, nil
-        end,
-        --
-        -- symbol costructors
-        -- return the symbol object or an error message
-        from_string = function (o, s, opt) --> symbol, err
-            if type(s) ~= "string" then return nil, "[ArgErr] not a string" end
-            if #s == 0 then return nil, "[ArgErr] Empty string" end
-            local symb_def = o._symb_def
-            local chars = {}
-            for c in string.gmatch(s, ".") do
-                local n = symb_def[c]
-                if not n then
-                    local fmt = "[Err] '%s' is not a valid Code 39 symbol"
-                    return nil, string.format(fmt, c)
-                end
-                chars[#chars+1] = c
-            end
-            return o:from_chars(chars, opt)
-        end,
-        -- 
-        -- tx, ty is an optional translator vector
-        append_graphic = function (o, canvas, tx, ty)
-            local code       = o.code
-            local ns         = #code -- number of chars inside the symbol
-            local mod        = o.module
-            local ratio      = o.ratio
-            local interspace = o.interspace
-            local h          = o.height
-            local xs         = mod*(6 + 3*ratio)
-            local xgap       = xs + interspace
-            local w          = xgap*(ns + 1) + xs -- (ns + 2)*xgap - interspace
-            local ax, ay     = o.ax, o.ay
-            local x0         = (tx or 0) - ax * w
-            local y0         = (ty or 0) - ay * h
-            local x1         = x0 + w
-            local y1         = y0 + h
-            local xpos       = x0
-            canvas:start_bbox_group()
-            -- start/stop symbol
-            local term_vbar = o._vbar['*']
-            -- draw start symbol
-            term_vbar:append_graphic(canvas, y0, y1, xpos)
-
-            -- draw code symbol
-            for _, c in ipairs(code) do
-                xpos = xpos + xgap
-                local vb = o._vbar[c]
-                vb:append_graphic(canvas, y0, y1, xpos)
-            end
-            -- draw stop symbol
-            term_vbar:append_graphic(canvas, y0, y1, xpos + xgap)
-
-            -- bounding box setting
-            local qz = o.quietzone
-            canvas:stop_bbox_group(x0 - qz, y0, x1 + qz, y1)
-
-            -- check height as the minimum of 15% of length
-            -- TODO: message could warn the user
-            -- if 0.15 * w > h then
-                -- message("The height of the barcode is to small")
-            -- end
-            if o.text_enabled then -- human readable text
-                local chars; if o.text_star then
-                    chars = {"*"}
-                    for _, c in ipairs(code) do
-                        chars[#chars + 1] = c
-                    end
-                    chars[#chars + 1] = "*"
-                else
-                    chars = {}
-                    for _, c in ipairs(code) do
-                        chars[#chars + 1] = c
-                    end
-                end
-                local Text = o._libgeo.Text
-                local txt  = Text:from_chars(chars)
-                -- setup text position
-                local pardef = o._par_def
-                local pdef = pardef.text_pos
-                local default = pdef.default
-                local vopt_d, hopt_d = pdef:fnparse(default)
-                local vo, ho = pdef:fnparse(o.text_pos, vopt_d, hopt_d)
-                local txtgap = o.text_gap
-                local ypos, tay; if vo == "top" then  -- vertical setup
-                    ypos = y1 + txtgap
-                    tay = 0.0
-                else
-                    ypos = y0 - txtgap
-                    tay = 1.0
-                end
-                if ho == "spaced" then -- horizontal setup
-                    local xaxis = x0
-                    if not o.text_star then
-                        xaxis = xaxis + xgap
-                    end
-                    xaxis = xaxis + xs/2
-                    txt:append_graphic_xspaced(canvas, xaxis, xgap, ypos, ay)
-                else
-                    local xpos, tax
-                    if ho == "left" then
-                        xpos = x0
-                        tax = 0.0
-                    elseif ho == "center" then
-                        xpos = (x1 - x0)/2
-                        tax = 0.5
-                    elseif ho == "right" then
-                        xpos = x1
-                        tax = 1.0
-                    else
-                        error("[InternalErr] wrong option for text_pos")
-                    end
-                    txt:append_graphic(canvas, xpos, ypos, tax, tay)
-                end
-            end
-            return canvas
-        end,
-    }
-    local pardef = self._par_def
-    local p_ord = self._par_id
-
-    -- generate parameters value
-    user_param = user_param or {}
-    if type(user_param) ~= "table" then
-        return nil, "[ArgErr] 'user_param' must be a table"
-    end
-    -- check and eventually set every parameter within user_param
-    local cktab = {}
-    for _, par in ipairs(p_ord) do
-        local pdef = pardef[par]
-        if user_param[par] ~= nil then
-            local val = user_param[par]
-            local ok, err = pdef:fncheck(val, cktab)
-            if ok then
-                enc[par] = val
-            else
-                return nil, err
-            end
-        else
-            local val; if pdef.fndefault then
-                val = pdef:fndefault(cktab)
-            else
-                val = pdef.default
-            end
-            enc[par] = val
-        end
-        cktab[par] = enc[par]
-    end
+-- configuration function
+function Code39:config()
     -- build Vbar object for the start/stop symbol
-    local mod, ratio = enc.module, enc.ratio
+    local mod, ratio = self.module, self.ratio
     local n_star = self._star_def
     local Vbar = self._libgeo.Vbar -- Vbar class
-    enc._vbar = {['*'] = Vbar:from_int_revpair(n_star, mod, mod*ratio)}
-    --save locally the encoder reference
-    self._enc_instance[enc_name] = enc
-    enc.__index = enc
-    setmetatable(enc, self._barcode)
-    return enc, nil
+    self._vbar = {['*'] = Vbar:from_int_revpair(n_star, mod, mod*ratio)}
 end
 
--- retrive encoder object already created
-function Code39_factory:enc_by_name(name) --> <encoder object>, <err>
-    if type(name) ~= "string" then
-        return nil, "[ArgErr] code39 encoder name must be a string"
+function Code39:from_chars(symb, opt) --> symbol, err
+    if type(symb) ~= "table" then return nil, "[ArgErr] symb is not a table" end
+    if #symb == 0 then return nil, "[ArgErr] symb is an empty array" end
+    -- loading the Vbar definitions on the fly (dynamic loading)
+    local g_Vbar     = self._libgeo.Vbar
+    local vbar       = self._vbar
+    local symb_def   = self._symb_def
+    local mod, ratio = self.module, self.ratio
+    -- create every vbar object needed for symbol if not already present
+    for _, s in ipairs(symb) do
+        local n = symb_def[s]
+        if not n then
+            local fmt = "[Err] '%s' is not a valid Code 39 symbol"
+            return nil, string.format(fmt, s)
+        end
+        if not vbar[s] then
+            vbar[s] = g_Vbar:from_int_revpair(n, mod, mod*ratio)
+        end
     end
-    local repo = self._enc_instance
-    if repo[name] then
-        return repo[name], nil
-    else
-        return nil, "[Err] code39 encoder '"..name.."' not found"
-    end
+    -- build the Code39 symbol object
+    local obj = {
+        code = symb, -- array of chars
+    }
+    setmetatable(obj, self)
+    return obj, nil
 end
 
+-- symbol costructors
+-- return the symbol object or an error message
+function Code39:from_string(s, opt) --> symbol, err
+    if type(s) ~= "string" then return nil, "[ArgErr] not a string" end
+    if #s == 0 then return nil, "[ArgErr] Empty string" end
+    local symb_def = self._symb_def
+    local chars = {}
+    for c in string.gmatch(s, ".") do
+        local n = symb_def[c]
+        if not n then
+            local fmt = "[Err] '%s' is not a valid Code 39 symbol"
+            return nil, string.format(fmt, c)
+        end
+        chars[#chars+1] = c
+    end
+    return self:from_chars(chars, opt)
+end
 
-return Code39_factory
+-- tx, ty is an optional translator vector
+function Code39:append_graphic(canvas, tx, ty)
+    local code       = self.code
+    local ns         = #code -- number of chars inside the symbol
+    local mod        = self.module
+    local ratio      = self.ratio
+    local interspace = self.interspace
+    local h          = self.height
+    local xs         = mod*(6 + 3*ratio)
+    local xgap       = xs + interspace
+    local w          = xgap*(ns + 1) + xs -- (ns + 2)*xgap - interspace
+    local ax, ay     = self.ax, self.ay
+    local x0         = (tx or 0) - ax * w
+    local y0         = (ty or 0) - ay * h
+    local x1         = x0 + w
+    local y1         = y0 + h
+    local xpos       = x0
+    canvas:start_bbox_group()
+    local vbar = self._vbar
+    -- start/stop symbol
+    local term_vbar = vbar['*']
+    -- draw start symbol
+    term_vbar:append_graphic(canvas, y0, y1, xpos)
+    -- draw code symbol
+    for _, c in ipairs(code) do
+        xpos = xpos + xgap
+        local vb = vbar[c]
+        vb:append_graphic(canvas, y0, y1, xpos)
+    end
+    -- draw stop symbol
+    term_vbar:append_graphic(canvas, y0, y1, xpos + xgap)
+
+    -- bounding box setting
+    local qz = self.quietzone
+    canvas:stop_bbox_group(x0 - qz, y0, x1 + qz, y1)
+
+    -- check height as the minimum of 15% of length
+    -- TODO: message could warn the user
+    -- if 0.15 * w > h then
+        -- message("The height of the barcode is to small")
+    -- end
+    if self.text_enabled then -- human readable text
+        local chars; if self.text_star then
+            chars = {"*"}
+            for _, c in ipairs(code) do
+                chars[#chars + 1] = c
+            end
+            chars[#chars + 1] = "*"
+        else
+            chars = {}
+            for _, c in ipairs(code) do
+                chars[#chars + 1] = c
+            end
+        end
+        local Text = self._libgeo.Text
+        local txt  = Text:from_chars(chars)
+        -- setup text position
+        local pardef = self._par_def
+        local pdef = pardef.text_pos
+        local default = pdef.default
+        local vopt_d, hopt_d = pdef:fnparse(default)
+        local vo, ho = pdef:fnparse(self.text_pos, vopt_d, hopt_d)
+        local txtgap = self.text_gap
+        local ypos, tay; if vo == "top" then  -- vertical setup
+            ypos = y1 + txtgap
+            tay = 0.0
+        elseif vo == "bottom" then
+            ypos = y0 - txtgap
+            tay = 1.0
+        else
+            error("[IntenalErr] text vertical placement option is wrong")
+        end
+        if ho == "spaced" then -- horizontal setup
+            local xaxis = x0
+            if not self.text_star then
+                xaxis = xaxis + xgap
+            end
+            xaxis = xaxis + xs/2
+            txt:append_graphic_xspaced(canvas, xaxis, xgap, tay, ypos)
+        else
+            local xpos, tax
+            if ho == "left" then
+                xpos = x0
+                tax = 0.0
+            elseif ho == "center" then
+                xpos = (x1 - x0)/2
+                tax = 0.5
+            elseif ho == "right" then
+                xpos = x1
+                tax = 1.0
+            else
+                error("[InternalErr] wrong option for text_pos")
+            end
+            txt:append_graphic(canvas, xpos, ypos, tax, tay)
+        end
+    end
+    return canvas
+end
+
+return Code39
 
 --

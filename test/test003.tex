@@ -1,4 +1,5 @@
 % !TeX program = LuaTeX
+% Copyright (C) 2018 Roberto Giacomelli
 
 \newbox\mybox
 \nopagenumbers
@@ -6,7 +7,7 @@
 \directlua{
 local barracuda = require "barracuda"
 
-local c39builder, err = barracuda:load_builder("code39")
+local c39, err = barracuda:load_builder("code39")
 assert(not err, err)
 
 local enc_c39_default, err = c39builder:new_encoder("default")
