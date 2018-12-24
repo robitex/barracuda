@@ -37,7 +37,7 @@ Task   4.1: test for ga-canvas                                        20__-__-__
 
 <Version 0.0.3>                                                       20__-__-__
 Task   3.4: do the same with previous Ean2/5/8/13 encoders code       20__-__-__
-Task   3.3: implement opt in Code 39 and Code 128 constructor         20__-__-__
+Task   3.3: implement opt in Code 39 and Code 128 constructor       ☑ 2018-12-24
 Task   3.2: focus on a new constructor in Barcode Class for
             better encoder implementation                           ☑ 2018-12-21
 Task   3.1: import and refactoring previous Code128 encoder code    ☑ 2018-12-16

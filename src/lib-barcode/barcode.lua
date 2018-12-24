@@ -187,34 +187,31 @@ function Barcode:enc_by_name(bc_type, name) --> <encoder object>, <err>
     end
 end
 
--- check a parameter before set it up
--- syntax:
--- :set_parameter{key = value, key = value, ...} --> boolean, check_table
--- :set_parameter(key, value)                    --> boolean, err_descr
+-- check a parameter set
 -- this method check also reserved parameter
-function Barcode:check_param(arg1, arg2) --> boolean, check report | err_descr
-    -- processing arguments
-    local targ
-    local isPair = true
-    if type(arg1) == "table" then
-        if arg2 ~= nil then
-            return false, "[ArgErr] Further arguments not allowed"
-        end
-        targ = arg1
-        isPair = false
-    elseif type(arg1) == "string" then -- key/value
-        if arg2 == nil then
-            return false, "[ArgErr] 'value' as the second argument expected"
-        end
-        targ = {}
-        targ[arg1] = arg2
+-- syntax:
+-- :set_param{key = value, key = value, ...}
+-- :set_param({k=v, ...}, "default"|"current")
+-- if ref is "default" parameters are checked with defualkt values
+-- if ref is "current" parameters are checked with the current values
+function Barcode:check_param(opt, ref) --> boolean, check report
+    if type(opt) ~= "table" then
+        return nil, "[ArgErr] opt is not a table"
+    end
+    if ref == nil then
+        ref = "current"
     else
-        return false, "[ArgErr] param name must be a string"
+        if type(ref) ~= "string" then
+            return nil, "[ArgErr] ref is not a string"
+        end
+        if (ref ~= "current") or (ref ~= "default") then
+            return nil, "[ArgErr] ref can only be 'default' or 'current'"
+        end
     end
     -- preparing to the checking process
     local cktab  = {}
     local isOk   = true
-    local check_rpt; if not isPair then check_rpt = {} end
+    local check_rpt
     -- checking process
     for _, pname, pdef in self:param_ord_iter() do
         -- load the default value of <pname>
@@ -226,9 +223,11 @@ function Barcode:check_param(arg1, arg2) --> boolean, check report | err_descr
         local val = targ[pname] -- par = val
         if val ~= nil then
             local ok, err = pdef:fncheck(val, cktab)
-            if isPair then
-                check_rpt = err
-            else
+            if ok then
+                cktab[pname] = val
+            else -- error!
+                isOk = false
+                if check_rpt == nil then check_rpt = {} end
                 check_rpt[#check_rpt + 1] = {
                     param       = pname,
                     checked_val = val,
@@ -237,15 +236,14 @@ function Barcode:check_param(arg1, arg2) --> boolean, check report | err_descr
                     err         = err,
                 }
             end
-            if ok then
-                cktab[pname] = val
-            else -- error!
-                isOk = false
-                cktab[pname] = def_val
-            end
-        else
-            cktab[pname] = def_val
         end
+        local v
+        if ref == "current" then
+            v = self[pname]
+        else
+            v = def_val
+        end
+        cktab[pname] = v
     end
     return isOk, check_rpt
 end
@@ -304,23 +302,51 @@ end
 -- syntax:
 -- :set_param{key = value, key = value, ...}
 -- :set_param(key, value)
-function Barcode:set_param(arg1, arg2) --> boolean, err_rpt
-    local isOk, chk = self:check_param(arg1, arg2)
-    if isOk then
-        local targ; if type(arg1) == "table" then  -- processing arguments
-            targ = arg1
-        else -- key/value
-            targ = {}
-            targ[arg1] = arg2
+function Barcode:set_param(arg1, arg2) --> boolean, err
+    -- processing arguments
+    local targ
+    local isPair = true
+    if type(arg1) == "table" then
+        if arg2 ~= nil then
+            return false, "[ArgErr] Further arguments not allowed"
         end
-        for _, par, _ in self:param_ord_iter() do -- par = val
-            local val = targ[par]
-            if val ~= nil then self[par] = val end -- set the value
+        targ = arg1
+        isPair = false
+    elseif type(arg1) == "string" then -- key/value
+        if arg2 == nil then
+            return false, "[ArgErr] 'value' as the second argument expected"
         end
-        return true, chk
+        targ = {}
+        targ[arg1] = arg2
     else
-        return false, chk
+        return false, "[ArgErr] param name must be a string"
     end
+    -- preparing to the checking process
+    local cktab  = {}
+    local ckparam = {}
+    -- checking process
+    for _, pname, pdef in self:param_ord_iter() do
+        local val = targ[pname] -- par = val
+        if val ~= nil then
+            if pdef.isReserved then
+                return false, "[Err] parameter '" .. pname ..
+                "' is reserved, create another encoder"
+            end
+            local ok, err = pdef:fncheck(val, cktab)
+            if ok then
+                cktab[pname] = val
+                ckparam[pname] = val
+            else -- error!
+                return false, err
+            end
+        else -- no val in user option
+            cktab[pname] = self[pname]
+        end
+    end
+    for p, v in pairs(ckparam) do
+        self[p] = v
+    end
+    return true, nil
 end
 
 return Barcode

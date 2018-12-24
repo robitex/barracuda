@@ -1,6 +1,6 @@
 # `barracuda` project
 
-This Lua library is for drawing barcode symbol. The project delivers
+This Lua library is for drawing barcode symbols. The project delivers
 package/module to typeset barcode from within a LuaTeX document. Therefore is
 also possible to use `barracuda` with a Lua standalone interpreter and drawing
 barcode with different graphic format using media like a file.
@@ -14,8 +14,8 @@ correctness :thumbsup:
 # Barcode symbologies
 
 So far, only the Code 39 and Code 128 specifications are supported but very soon
-other 1D encoding format will be added to the project and then it will the time
-for 2D classes.
+other 1D encoding format will be added to the project and after it will be the
+time for 2D barcode types.
 
 # A very simple LaTeX example
 
@@ -28,14 +28,13 @@ minimal example:
 
 \documentclass{article}
 \usepackage{barracuda}
-
 \begin{document}
 A\barracuda{code39}{123QWE}A
 \end{document}
 ```
 
-# Licence
+# License
 
-Please, for more detail refer to LICENCE.txt file.
+Please, for more detail refer to LICENSE.txt file.
 
 Copyright (C) 2018 Roberto Giacomelli

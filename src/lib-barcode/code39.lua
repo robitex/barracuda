@@ -160,7 +160,7 @@ pardef.text_pos = { -- enumeration
         vpos = {"top", "bottom"},
         hpos = {"left", "center", "right", "spaced"},
     },
-    fncheck    = function (self, e, _) --> boolean, err
+    fncheck       = function (self, e, _) --> boolean, err
         if type(e) ~= "string" then return false, "[TypeErr] not a string" end
         local enum_vpos = self.text_pos_enum.vpos
         local enum_hpos = self.text_pos_enum.hpos
@@ -288,6 +288,16 @@ function Code39:from_chars(symb, opt) --> symbol, err
         code = symb, -- array of chars
     }
     setmetatable(obj, self)
+    if opt ~= nil then
+        if type(opt) ~= "table" then
+            return nil, "[ArgErr] opt is not a table"
+        else
+           local ok, err = obj:set_param(opt)
+           if not ok then
+               return nil, err
+           end
+        end
+    end
     return obj, nil
 end
 

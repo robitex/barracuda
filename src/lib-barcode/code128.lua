@@ -298,6 +298,16 @@ function Code128:from_chars(arr, opt) --> symbol, err
         data = data,-- array with encoded byte
     }
     setmetatable(symb, self)
+    if opt ~= nil then
+        if type(opt) ~= "table" then
+            return nil, "[ArgErr] opt is not a table"
+        else
+           local ok, err = symb:set_param(opt)
+           if not ok then
+               return nil, err
+           end
+        end
+    end
     return symb
 end
 
