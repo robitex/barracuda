@@ -1,0 +1,538 @@
+% !TeX program = LuaTeX
+% test ga-canvas
+%
+% Copyright (C) 2018 Roberto Giacomelli
+%
+\newbox\mybox
+
+---ga--- is a binary format as an istruction sequence
+that describes simple graphic object. This file contains
+tests that aim to check the pdfliteral driver capability
+to render ga streams---an usual Lua array.
+
+The pdfliteral driver directly inserts PDF vector graphics
+instruction within the output and should be intented as the
+"native" driver.
+
+To understand the format please read the "ga-grammar.pdf" file.
+All dimensions are in scaled point, 65536sp = 1pt
+
+Running the source file with luatex, the typesetting engine
+executes the directlua macro. As a conseguence graphics
+appear in the PDF output file.
+
+Test number 1: a vbar 2pt width, 20pt height:
+\directlua{
+    pdfnat = require [[lib-driver.driver-pdfliteral]]
+    pt = tex.sp [[1pt]] % pt = 65536
+    % vbar: 36 y1 y2 nbars x1 w1 x2 w2 ... xn wn
+    local ga = {36, 0, 20*pt, 1, 0.0, 2*pt}
+    pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+}\box\mybox
+
+Test number 2: ten vbars equally spaced by 10pt:
+\directlua{
+    local ga = {36, 0, 10*pt, 10,}
+    for i = 0, 9 do
+        ga[i*2 + 5] = 5*pt + i*20*pt
+        ga[i*2 + 6] = 10*pt
+    end
+    pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+}\vrule\box\mybox\vrule
+
+Test number 3: two series of vbars 10pt and 5pt large:
+\directlua{
+    local ga = {36, 0, 10*pt, 10,}
+    for i = 0, 9 do
+        ga[i*2 + 5] = 5*pt + i*20*pt
+        ga[i*2 + 6] = 10*pt
+    end
+    ga[25] = 36 % vbar opcode
+    ga[26] = 2.5*pt % y1
+    ga[27] = 7.5*pt % y2
+    ga[28] = 9      % number of bars
+    for i = 0, 8 do
+        ga[i*2 + 29] = 15*pt + i*20*pt
+        ga[i*2 + 30] = 5*pt
+    end
+    pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+}\vrule\box\mybox\vrule
+
+Test number 4: a bunch of thin bars:
+\directlua{
+    local ga = {}
+    ga[1] = 36    % vbar opcode
+    ga[2] = 5*pt  % y1
+    ga[3] = 25*pt % y2
+    ga[4] = 25    % number of bars
+    for i = 0, 24 do
+        ga[i*2 + 5] = 1*pt + i*4*pt
+        ga[i*2 + 6] = 2*pt
+    end
+    pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+}\vrule\box\mybox\vrule
+
+Test number 5: two floor of a bunch of thin bars:
+\directlua{
+    local ga = {}
+    ga[1] = 36    % vbar opcode
+    ga[2] = 5*pt  % y1
+    ga[3] = 25*pt % y2
+    ga[4] = 25    % number of bars
+    for i = 0, 24 do
+        ga[i*2 + 5] = 1*pt + i*4*pt
+        ga[i*2 + 6] = 2*pt
+    end
+    ga[55] = 36    % vbar opcode
+    ga[56] = 25*pt % y1
+    ga[57] = 45*pt % y2
+    ga[58] = 24    % number of bars
+    for i = 0, 23 do
+        ga[i*2 + 59] = 3*pt + i*4*pt
+        ga[i*2 + 60] = 2*pt
+    end
+    pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+}\vrule\box\mybox\vrule
+
+Test number 6: staircase of bars (manual insertion of data):
+\directlua{
+    local ga = {}
+    ga[1] =    36 % vbar opcode
+    ga[2] =  0*pt % y1
+    ga[3] = 20*pt % y2
+    ga[4] =     1 % number of bars
+    ga[5] =  5*pt % x
+    ga[6] = 10*pt % w
+    ga[7] =    36 % vbar opcode
+    ga[8] = 20*pt % y1
+    ga[9] = 40*pt % y2
+    ga[10] =    1 % number of bars
+    ga[11] = 15*pt % x
+    ga[12] = 10*pt % w
+    ga[13] =    36 % vbar opcode
+    ga[14] = 40*pt % y1
+    ga[15] = 60*pt % y2
+    ga[16] =    1 % number of bars
+    ga[17] = 25*pt % x
+    ga[18] = 10*pt % w
+    pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+}\vrule\box\mybox\vrule
+
+
+Test number 7: vbars with spaced text, all in three rows:
+\directlua{
+    local ga = {}
+    ga[1] =    36 % vbar opcode
+    ga[2] =  0*pt % y1
+    ga[3] = 20*pt % y2
+    ga[4] =     8 % number of bars
+    for i = 1,8 do
+        ga[3 + i*2] = i * 2 * 5*pt % x coordinate of bar axis
+        ga[4 + i*2] = 5*pt % bar width
+    end
+    ga[21] =    36 % vbar opcode
+    ga[22] = 30*pt % y1
+    ga[23] = 50*pt % y2
+    ga[24] =     8 % number of bars
+    for i = 1,8 do
+        ga[23 + i*2] = i * 2 * 5*pt % x coordinate of bar axis
+        ga[24 + i*2] = 5*pt % bar width
+    end
+    % 131 <x1: FLOAT> <xgap: FLOAT> <ay: DIM> <ypos: DIM> <c: CHARS>
+    ga[41] = 131   % opcode text_xspaced
+    ga[42] = 10*pt % x coordinate of the first glyph axis
+    ga[43] = 10*pt % x gap among glyphs
+    ga[44] = 0.5   % half height
+    ga[45] = 25*pt % y coordinate of glyps
+    ga[46] = 65 % A
+    ga[47] = 66 % B
+    ga[48] = 67 % C
+    ga[49] = 68 % D
+    ga[50] = 69 % E
+    ga[51] = 70 % F
+    ga[52] = 71 % G
+    ga[53] = 72 % H
+    ga[54] = 0
+    pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+}\vrule\box\mybox\vrule
+
+Test number 8: spaced text, check correct vertical alignment:
+\directlua{
+    local ga = {}
+    ga[1] =    36 % vbar opcode
+    ga[2] =  0*pt % y1
+    ga[3] = 20*pt % y2
+    ga[4] =     8 % number of bars
+    for i = 1,8 do
+        ga[3 + i*2] = i * 2 * 5*pt % x coordinate of bar axis
+        ga[4 + i*2] = 1*pt % bar width
+    end
+    ga[21] =    36 % vbar opcode
+    ga[22] = 40*pt % y1
+    ga[23] = 60*pt % y2
+    ga[24] =     8 % number of bars
+    for i = 1,8 do
+        ga[23 + i*2] = i * 2 * 5*pt % x coordinate of bar axis
+        ga[24 + i*2] = 1*pt % bar width
+    end
+    % 131 <x1: FLOAT> <xgap: FLOAT> <ay: DIM> <ypos: DIM> <c: CHARS>
+    ga[41] = 131   % opcode text_xspaced
+    ga[42] = 10*pt % x coordinate of the first glyph axis
+    ga[43] = 10*pt % x gap among glyphs
+    ga[44] = 0.0   % half height
+    ga[45] = 30*pt % y coordinate of glyps
+    ga[46] = 65 % A
+    ga[47] = 66 % B
+    ga[48] = 67 % C
+    ga[49] = string.byte("Q")
+    ga[50] = 69 % E
+    ga[51] = 70 % F
+    ga[52] = 71 % G
+    ga[53] = 72 % H
+    ga[54] = 0
+    ga[55] = 131   % opcode text_xspaced
+    ga[56] = 10*pt % x coordinate of the first glyph axis
+    ga[57] = 10*pt % x gap among glyphs
+    ga[58] = 1.0   % half height
+    ga[59] = 30*pt % y coordinate of glyps
+    ga[60] = 49 % 1
+    ga[61] = 50 % 2
+    ga[62] = 51 % 3
+    ga[63] = 52 % 4
+    ga[64] = 53 % 5
+    ga[65] = 54 % 6
+    ga[66] = 55 % 7
+    ga[67] = 56 % 8
+    ga[68] = 0
+    pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+}\vrule\box\mybox\vrule
+
+Test number 9: spaced text, check correct vertical alignment:
+\directlua{
+    local ga = {}
+    ga[1] =    36 % vbar opcode
+    ga[2] =  0*pt % y1
+    ga[3] = 20*pt % y2
+    ga[4] =     8 % number of bars
+    for i = 1,8 do
+        ga[3 + i*2] = i * 2 * 5*pt % x coordinate of bar axis
+        ga[4 + i*2] = 8*pt % bar width
+    end
+    ga[21] =    36 % vbar opcode
+    ga[22] = 40*pt % y1
+    ga[23] = 60*pt % y2
+    ga[24] =     8 % number of bars
+    for i = 1,8 do
+        ga[23 + i*2] = i * 2 * 5*pt % x coordinate of bar axis
+        ga[24 + i*2] = 8*pt % bar width
+    end
+    % 131 <x1: FLOAT> <xgap: FLOAT> <ay: DIM> <ypos: DIM> <c: CHARS>
+    ga[41] = 131   % opcode text_xspaced
+    ga[42] = 10*pt % x coordinate of the first glyph axis
+    ga[43] = 10*pt % x gap among glyphs
+    ga[44] = 0.0   % half height
+    ga[45] = 20*pt % y coordinate of glyps
+    ga[46] = 65 % A
+    ga[47] = 66 % B
+    ga[48] = 67 % C
+    ga[49] = 68 % D
+    ga[50] = 69 % E
+    ga[51] = 70 % F
+    ga[52] = 71 % G
+    ga[53] = 72 % H
+    ga[54] = 0
+    ga[55] = 131   % opcode text_xspaced
+    ga[56] = 10*pt % x coordinate of the first glyph axis
+    ga[57] = 10*pt % x gap among glyphs
+    ga[58] = 1.0   % half height
+    ga[59] = 40*pt % y coordinate of glyps
+    ga[60] = 49 % 1
+    ga[61] = 50 % 2
+    ga[62] = 51 % 3
+    ga[63] = 52 % 4
+    ga[64] = 53 % 5
+    ga[65] = 54 % 6
+    ga[66] = 55 % 7
+    ga[67] = 56 % 8
+    ga[68] = 0
+    pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+}\vrule\box\mybox\vrule
+
+Test number 10: two centered texts and baseline aligned:
+\directlua{
+    local ga = {}
+    % 130 <ax: FLOAT> <ay: FLOAT> <xpos: DIM> <ypos: DIM> <c: CHARS>
+    ga[ 1] = 130 % opcode text
+    ga[ 2] = 0.5 % ax relative x coordinate
+    ga[ 3] = 1.0 % ay relative y coordinate
+    ga[ 4] = 0.0 % x position
+    ga[ 5] = 0.0 % y position
+    ga[ 6] =  65 % A
+    ga[ 7] =  string.byte("Q") % Q depth glyph
+    ga[ 8] =  67 % C
+    ga[ 9] =   0
+    ga[10] = 130 % opcode text
+    ga[11] = 0.5 % ax
+    ga[12] = 0.0 % ay
+    ga[13] = 0.0 % x
+    ga[14] = 0.0 % y
+    ga[15] =  48 % 0
+    ga[16] =  49 % 1
+    ga[17] =  50 % 2
+    ga[18] =  51 % 3
+    ga[19] =  52 % 4
+    ga[20] =  53 % 5
+    ga[21] =  54 % 6
+    ga[22] =  55 % 7
+    ga[23] =  56 % 8
+    ga[24] =  57 % 9
+    ga[25] =   0
+    pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+}\vrule\box\mybox\vrule
+
+So far, we have manually build data for a ga stream. This time we are going to
+use ga-canvas library.
+
+All the test are repeated 
+
+Test 1: a vbar 2pt width, 20pt height:
+\directlua{
+    gacanvas = require "lib-geo.gacanvas"
+    local ga = gacanvas:new()
+    local err = ga:vbar(0.0, 0.0, 20*pt, {0.0, 2*pt}) % x, w
+    assert(not err, err)
+    pdfnat:ga_to_hbox(ga, [[mybox]])
+}\box\mybox
+
+Test 2: ten vbars equally spaced by 10pt:
+\directlua{
+    local ga = gacanvas:new()
+    local bars = {}
+    for i = 0, 9 do
+        bars[i*2 + 1] =  5*pt + i*20*pt % x
+        bars[i*2 + 2] = 10*pt           % w
+    end
+    local err = ga:vbar(0.0, 0.0, 10*pt, bars)
+    assert(not err, err)
+    pdfnat:ga_to_hbox(ga, [[mybox]])
+}\vrule\box\mybox\vrule
+
+Test 3: two series of vbars 10pt and 5pt large:
+\directlua{
+    local b1 = {}
+    for i = 0, 9 do
+        b1[i*2 + 1] = i*20*pt
+        b1[i*2 + 2] = 10*pt
+    end
+    local b2 = {}
+    for i = 0, 8 do
+        b2[i*2 + 1] = i*20*pt
+        b2[i*2 + 2] = 5*pt
+    end
+    local ga = gacanvas:new()
+    local err = ga:vbar(0.0, 0.0, 10*pt, b1)
+    assert(not err, err)
+    err = ga:vbar(10.0*pt, 2.5*pt, 7.5*pt, b2)
+    assert(not err, err)
+    pdfnat:ga_to_hbox(ga, [[mybox]])
+}\vrule\box\mybox\vrule
+
+Test 4: a bunch of thin bars:
+\directlua{
+    local b = {}
+    for i = 0, 24 do
+        b[i*2 + 1] = 1*pt + i*4*pt
+        b[i*2 + 2] = 2*pt
+    end
+    local ga = gacanvas:new()
+    local err = ga:vbar(0.0, 5*pt, 25*pt, b)
+    assert(not err, err)
+    pdfnat:ga_to_hbox(ga, [[mybox]])
+}\vrule{ }\box\mybox{ }\vrule
+
+Test 5: two floor of a bunch of thin bars:
+\directlua{
+    local b = {}
+    for i = 0, 24 do
+        b[i*2 + 1] = i*4*pt
+        b[i*2 + 2] = 2*pt
+    end
+    local ga = gacanvas:new()
+    local err = ga:vbar(0.0, 5*pt, 25*pt, b)
+    assert(not err, err)
+    err = ga:vbar(2*pt, 25*pt, 45*pt, b)
+    pdfnat:ga_to_hbox(ga, [[mybox]])
+}\vrule\box\mybox\vrule
+
+Test number 6: staircase of bars (manual insertion of data):
+\directlua{
+    local b = {0.0, 10*pt}
+    local ga = gacanvas:new()
+    local err = ga:vbar(0.0, 0.0, 20*pt, b)
+    assert(not err, err)
+    err = ga:vbar(10*pt, 20*pt, 40*pt, b)
+    assert(not err, err)
+    err = ga:vbar(20*pt, 40*pt, 60*pt, b)
+    assert(not err, err)
+    pdfnat:ga_to_hbox(ga, [[mybox]])
+}\vrule\box\mybox\vrule
+
+Test number 7: vbars with spaced text, all in three rows:
+\directlua{
+    local b = {}
+    for i = 0,7 do
+        b[i*2+1] = i*10*pt
+        b[i*2+2] = 5*pt
+    end
+    local ga = gacanvas:new()
+    local err = ga:vbar(0.0, 0.0, 20*pt, b)
+    assert(not err, err)
+    local err = ga:vbar(0.0, 30*pt, 50*pt, b)
+    assert(not err, err)
+    local c = {
+        65, % A
+        66, % B
+        67, % C
+        68, % D
+        69, % E
+        70, % F
+        71, % G
+        72, % H
+    }
+    err = ga:text_xspaced(0.0, 10*pt, 0.5, 25*pt, c)
+    assert(not err, err)
+    pdfnat:ga_to_hbox(ga, [[mybox]])
+}\vrule\box\mybox\vrule
+
+Test 8: spaced text, check correct vertical alignment:
+\directlua{
+    local b = {}
+    for i = 0,7 do
+        b[i*2+1] = i*10*pt
+        b[i*2+2] = 2*pt
+    end
+    local ga = gacanvas:new()
+    local err = ga:vbar(0.0, 0.0, 20*pt, b)
+    assert(not err, err)
+    local err = ga:vbar(0.0, 40*pt, 60*pt, b)
+    assert(not err, err)
+    local c = {
+        65, % A
+        66, % B
+        67, % C
+        string.byte("Q"),
+        69, % E
+        70, % F
+        71, % G
+        72, % H
+    }
+    err = ga:text_xspaced(0.0, 10*pt, 0.0, 30*pt, c)
+    assert(not err, err)
+    local n = {
+        49, % 1
+        50, % 2
+        51, % 3
+        52, % 4
+        53, % 5
+        54, % 6
+        55, % 7
+        56, % 8
+    }
+    err = ga:text_xspaced(0.0, 10*pt, 1.0, 30*pt, n)
+    assert(not err, err)
+    pdfnat:ga_to_hbox(ga, [[mybox]])
+}\vrule\box\mybox\vrule
+
+Test number 9: spaced text, check correct vertical alignment:
+\directlua{
+    local b = {}
+    for i = 0,7 do
+        b[i*2+1] = i*10*pt
+        b[i*2+2] = 8*pt
+    end
+    local ga = gacanvas:new()
+    local err = ga:vbar(0.0, 0.0, 20*pt, b)
+    assert(not err, err)
+    local err = ga:vbar(0.0, 40*pt, 60*pt, b)
+    assert(not err, err)
+    local c = {
+        65, % A
+        66, % B
+        67, % C
+        string.byte("Q"),
+        69, % E
+        70, % F
+        71, % G
+        72, % H
+    }
+    err = ga:text_xspaced(0.0, 10*pt, 0.0, 20*pt, c)
+    assert(not err, err)
+    local n = {
+        49, % 1
+        50, % 2
+        51, % 3
+        52, % 4
+        53, % 5
+        54, % 6
+        55, % 7
+        56, % 8
+    }
+    err = ga:text_xspaced(0.0, 10*pt, 1.0, 40*pt, n)
+    assert(not err, err)
+    pdfnat:ga_to_hbox(ga, [[mybox]])
+}\vrule\box\mybox\vrule
+
+Test number 10: two centered texts and baseline aligned:
+\directlua{
+    local n = {
+        48, % 0
+        49, % 1
+        50, % 2
+        51, % 3
+        52, % 4
+        53, % 5
+        54, % 6
+        55, % 7
+        56, % 8
+        57, % 9
+    }
+    local ga = gacanvas:new()
+    local err = ga:text(0, 0, 0.5, 0, n)
+    assert(not err, err)
+    local a = {
+        65, % A
+        string.byte("Q"), % Q
+        67, % C
+    }
+    err = ga:text(0, 0, 0.5, 1, a)
+    assert(not err, err)
+    pdfnat:ga_to_hbox(ga, [[mybox]])
+}\vrule\box\mybox\vrule
+
+Test number 11: two centered texts and baseline aligned:
+\directlua{
+    local n = {
+        48, % 0
+        49, % 1
+        50, % 2
+        51, % 3
+        52, % 4
+        53, % 5
+        54, % 6
+        55, % 7
+        56, % 8
+        57, % 9
+    }
+    local ga = gacanvas:new()
+    local err = ga:text(0, 0, 0.5, 1, n)
+    assert(not err, err)
+    local a = {
+        65, % A
+        string.byte("Q"), % Q
+        67, % C
+    }
+    err = ga:text(0, 0, 0.5, 0, a)
+    assert(not err, err)
+    pdfnat:ga_to_hbox(ga, [[mybox]])
+}\vrule\box\mybox\vrule
+\bye

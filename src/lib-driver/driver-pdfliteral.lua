@@ -7,7 +7,7 @@
 
 -- class for drawing elementary geometric elements
 local PDFnative = {
-    _VERSION     = "PDFnative v0.0.2",
+    _VERSION     = "PDFnative v0.0.3",
     _NAME        = "PDFnative",
     _DESCRIPTION = "a LuaTeX native pdfliteral driver for ga graphic stream",
 }
@@ -86,9 +86,9 @@ PDFnative.operation_v001 = {
         end
         return pc
     end,
-
-    [36] = function(st, pc, ga, bf, xt) -- vbar
-        -- we have less memory consumption if inserting a bar as a rectangle
+    -- 36 <y1: DIM> <y2: DIM> <b: UINT> <x1: DIM> <t1: DIM>
+    [36] = function(st, pc, ga, bf, xt) -- vbar 
+        -- we have less memory consumption if we insert a bar as a rectangle
         -- rather than as a vertical line
         local y1   = ga[pc]; pc = pc + 1
         local y2   = ga[pc]; pc = pc + 1
@@ -101,11 +101,12 @@ PDFnative.operation_v001 = {
         local pc_next = pc + 2 * nbar
         local bx1, bx2
         for i = pc, pc_next - 1, 2 do -- reading coordinates <x axis> <width>
-            local w  = ga[i+1]
-            local x1 = ga[i] - w/2
+            local x = assert(ga[i], "[InternalErr] prematurely reached the end")
+            local w = assert(ga[i+1], "[InternalErr] prematurely reached the end")
+            local x1 = x - w/2
             -- pdf literal insertion <x y w h re>
             bf[#bf + 1] = string.format(fmt, x1/bp, y1/bp, w/bp)
-            -- check the bounding box limit only if the state flag is true
+            -- check the bounding box only if the corresponding flag is true
             if st.bb_on then
                 if bx1 == nil then
                     bx1 = x1
@@ -247,7 +248,7 @@ local function hboxcreate(hboxname, buf, txt, bb_x1, bb_y1, bb_x2, bb_y2)
 end
 
 -- stream processing and hbox node building
-function PDFnative:ga_to_hbox(ga, hboxname) --> nil
+function PDFnative:ga_to_hbox(ga, hboxname)
     local op_fn = self.operation_v001
     local bf = {"q"} -- stack saving
     local xt = {} -- text buffer

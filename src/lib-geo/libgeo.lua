@@ -5,7 +5,7 @@
 -- All dimension must be in scaled point (sp)
 
 local libgeo = {
-    _VERSION     = "libgeo v0.0.2",
+    _VERSION     = "libgeo v0.0.3",
     _NAME        = "libgeo",
     _DESCRIPTION = "simple geometric library",
 }
@@ -19,7 +19,7 @@ Vbar.__index = Vbar
 -- Vbar costructors
 
 -- VBar costructor from an array [xcenter1, width1, xcenter2, width2, ...]
-function Vbar:from_array(yl_arr)
+function Vbar:from_array(yl_arr) --> <vbar object>
     assert(type(yl_arr) == "table", "'yline_array' is a mandatory arg")
     -- stream scanning
     local i = 1
@@ -81,7 +81,7 @@ end
 -- from an integer to read from right to left
 -- 13212 ->rev 21231 ->binary 11 0 11 000 1 -> symbol 110110001
 -- is_bar :: boolean :: bar or space for first, default true
-function Vbar:from_int_revstep(ngen, mod, is_bar)
+function Vbar:from_int_revstep(ngen, mod, is_bar) --> <vbar object>
     assert(type(ngen) == "number", "Invalid argument for n")
     assert(type(mod) == "number", "Invalid argument for module width")
     if is_bar == nil then is_bar = true else
@@ -116,7 +116,7 @@ end
 -- build a yline array from the integer definition. Digit decoding rule:
 -- mod: b or w => 1 -- narrow bar/space
 -- MOD: B or W => 2 -- wide bar/space
-function Vbar:from_int_revpair(ngen, mod, MOD, is_bar)
+function Vbar:from_int_revpair(ngen, mod, MOD, is_bar) --> <vbar object>
     assert(type(ngen) == "number", "Invalid argument for n")
     assert(type(mod) == "number", "Invalid argument for narrow module width")
     assert(type(MOD) == "number", "Invalid argument for wide module width")
@@ -166,8 +166,8 @@ function Vbar:append_graphic(canvas, y1, y2, tx) --> canvas, err
         y1, y2 = y2, y1
     end
     local yl = self._yline
-    local c, err = canvas:vbar(tx, y1, y2, yl)
-    return c, err
+    local err = canvas:vbar(tx, y1, y2, yl)
+    return canvas, err
 end
 
 
@@ -196,7 +196,7 @@ function Text:from_string(s) --> object
 end
 
 -- from an array of chars
-function Text:from_chars(chars)
+function Text:from_chars(chars) --> object
     assert(type(chars) == "table", "[ArgErr] 'chars' must be a table")
     local arr = {}
     for _, c in ipairs(chars) do
@@ -210,7 +210,7 @@ function Text:from_chars(chars)
 end
 
 -- provide an integer to build a Text object
-function Text:from_int(n)
+function Text:from_int(n) --> object
     assert(type(n) == "number", "[ArgErr] 'n' must be a number")
     assert( n > 0, "[Err] 'n' must be positive")
     assert( n == math.floor(n), "[Err] 'n' must be an integer")
@@ -241,8 +241,8 @@ function Text:append_graphic(canvas, xpos, ypos, ax, ay) --> canvas, err
     ay = ay or 0; assert(type(ay) == "number", "[ArgErr] 'ay' is not a number")
     
     local chars = self.codepoint
-    local c, err = canvas:text(xpos, ypos, ax, ay, chars)
-    return c, err
+    local err = canvas:text(xpos, ypos, ax, ay, chars)
+    return canvas, err
 end
 
 -- glyph equally spaced along the baseline
@@ -253,18 +253,18 @@ function Text:append_graphic_xspaced(canvas, x1, xgap, ay, ypos) --> canvas, err
     assert(type(ay) == "number", "[ArgErr] 'ay' is not a number")
     assert(type(ypos) == "number", "[ArgErr] 'ypos' number required")
     local chars = self.codepoint
-    local c, err
+    local err
     if xgap > 0 then
-        c, err = canvas:text_xspaced(x1, xgap, ay, ypos, chars)
+        err = canvas:text_xspaced(x1, xgap, ay, ypos, chars)
     elseif xgap < 0 then
         local n = #chars
         x1 = x1 + (n - 1) * xgap
         xgap = -xgap
-        c, err = canvas:text_xspaced(x1, xgap, ay, ypos, chars)
+        err = canvas:text_xspaced(x1, xgap, ay, ypos, chars)
     else -- xgap == 0
         error("xgap is zero")
     end
-    return c, err
+    return canvas, err
 end
 
 return libgeo

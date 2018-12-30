@@ -1,26 +1,21 @@
 
 Development program, alias what we must TODO:
 
-Bump to   : new beta dev channel                                      20__-__-__
 ?         :                                                           20__-__-__
 ?         : ?                                                         20__-__-__
 ?         : ? example directory                                       20__-__-__
 Task   x.1: ? visual debug                                            20__-__-__
 
-Bump to   : new beta dev channel                                      20__-__-__
 ?         :                                                           20__-__-__
 ?         : ? TiKZ driver                                             20__-__-__
 ?         : ? PGF driver                                              20__-__-__
 Task   x.1: ? SVG driver                                              20__-__-__
 
-Bump to   : new beta dev channel
 ?         :                                                           20__-__-__
 ?         :                                                           20__-__-__
 ?         :                                                           20__-__-__
 ?         :                                                           20__-__-__
 Task   x.1: ? make thing happen: font property for text               20__-__-__
-
-Bump to   : new alpha dev channel                                     20__-__-__
 Task   x.2: ? develop ConTeXt mkiv user module                        20__-__-__
 Task   x.1: ? develop LaTeX user package                              20__-__-__
 Task   x.x: ?                                                         20__-__-__
@@ -30,19 +25,30 @@ Task     x: time to get an usable manual even if minimal              20__-__-__
 Task     9: implement eventually new ideas                            20__-__-__
 Task   x.5: a number parameter can be a string? unit measure...       20__-__-__
 
-<Version 0.1>                                                         20__-__-__
-Task   4.3: test the local system of option set up for Code128        20__-__-__
-Task   4.2: test the local system of option set up for Code39         20__-__-__
-Task   4.1: test for ga-canvas                                        20__-__-__
+SCHEDULED TASK:
 
-<Version 0.0.3>                                                       20__-__-__
-Task   3.4: do the same with previous Ean2/5/8/13 encoders code       20__-__-__
-Task   3.3: implement opt in Code 39 and Code 128 constructor       ☑ 2018-12-24
+<Version 0.3> implement Interleaved 2 of 5 encoder                    20__-__-__
+Task   6.2: test files                                                20__-__-__
+Task   6.1: implement ITF encoder                                     20__-__-__
+
+<Version 0.2> implement Ean family 2/5/8/13 encoders                  20__-__-__
+Task   5.5: test files                                                20__-__-__
+Task   5.4: implement EAN2 encoder                                    20__-__-__
+Task   5.3: implement EAN5 encoder                                    20__-__-__
+Task   5.2: implement EAN8 encoder                                    20__-__-__
+Task   5.1: implement EAN13 encoder                                   20__-__-__
+
+COMPLETED TASK:
+
+<Version 0.1> Code 128 encoder and test file                       🎉 2018-12-30
+Task   4.4: refactoring param iterator                              ☑ 2018-12-30
+Task   4.3: test the local system of option set up for Code128      ☑ 2018-12-30
+Task   4.2: test the local system of option set up for Code39       ☑ 2018-12-30
+Task   4.1: test for ga-canvas                                      ☑ 2018-12-29
+Task   3.3: opt in Code 39 and Code 128 symbol constructors         ☑ 2018-12-24
 Task   3.2: focus on a new constructor in Barcode Class for
             better encoder implementation                           ☑ 2018-12-21
 Task   3.1: import and refactoring previous Code128 encoder code    ☑ 2018-12-16
-
-COMPLETED TASK:
 
 <Version 0.0.2>                                                    🎉 2018-12-11
 Task   2.5: option text_gap for code39                              ☑ 2018-12-11

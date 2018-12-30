@@ -326,7 +326,7 @@ end
 -- Drawing into the provided channel the geometrical barcode data
 -- tx, ty is the optional translator vector
 -- the function return the canvas reference to allow call chaining
-function Code128:append_graphic(canvas, tx, ty)
+function Code128:append_graphic(canvas, tx, ty) --> canvas
     local xdim, h = self.xdim, self.ydim
     local sw = 11*xdim -- the width of a symbol
     local data = self.data
@@ -338,15 +338,19 @@ function Code128:append_graphic(canvas, tx, ty)
     local y1 = y0 + h
     local xpos = x0
     -- drawing the symbol
-    canvas:start_bbox_group()
+    local err = canvas:start_bbox_group()
+    assert(not err, err)
     for _, c in ipairs(data) do
         local vb = self._vbar[c]
-        vb:append_graphic(canvas, y0, y1, xpos)
+        local _, err = vb:append_graphic(canvas, y0, y1, xpos)
+        assert(not err, err)
         xpos = xpos + sw
     end
     -- bounding box setting
     local qz = self.quietzone_factor * xdim
-    canvas:stop_bbox_group(x0 - qz, y0, x1 + qz, y1) --{xmin, ymin, xmax, ymax}
+    -- { xmin, ymin, xmax, ymax }
+    local err = canvas:stop_bbox_group(x0 - qz, y0, x1 + qz, y1)
+    assert(not err, err)
     return canvas
 end
 

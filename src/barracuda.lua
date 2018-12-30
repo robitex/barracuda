@@ -50,15 +50,8 @@ Barracuda._drv_available_drv = { -- keys must be lowercase
 
 -- encoder builder loader
 -- barcode_type: is the encoder type in lowercase chars
-function Barracuda:new_encoder(bc_class, id_enc, opt) --> enc, err
-    local barcode = self._barcode
-    return barcode:new_encoder(bc_class, id_enc, opt)
-end
-
--- return a specific already build barcode encoder
-function Barracuda:enc_by_name(bc_class, id_enc)
-    local barcode = self._barcode
-    return barcode:enc_by_name(bc_class, id_enc)
+function Barracuda:get_barcode_class() --> Barcode class object
+    return self._barcode
 end
 
 --

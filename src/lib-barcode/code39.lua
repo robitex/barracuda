@@ -320,7 +320,7 @@ function Code39:from_string(s, opt) --> symbol, err
 end
 
 -- tx, ty is an optional translator vector
-function Code39:append_graphic(canvas, tx, ty)
+function Code39:append_graphic(canvas, tx, ty) --> canvas
     local code       = self.code
     local ns         = #code -- number of chars inside the symbol
     local mod        = self.module
@@ -336,24 +336,27 @@ function Code39:append_graphic(canvas, tx, ty)
     local x1         = x0 + w
     local y1         = y0 + h
     local xpos       = x0
-    canvas:start_bbox_group()
+    local err = canvas:start_bbox_group(); assert(not err, err)
     local vbar = self._vbar
     -- start/stop symbol
     local term_vbar = vbar['*']
     -- draw start symbol
-    term_vbar:append_graphic(canvas, y0, y1, xpos)
+    local _, err = term_vbar:append_graphic(canvas, y0, y1, xpos)
+    assert(not err, err)
     -- draw code symbol
     for _, c in ipairs(code) do
         xpos = xpos + xgap
         local vb = vbar[c]
-        vb:append_graphic(canvas, y0, y1, xpos)
+        local _, err = vb:append_graphic(canvas, y0, y1, xpos)
+        assert(not err, err)
     end
     -- draw stop symbol
-    term_vbar:append_graphic(canvas, y0, y1, xpos + xgap)
-
+    local _, err = term_vbar:append_graphic(canvas, y0, y1, xpos + xgap)
+    assert(not err, err)
     -- bounding box setting
     local qz = self.quietzone
-    canvas:stop_bbox_group(x0 - qz, y0, x1 + qz, y1)
+    local err = canvas:stop_bbox_group(x0 - qz, y0, x1 + qz, y1)
+    assert(not err, err)
 
     -- check height as the minimum of 15% of length
     -- TODO: message could warn the user
@@ -397,7 +400,8 @@ function Code39:append_graphic(canvas, tx, ty)
                 xaxis = xaxis + xgap
             end
             xaxis = xaxis + xs/2
-            txt:append_graphic_xspaced(canvas, xaxis, xgap, tay, ypos)
+            local _, err = txt:append_graphic_xspaced(canvas, xaxis, xgap, tay, ypos)
+            assert(not err, err)
         else
             local xpos, tax
             if ho == "left" then
@@ -412,7 +416,8 @@ function Code39:append_graphic(canvas, tx, ty)
             else
                 error("[InternalErr] wrong option for text_pos")
             end
-            txt:append_graphic(canvas, xpos, ypos, tax, tay)
+            local _, err = txt:append_graphic(canvas, xpos, ypos, tax, tay)
+            assert(not err, err)
         end
     end
     return canvas

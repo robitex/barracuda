@@ -1,0 +1,127 @@
+% !TeX program = LuaTeX
+% Copyright (C) 2018 Roberto Giacomelli
+
+\newbox\mybox
+\nopagenumbers
+
+Test 1: Code 39 symbol with default parameters:
+
+\directlua{
+local barracuda = require "barracuda"
+local c39, err = barracuda:get_barcode_class()
+                          :new_encoder("code39")
+assert(not err, err)
+
+local symbol, err = c39:from_string("ABC12QJ31")
+assert(not err, err)
+
+local canvas = barracuda:new_canvas()
+local _, err = symbol:append_graphic(canvas)
+assert(not err, err)
+local drv, err = barracuda:load_driver("native")
+assert(not err, err)
+drv:ga_to_hbox(canvas, "mybox")
+}
+\box\mybox
+
+Test 2: get the reference of the previous encoder and typeset two
+Code 39 symbols on the same canvas, one above to the other:
+
+\directlua{
+local barracuda = require "barracuda"
+local c39, err = barracuda:get_barcode_class()
+                          :enc_by_name("code39"); assert(c39, err)
+
+local s1, err = c39:from_string("ZKPQJ31"); assert(s1, err)
+local s2, err = c39:from_string("RTFG746", {text_pos="top"}); assert(s2, err)
+
+local canvas = barracuda:new_canvas()
+local _, err = s1:append_graphic(canvas)
+assert(not err, err)
+
+local h2 = s2:get_param("height")
+local _, err = s2:append_graphic(canvas, 0.0, h2 + tex.sp "5pt")
+assert(not err, err)
+local drv, err = barracuda:load_driver("native")
+assert(not err, err)
+drv:ga_to_hbox(canvas, "mybox")
+}
+\box\mybox
+
+Test 3: with the same encoder print a symbol, change globally the height,
+and reprint the same symbol again on the same canvas:
+
+\directlua{
+local barracuda = require "barracuda"
+local c39, err = barracuda:get_barcode_class()
+                          :enc_by_name("code39"); assert(c39, err)
+
+local s1, err  = c39:from_string("ZKPQJ31"); assert(s1, err)
+
+local canvas = barracuda:new_canvas()
+local _, err = s1:append_graphic(canvas); assert(not err, err)
+
+local h = s1:get_param("height")
+c39:set_param("height", 2*h)
+c39:set_param {text_pos = "top"}
+
+local _, err = s1:append_graphic(canvas, 0.0, h + tex.sp "5pt")
+assert(not err, err)
+
+local drv, err = barracuda:load_driver("native")
+assert(not err, err)
+drv:ga_to_hbox(canvas, "mybox")
+}
+\box\mybox
+
+Test 4: do the same in test 3 but change locally parameters as
+height and text properties:
+
+\directlua{
+local barracuda = require "barracuda"
+local c39, err = barracuda:get_barcode_class()
+                          :enc_by_name("code39"); assert(c39, err)
+
+local s1, err  = c39:from_string("0123456789"); assert(s1, err)
+
+local canvas = barracuda:new_canvas()
+local _, err = s1:append_graphic(canvas); assert(not err, err)
+local h, err = s1:get_param("height"); assert(h, err)
+local ok, err = s1:set_param{
+    height = h/2,
+    text_enabled = true,
+    text_pos = "bottom-spaced",
+    text_star = true,
+    ay = 1,
+}; assert(ok, err)
+local _, err = s1:append_graphic(canvas, 0.0, - tex.sp "5pt"); assert(not err, err)
+
+local drv, err = barracuda:load_driver("native")
+assert(not err, err)
+drv:ga_to_hbox(canvas, "mybox")
+}
+\box\mybox
+
+Test 5: create a new encoder with a large module value:
+
+\directlua{
+local barracuda = require "barracuda"
+local barcode = barracuda:get_barcode_class()
+
+local c39, err = barcode:new_encoder("code39", "e2", {module = tex.sp "0.5mm"})
+assert(c39, err)
+
+local s1, err  = c39:from_string("0123456789"); assert(s1, err)
+
+local canvas = barracuda:new_canvas()
+local _, err = s1:append_graphic(canvas)
+assert(not err, err)
+local drv, err = barracuda:load_driver("native")
+assert(not err, err)
+drv:ga_to_hbox(canvas, "mybox")
+}
+\box\mybox
+
+
+
+\bye

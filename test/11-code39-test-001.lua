@@ -1,31 +1,33 @@
 -- Copyright (C) 2018 Roberto Giacomelli
+-- test Code 39 encoder
 
 local barracuda = require "barracuda"
+local barcode = barracuda:get_barcode_class()
 
-local c128, err = barracuda:load_builder("code128")
+local c39, err = barcode:new_encoder("code39")
 assert(not err, err)
 
-print(c128._NAME)
-print(c128._VERSION)
+print(c39._NAME)
+print(c39._VERSION)
 
-local c128_default, err = c128:new_encoder("default")
-assert(not err, err)
-local info = c128_default:info()
-print("name", info.name)
-print("description", info.description)
+local info = c39:info()
+
+print("encoder name = ", info.name)
+print("description = ", info.description)
+
 for k, tp in ipairs(info.param) do
     print(k, tp.name, tp.value)
 end
 
-local symb = c128_default:from_chars({"1", "2", "3"})
+local symb = c39:from_chars({"1", "2", "3"})
 
-print()
+print("print internal representation of chars")
 for _, c in ipairs(symb.code) do
     print(c)
 end
+print()
 
 local canvas = barracuda:new_canvas()
-
 symb:append_graphic(canvas)
 
 -- native driver
@@ -33,6 +35,4 @@ local drv, err = barracuda:load_driver("native")
 assert(not err, err)
 
 for _, code in ipairs(canvas._data) do print(code) end
-
-
 

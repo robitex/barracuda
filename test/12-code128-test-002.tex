@@ -1,0 +1,119 @@
+% !TeX program = LuaTeX
+% Copyright (C) 2018 Roberto Giacomelli
+
+\newbox\mybox
+\nopagenumbers
+
+Code 128 encoder test.
+
+Test 1: one simple barcode with default parameter:
+
+\directlua{
+local barracuda = require "barracuda"
+local barcode = barracuda:get_barcode_class()
+
+local c128, err = barcode:new_encoder("code128")
+assert(not err, err)
+
+local symbo, err = c128:from_string("5465468132546812")
+assert(not err, err)
+
+local canvas = barracuda:new_canvas()
+symbo:append_graphic(canvas)
+
+local drv, err = barracuda:load_driver("native")
+assert(not err, err)
+
+drv:ga_to_hbox(canvas, "mybox")
+}
+\vrule A\vrule\box\mybox \vrule A\vrule
+
+Test 2: two symbols, different anchor. The first symbol (more longer than the
+second one) takes the anchor parameters from the super class Barcode, while
+the second one takes anchors from itself:
+
+\directlua{
+local barracuda = require "barracuda"
+local barcode = barracuda:get_barcode_class()
+local ok, err = barcode:set_param{ax = 1, ay = 1} % super class set up
+assert(ok, err)
+assert(barcode.ax == 1, "barcode ax is "..tostring(barcode.ax))
+
+local c128, err = barcode:enc_by_name("code128")
+assert(c128.ax == 1, "c128 ax is "..tostring(c128.ax))
+
+local s1, err = c128:from_string("12345678901234567890"); assert(s1, err)
+local s2, err = c128:from_string("0987654321", {ax = 0, ay = 0}); assert(s2, err)
+
+local s1_ax = s1:get_param("ax")
+assert(s1.ax == 1, "1 ax is "..tostring(s1.ax))
+local s2_ax = s2:get_param("ax")
+assert(s2.ax == 0, "0 ax is "..tostring(s2.ax))
+
+local canvas = barracuda:new_canvas()
+s1:append_graphic(canvas)
+s2:append_graphic(canvas)
+
+local drv, err = barracuda:load_driver("native")
+assert(not err, err)
+drv:ga_to_hbox(canvas, "mybox")
+}\box\mybox
+
+Test 3: play with the barcodes height (ydim parameter). The vertical anchor ay
+will take to super class Barcode, previously set to 1.0. So, the symbols will
+be aligned to the top:
+
+\directlua{
+local barracuda = require "barracuda"
+local c128, err = barracuda:get_barcode_class()
+                           :enc_by_name "code128"; assert(c128, err)
+
+local s, err = c128:from_string("123456"); assert(s, err)
+local canvas = barracuda:new_canvas()
+local _, err = s:append_graphic(canvas); assert(not err, err)
+
+local ok, err = s:set_param("ydim", tex.sp "15mm")
+local _, err = s:append_graphic(canvas, tex.sp "20mm"); assert(not err, err)
+
+local ok, err = s:set_param("ydim", tex.sp "30mm")
+local _, err = s:append_graphic(canvas, tex.sp "40mm"); assert(not err, err)
+
+local drv, err = barracuda:load_driver("native"); assert(drv, err)
+drv:ga_to_hbox(canvas, "mybox")
+}\box\mybox
+
+Test 4: set up vertical anchor globally to 0.0, locally to the encoder to 0.5
+and locally to 1.0:
+
+\directlua{
+local barracuda = require "barracuda"
+local barcode = barracuda:get_barcode_class()
+% set ay globally to 0.0
+local ok, err = barcode:set_param("ay", 0); assert(ok, err)
+
+local c128, err = barcode:enc_by_name "code128"; assert(c128, err)
+local s, err = c128:from_string("ABCDEFGHI"); assert(s, err)
+
+local canvas = barracuda:new_canvas()
+local _, err = s:append_graphic(canvas); assert(not err, err)
+
+% set ay to 0.5 for the encoder
+local ok, err = c128:set_param("ay", 0.5); assert(ok, err)
+local _, err = s:append_graphic(canvas, tex.sp "30mm"); assert(not err, err)
+% set locally to the symbol ay to 1.0
+local ok, err = s:set_param("ay", 1)
+local _, err = s:append_graphic(canvas, tex.sp "60mm"); assert(not err, err)
+
+local drv, err = barracuda:load_driver("native"); assert(drv, err)
+drv:ga_to_hbox(canvas, "mybox")
+}\box\mybox
+
+
+
+
+
+That's all folk!
+
+\bye
+
+

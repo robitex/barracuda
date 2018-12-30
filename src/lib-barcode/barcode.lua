@@ -16,6 +16,7 @@ Barcode._available_enc = {-- keys must be lowercase
     ean13   = "lib-barcode.ean13",
     ean5    = "lib-barcode.ean5",
     ean2    = "lib-barcode.ean2",
+    itf     = "lib-barcode.itf", -- Interleaved 2 of 5 (itf)
 }
 Barcode._builder_instances = {} -- encoder builder instances repository
 
@@ -59,22 +60,26 @@ local function p_iter(state, i)
     i = i + 1
     local t = state[i]
     if t then
-        return i, t.pname, t.pdef
+        return i, t
     end
 end
 -- main iterator function
 function Barcode:param_ord_iter()
-    local p1, p2 = self._super_par_def, self._par_def
+    local p1 = self._super_par_def
+    local p2 = self._par_def
     local p2len = 0
     local state = {}
-    for pname, pdef in pairs(p2) do
-        state[pdef.order] = {
-            pname = pname,
-            pdef  = pdef,
-        }
-        p2len = p2len + 1
+    if p2 then
+        for pname, pdef in pairs(p2) do
+            state[pdef.order] = {
+                pname = pname,
+                pdef  = pdef,
+                isSuper = false,
+            }
+            p2len = p2len + 1
+        end
+        assert(p2len == #state)
     end
-    assert(p2len == #state)
     -- append the super class parameter to the iterator state
     local p1len = 0
     for pname, pdef in pairs(p1) do
@@ -84,9 +89,11 @@ function Barcode:param_ord_iter()
         state[p2len + pdef.order] = {
             pname = pname,
             pdef  = pdef,
+            isSuper = true,
         }
         p1len = p1len + 1
     end
+    assert(p1len + p2len == #state)
     return p_iter, state, 0
 end
 
@@ -135,7 +142,10 @@ function Barcode:new_encoder(bc_type, id_enc, opt) --> object, err
     })
     builder._enc_instances[id_enc] = enc
     -- param defition
-    for _, pname, pdef in enc:param_ord_iter() do
+    for _, tpar in enc:param_ord_iter() do
+        local pname   = tpar.pname
+        local pdef    = tpar.pdef
+        local isSuper = tpar.isSuper
         local val = opt[pname] -- param = val
         if val ~= nil then
             local ok, err = pdef:fncheck(val, enc)
@@ -151,7 +161,9 @@ function Barcode:new_encoder(bc_type, id_enc, opt) --> object, err
             else
                 def_val = pdef.default
             end
-            enc[pname] = def_val
+            if not isSuper then
+                enc[pname] = def_val
+            end
         end
     end
     if enc.config then -- this must be called after the parameter defintion
@@ -190,9 +202,8 @@ end
 -- check a parameter set
 -- this method check also reserved parameter
 -- syntax:
--- :set_param{key = value, key = value, ...}
--- :set_param({k=v, ...}, "default"|"current")
--- if ref is "default" parameters are checked with defualkt values
+-- :check_param({k=v, ...}, "default"|"current")
+-- if ref is "default" parameters are checked with default values
 -- if ref is "current" parameters are checked with the current values
 function Barcode:check_param(opt, ref) --> boolean, check report
     if type(opt) ~= "table" then
@@ -213,7 +224,9 @@ function Barcode:check_param(opt, ref) --> boolean, check report
     local isOk   = true
     local check_rpt
     -- checking process
-    for _, pname, pdef in self:param_ord_iter() do
+    for _, tpar in self:param_ord_iter() do
+        local pname = tpar.pname
+        local pdef  = tpar.pdef
         -- load the default value of <pname>
         local def_val; if pdef.fndefault then
             def_val = pdef:fndefault(cktab)
@@ -272,7 +285,9 @@ function Barcode:info() --> table
         param       = {},
     }
     local tpar   = info.param
-    for _, id, pdef in self:param_ord_iter() do
+    for _, tpar in self:param_ord_iter() do
+        local id   = tpar.pname
+        local pdef = tpar.pdef
         tpar[#tpar + 1] = {
             name       = id,
             descr      = nil, -- TODO:
@@ -325,12 +340,14 @@ function Barcode:set_param(arg1, arg2) --> boolean, err
     local cktab  = {}
     local ckparam = {}
     -- checking process
-    for _, pname, pdef in self:param_ord_iter() do
+    for _, tpar in self:param_ord_iter() do
+        local pname = tpar.pname
+        local pdef  = tpar.pdef
         local val = targ[pname] -- par = val
         if val ~= nil then
             if pdef.isReserved then
                 return false, "[Err] parameter '" .. pname ..
-                "' is reserved, create another encoder"
+                    "' is reserved, create another encoder"
             end
             local ok, err = pdef:fncheck(val, cktab)
             if ok then
