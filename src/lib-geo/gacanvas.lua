@@ -105,7 +105,7 @@ function gaCanvas:stop_bbox_group(x1, y1, x2, y2) --> err
 end
 
 
--- [text] 130 ax ay x y string
+-- [text] 130 ax ay x y chars
 function gaCanvas:text(xpos, ypos, ax, ay, chars) --> err
     if type(xpos) ~= "number" then
         return "[ArgErr] 'xpos' number expected"
@@ -149,6 +149,32 @@ function gaCanvas:text_xspaced(x1, xgap, ay, ypos, chars) --> err
     end
     data[#data + 1] = 0 -- end string signal
 end
+
+
+-- 132 -- text_xwidth
+-- <ay: FLOAT> <x1: DIM> <x2: DIM> <y: DIM> <c: CHARS>
+function gaCanvas:text_xwidth(x1, x2, ay, ypos, chars) --> err
+    if type(x1) ~= "number" then return "[ArgErr] 'x1' number expected" end
+    if type(x2) ~= "number" then return "[ArgErr] 'x2' number expected" end
+    if type(ay) ~= "number" then return "[ArgErr] 'ay' number expected" end
+    if type(ypos) ~= "number" then return "[ArgErr] 'ypos' number expected" end
+    if type(chars)~= "table" then return "[ArgErr] 'chars' table expected" end
+    if #chars == 0 then return "[ArgErr] 'chars' array is empty" end
+    local data = self._data
+    data[#data + 1] = 132
+    data[#data + 1] = ay -- anchor relative y-coordinate
+    data[#data + 1] = x1 -- left limit of the text box
+    data[#data + 1] = x2 -- right limit of the text box
+    data[#data + 1] = ypos -- text y-coordinate
+    for _, c in ipairs(chars) do
+        data[#data + 1] = c
+    end
+    data[#data + 1] = 0 -- end string signal
+end
+
+
+
+-- under assessment opcodes
 
 -- [start_text_group] 140
 function gaCanvas:start_text_group() --> err

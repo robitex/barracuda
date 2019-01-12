@@ -157,16 +157,18 @@ PDFnative.operation_v001 = {
             y = ypos - d*ay
         end
         -- bounding box checking
-        if st.bb_x1 == nil then
-            st.bb_x1 = x
-            st.bb_x2 = x + w
-            st.bb_y1 = y
-            st.bb_y2 = y + h
-        else
-            if     x < st.bb_x1 then st.bb_x1 = x end
-            if x + w > st.bb_x2 then st.bb_x2 = x + w end
-            if     y < st.bb_y1 then st.bb_y1 = y end
-            if y + h > st.bb_y2 then st.bb_y2 = y + h end
+        if st.bb_on then -- eventually update bbox
+            if st.bb_x1 == nil then
+                st.bb_x1 = x
+                st.bb_x2 = x + w
+                st.bb_y1 = y
+                st.bb_y2 = y + h
+            else
+                if     x < st.bb_x1 then st.bb_x1 = x end
+                if x + w > st.bb_x2 then st.bb_x2 = x + w end
+                if     y < st.bb_y1 then st.bb_y1 = y end
+                if y + h > st.bb_y2 then st.bb_y2 = y + h end
+            end
         end
         xt[#xt + 1] = {hbox, x, y - d, w, h}
         return pc + 1
@@ -201,18 +203,78 @@ PDFnative.operation_v001 = {
             y = ypos - d*ay
         end
         -- bounding box checking
-        if st.bb_x1 == nil then
-            st.bb_x1 = x
-            st.bb_x2 = x + w
-            st.bb_y1 = y      -- no depth
-            st.bb_y2 = y + h
-        else
-            if     x < st.bb_x1 then st.bb_x1 = x end
-            if x + w > st.bb_x2 then st.bb_x2 = x + w end
-            if     y < st.bb_y1 then st.bb_y1 = y end
-            if y + h > st.bb_y2 then st.bb_y2 = y + h end
+        if st.bb_on then -- eventually update bbox
+            if st.bb_x1 == nil then
+                st.bb_x1 = x
+                st.bb_x2 = x + w
+                st.bb_y1 = y      -- no depth
+                st.bb_y2 = y + h
+            else
+                if     x < st.bb_x1 then st.bb_x1 = x end
+                if x + w > st.bb_x2 then st.bb_x2 = x + w end
+                if     y < st.bb_y1 then st.bb_y1 = y end
+                if y + h > st.bb_y2 then st.bb_y2 = y + h end
+            end
         end
         xt[#xt + 1] = {hbox, x, y - d, w, h}
+        return pc + 1
+    end,
+    
+    -- text_xwidth
+    -- <ay: FLOAT> <x1: DIM> <x2: DIM> <y: DIM> <c: CHARS>
+    [132] = function (st, pc, ga, bf, xt)
+        local ay = ga[pc]; pc = pc + 1 -- y anchor
+        local x1 = ga[pc]; pc = pc + 1 -- left limit
+        local x2 = ga[pc]; pc = pc + 1 -- right limit
+        assert (x1 < x2, "[InternalErr] not order limit")
+        local ypos = ga[pc]; pc = pc + 1 -- y coordinate of anchor point
+        local c1 = ga[pc]; pc = pc + 1 -- first char
+        assert(c1 ~= 0, "[InternalErr] empty char sequence")
+        assert(ga[pc] ~= 0, "[InternalErr] we need almost two char in the sequence")
+        local i = 1
+        local head, last -- node list
+        local w_1 -- width of the first char
+        head, last, w_1 = append_glyph(head, last, c1)
+        while ga[pc] ~= 0 do
+            local s = newglue(0) -- unknow dim at moment
+            head, last = node.insert_after(head, last, s)
+            local g = newglyph(ga[pc]); pc = pc + 1
+            head, last = node.insert_after(head, last, g)
+            i = i + 1
+        end
+        local w_n = last.width
+        local xgap = ( x2 - x1 - (w_1 + w_n)/2 )/(i - 1)
+        local c_curr = head
+        for _ = 1, i - 1 do
+            local g = c_curr.next
+            local c_next = g.next
+            w_1, w_2 = c_curr.width, c_next.width
+            g.width = xgap - (w_1 + w_2)/2
+            c_curr = c_next
+        end
+        local hbox = node.hpack(head)
+        local _, h, d = node.dimensions(hbox)
+        local y -- y hbox coordinate
+        if ay > 0 then
+            y = ypos - h*ay
+        else
+            y = ypos - d*ay
+        end
+        -- bounding box checking
+        if st.bb_on then -- eventually update bbox
+            if st.bb_x1 == nil then
+                st.bb_x1 = x1
+                st.bb_x2 = x2
+                st.bb_y1 = y      -- no depth
+                st.bb_y2 = y + h
+            else
+                if    x1 < st.bb_x1 then st.bb_x1 = x1 end
+                if    x2 > st.bb_x2 then st.bb_x2 = x2 end
+                if     y < st.bb_y1 then st.bb_y1 = y end
+                if y + h > st.bb_y2 then st.bb_y2 = y + h end
+            end
+        end
+        xt[#xt + 1] = {hbox, x1, y - d, x2 - x1, h}
         return pc + 1
     end,
 }

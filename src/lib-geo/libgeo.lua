@@ -77,7 +77,6 @@ function Vbar:from_int(ngen, mod, is_bar) --> <vbar object>
     return o
 end
 
--- costructor useful for EAN encoder
 -- from an integer to read from right to left
 -- 13212 ->rev 21231 ->binary 11 0 11 000 1 -> symbol 110110001
 -- is_bar :: boolean :: bar or space for first, default true
@@ -185,8 +184,8 @@ function Text:from_string(s) --> object
     assert(#s > 0, "[Err] 's' empty string not allowed")
 
     local cp = {} -- codepoint array
-    for b in string.bytes(s) do
-        cp[#cp + 1] = b
+    for b in string.gmatch(s, ".") do
+        cp[#cp + 1] = string.byte(b)
     end
     local o = {
         codepoint = cp,
@@ -194,6 +193,39 @@ function Text:from_string(s) --> object
     setmetatable(o, self)
     return o
 end
+
+-- arr, array of single digit number
+-- i start index
+-- j stop index
+function Text:from_digit_array(arr, i, j) --> object
+    assert(type(arr) == "table", "[ArgErr] 'arr' not a table")
+    assert(#arr > 0, "[ArgErr] 'arr' is an empty array")
+    local cp = {} -- codepoint array
+    if i ~= nil then
+        assert(type(i) == "number", "[ArgErr] 'i' is not a number")
+    else
+        i = 1
+    end
+    if j ~= nil then
+        assert(type(j) == "number", "[ArgErr] 'j' is not a number")
+        assert(i <= j, "[ArgErr] not suitable pair of array index")
+    else
+        j = #arr
+    end
+    for k = i, j do
+        local d = arr[k]
+        assert(type(d) == "number", "[ArgErr] array contains a not number element")
+        assert(d == math.floor(d), "[ArgErr] array contains a not integer number")
+        assert(d >= 0 or d < 10, "[ArgErr] array contains a not single digit number")
+        cp[#cp + 1] = d + 48
+    end
+    local o = {
+        codepoint = cp,
+    }
+    setmetatable(o, self)
+    return o
+end
+
 
 -- from an array of chars
 function Text:from_chars(chars) --> object
@@ -267,74 +299,17 @@ function Text:append_graphic_xspaced(canvas, x1, xgap, ay, ypos) --> canvas, err
     return canvas, err
 end
 
+-- text equally spaced but within [x1, x2] coordinate interval
+function Text:append_graphic_xwidth(canvas, x1, x2, ay, ypos) --> canvas, err
+    assert(type(canvas) == "table", "[ArgErr] 'canvas' object must be provided")
+    assert(type(x1) == "number", "[ArgErr] 'x1' number required")
+    assert(type(x2) == "number", "[ArgErr] 'x2' is not a number")
+    assert(type(ay) == "number", "[ArgErr] 'ay' is not a number")
+    assert(type(ypos) == "number", "[ArgErr] 'ypos' number required")
+    if x1 > x2 then x1, x2 = x2, x1 end -- reorder coordinates
+    local chars = self.codepoint
+    local err = canvas:text_xwidth(x1, x2, ay, ypos, chars)
+    return canvas, err
+end
+
 return libgeo
-
-
-
---[=[
-
-function Text:from_intarray(n_arr, xpos, ypos, ax, ay, i, j)
-    if not n_arr then return nil, "Mandatory arg" end
-    i = i or 1
-    j = j or #n_arr
-    assert(j >= i, "No ordered index")
-    local txt = self:new(xpos, ypos, ax, ay)
-    local arr = {}
-    for k = i, j do
-        arr[#arr + 1] = n_arr[k] + 48
-    end
-    local ta = txt.text_list
-    ta[1] = arr
-    return txt, nil
-end
-
-
-function Text:append_string(s, xspace, axprec, axsucc)
-    if not s    then return nil, "Mandatory arg" end
-    if #s == 0  then return nil, "Empty string"  end
-    local tl = self.text_list
-    if #tl > 0 and xspace then
-        axprec = axprec or 0
-        axsucc = axsucc or 0
-        tl[#tl+1] = {glue = xspace, axprec = axprec, axsucc = axsucc,}
-    end
-    local arr = {}
-    for b in string.bytes(s) do
-        arr[#arr+1] = b
-    end
-    tl[#tl + 1] = arr
-    return self
-end
-
-function Text:append_listof_string(slist, xspace, axprec, axsucc, i, j)
-    i = i or 1
-    j = j or #slist
-    assert(j >= i, "No ordered index")
-    for k = i, j do
-        self:append_string(slist[k], xspace, axprec, axsucc)
-    end
-    return self
-end
-
-function Text:append_intarray(n_arr, xspace, axprec, axsucc, i, j)
-    assert(n_arr, "Mandatory arg")
-    i = i or 1
-    j = j or #n_arr
-    assert(j >= i, "No ordered index")
-
-    local tl = self.text_list
-    if #tl > 0 and xspace then
-        axprec = axprec or 0
-        axsucc = axsucc or 0
-        tl[#tl+1] = {glue = xspace, axprec = axprec, axsucc = axsucc,}
-    end
-
-    local arr = {}
-    for k = i, j do
-        arr[#arr + 1] = n_arr[k] + 48
-    end
-    tl[#tl+1] = arr
-    return self
-end
-
---]=]

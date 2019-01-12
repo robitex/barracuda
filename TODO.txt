@@ -36,9 +36,10 @@ Task   5.5: test files                                                20__-__-__
 Task   5.4: implement EAN2 encoder                                    20__-__-__
 Task   5.3: implement EAN5 encoder                                    20__-__-__
 Task   5.2: implement EAN8 encoder                                    20__-__-__
-Task   5.1: implement EAN13 encoder                                   20__-__-__
 
 COMPLETED TASK:
+
+Task   5.1: implement EAN13 encoder                                 ☑ 2019-01-12
 
 <Version 0.1> Code 128 encoder and test file                       🎉 2018-12-30
 Task   4.4: refactoring param iterator                              ☑ 2018-12-30

@@ -111,22 +111,14 @@ OpCode & Mnemonic key & Graphic object/Operands\\
  130 & text         & A text with several glyphs\\
      & & \ttfamily <ax: FLOAT> <ay: FLOAT> <xpos: DIM> <ypos: DIM> <c: CHARS>\\
 \midrule
- 131 & text\_xspaced & A text line with glyphs equally spaced \\
-     & & \ttfamily <x1: FLOAT> <xgap: FLOAT> <ay: DIM> <ypos: DIM> <c: CHARS>\\
+ 131 & text\_xspaced & A text with glyphs equally spaced \\
+     & & \ttfamily <x1: DIM> <xgap: DIM> <ay: FLOAT> <ypos: DIM> <c: CHARS>\\
+ 132 & text\_xwidth & Equally spaced glyphs between two x coordinates\\
+     & & \ttfamily <ay: FLOAT> <x1: DIM> <x2: DIM> <y: DIM> <c: CHARS>\\
 \midrule
- 140 & start\_text\_group & Texts on the same baseline \\
-\midrule
- 141 & gtext         & A sequence of glyphs sharing a baseline\\
-     & & \ttfamily <c: CHARS> \\
-\midrule
- 142 & gtext\_spaced & Gliphs separated by a fixed distance sharing a baseline\\
-     & & \ttfamily <gap: DIM> <c: CHARS> \\
-\midrule
- 143 & gtext\_gap    & A distance between to consecutive text sharing a baseline\\
-     & & \ttfamily <gap: DIM>\\
-\midrule
- 149 & end\_text\_group & End text group\\
-     & & \ttfamily <ax: FLOAT> <ay: FLOAT> <x: DIM> <y: DIM>\\
+     & under design assessment\\
+ 140 & \_text\_group & Texts on the same baseline \\
+     & & \ttfamily <ay: DIM> <y: DIM> <n: UINT> <<xi: DIM> <ai: FLOAT> <ci: CHARS>> \\
 \bottomrule
 \end{tabular}
 

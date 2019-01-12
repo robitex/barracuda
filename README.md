@@ -13,9 +13,9 @@ correctness :thumbsup:
 
 # Barcode symbologies
 
-So far, only the Code 39 and Code 128 specifications are supported but very soon
-other 1D encoding format will be added to the project and after it will be the
-time for 2D barcode types.
+So far, are supported Code 39, Code 128 and EAN13 symbology. Other 1D encoding
+format will be added soon to the project, then it will be the time for 2D
+barcode types.
 
 # A very simple LaTeX example
 
