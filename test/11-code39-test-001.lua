@@ -28,7 +28,7 @@ end
 print()
 
 local canvas = barracuda:new_canvas()
-symb:append_graphic(canvas)
+symb:append_ga(canvas)
 
 -- native driver
 local drv, err = barracuda:load_driver("native")

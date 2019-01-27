@@ -1,11 +1,11 @@
 -- Code128 barcode generator module
--- Copyright (C) 2018 Roberto Giacomelli
+-- Copyright (C) 2019 Roberto Giacomelli
 --
 -- All dimension must be in scaled point (sp)
 -- every fields that starts with an undercore sign are intended as private
 
 local Code128 = {
-    _VERSION     = "code128 v0.0.3",
+    _VERSION     = "code128 v0.0.5",
     _NAME        = "Code128",
     _DESCRIPTION = "Code128 barcode encoder",
 }
@@ -89,7 +89,7 @@ pardef.quietzone_factor = {
 }
 
 -- create vbar objects
-function Code128:config()
+function Code128:config() --> ok, err
     -- build Vbar object for the start/stop symbol
     local mod = self.xdim
     local sc = self._codeset.stopChar -- build the stop char
@@ -98,7 +98,7 @@ function Code128:config()
     self._vbar = {}
     local b = self._vbar
     b[sc] = Vbar:from_int(n, mod, true)
-    --save locally the encoder reference
+    return true, nil
 end
 
 -- utility functions
@@ -326,7 +326,7 @@ end
 -- Drawing into the provided channel the geometrical barcode data
 -- tx, ty is the optional translator vector
 -- the function return the canvas reference to allow call chaining
-function Code128:append_graphic(canvas, tx, ty) --> canvas
+function Code128:append_ga(canvas, tx, ty) --> canvas
     local xdim, h = self.xdim, self.ydim
     local sw = 11*xdim -- the width of a symbol
     local data = self.data
@@ -342,7 +342,7 @@ function Code128:append_graphic(canvas, tx, ty) --> canvas
     assert(not err, err)
     for _, c in ipairs(data) do
         local vb = self._vbar[c]
-        local _, err = vb:append_graphic(canvas, y0, y1, xpos)
+        local _, err = vb:append_ga(canvas, y0, y1, xpos)
         assert(not err, err)
         xpos = xpos + sw
     end

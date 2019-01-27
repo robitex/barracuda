@@ -3,6 +3,7 @@
 *.aux
 *.log
 *.synctex.gz
+*.synctex(busy)
 
 # exclude VSC configuration dir
 .vscode/

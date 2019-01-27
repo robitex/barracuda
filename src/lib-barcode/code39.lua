@@ -1,11 +1,11 @@
 -- Code39 barcode encoder implementation
--- Copyright (C) 2018 Roberto Giacomelli
+-- Copyright (C) 2019 Roberto Giacomelli
 --
 -- All dimensions must be in scaled point (sp)
 -- every fields that starts with an undercore sign are intended as private
 
 local Code39 = {
-    _VERSION     = "code39 v0.0.3",
+    _VERSION     = "code39 v0.0.5",
     _NAME        = "Code39",
     _DESCRIPTION = "Code39 barcode encoder",
 }
@@ -256,12 +256,13 @@ pardef.text_star = {
 }
 
 -- configuration function
-function Code39:config()
+function Code39:config() --> ok, err
     -- build Vbar object for the start/stop symbol
     local mod, ratio = self.module, self.ratio
     local n_star = self._star_def
     local Vbar = self._libgeo.Vbar -- Vbar class
     self._vbar = {['*'] = Vbar:from_int_revpair(n_star, mod, mod*ratio)}
+    return true, nil
 end
 
 function Code39:from_chars(symb, opt) --> symbol, err
@@ -320,7 +321,7 @@ function Code39:from_string(s, opt) --> symbol, err
 end
 
 -- tx, ty is an optional translator vector
-function Code39:append_graphic(canvas, tx, ty) --> canvas
+function Code39:append_ga(canvas, tx, ty) --> canvas
     local code       = self.code
     local ns         = #code -- number of chars inside the symbol
     local mod        = self.module
@@ -341,17 +342,17 @@ function Code39:append_graphic(canvas, tx, ty) --> canvas
     -- start/stop symbol
     local term_vbar = vbar['*']
     -- draw start symbol
-    local _, err = term_vbar:append_graphic(canvas, y0, y1, xpos)
+    local _, err = term_vbar:append_ga(canvas, y0, y1, xpos)
     assert(not err, err)
     -- draw code symbol
     for _, c in ipairs(code) do
         xpos = xpos + xgap
         local vb = vbar[c]
-        local _, err = vb:append_graphic(canvas, y0, y1, xpos)
+        local _, err = vb:append_ga(canvas, y0, y1, xpos)
         assert(not err, err)
     end
     -- draw stop symbol
-    local _, err = term_vbar:append_graphic(canvas, y0, y1, xpos + xgap)
+    local _, err = term_vbar:append_ga(canvas, y0, y1, xpos + xgap)
     assert(not err, err)
     -- bounding box setting
     local qz = self.quietzone
@@ -400,7 +401,7 @@ function Code39:append_graphic(canvas, tx, ty) --> canvas
                 xaxis = xaxis + xgap
             end
             xaxis = xaxis + xs/2
-            local _, err = txt:append_graphic_xspaced(canvas, xaxis, xgap, tay, ypos)
+            local _, err = txt:append_ga_xspaced(canvas, xaxis, xgap, tay, ypos)
             assert(not err, err)
         else
             local xpos, tax
@@ -416,7 +417,7 @@ function Code39:append_graphic(canvas, tx, ty) --> canvas
             else
                 error("[InternalErr] wrong option for text_pos")
             end
-            local _, err = txt:append_graphic(canvas, xpos, ypos, tax, tay)
+            local _, err = txt:append_ga(canvas, xpos, ypos, tax, tay)
             assert(not err, err)
         end
     end

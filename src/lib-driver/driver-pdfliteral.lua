@@ -226,6 +226,7 @@ PDFnative.operation_v001 = {
         local ay = ga[pc]; pc = pc + 1 -- y anchor
         local x1 = ga[pc]; pc = pc + 1 -- left limit
         local x2 = ga[pc]; pc = pc + 1 -- right limit
+        assert (x1 ~= x2, "[InternalErr] x coordinate are equal")
         assert (x1 < x2, "[InternalErr] not order limit")
         local ypos = ga[pc]; pc = pc + 1 -- y coordinate of anchor point
         local c1 = ga[pc]; pc = pc + 1 -- first char

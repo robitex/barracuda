@@ -1,17 +1,17 @@
 % !TeX program = LuaTeX
-% test ga-canvas
+% test for ga-canvas
 %
-% Copyright (C) 2018 Roberto Giacomelli
+% Copyright (C) 2019 Roberto Giacomelli
 %
 \newbox\mybox
 
----ga--- is a binary format as an istruction sequence
+---ga--- is a binary format as an istructions sequence
 that describes simple graphic object. This file contains
 tests that aim to check the pdfliteral driver capability
 to render ga streams---an usual Lua array.
 
 The pdfliteral driver directly inserts PDF vector graphics
-instruction within the output and should be intented as the
+primitives within the output and should be intented as the
 "native" driver.
 
 To understand the format please read the "ga-grammar.pdf" file.
@@ -293,7 +293,9 @@ Test number 10: two centered texts and baseline aligned:
 So far, we have manually build data for a ga stream. This time we are going to
 use ga-canvas library.
 
-All the test are repeated 
+
+\bigskip
+All the test are repeated with the library gacanvas.
 
 Test 1: a vbar 2pt width, 20pt height:
 \directlua{
@@ -535,4 +537,123 @@ Test number 11: two centered texts and baseline aligned:
     assert(not err, err)
     pdfnat:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
+
+\bigskip
+Test number 12: text\_xwidth opcode:
+
+\directlua{
+    local n = {
+        48, % 0
+        49, % 1
+        50, % 2
+        51, % 3
+        52, % 4
+        53, % 5
+        54, % 6
+        55, % 7
+        56, % 8
+        57, % 9
+    }
+    local ga = gacanvas:new()
+    local err = ga:text_xwidth(0, tex.sp "5cm", 0, 0, n)
+    assert(not err, err)
+    pdfnat:ga_to_hbox(ga, [[mybox]])
+}\vrule\box\mybox\vrule
+
+\vrule\hbox to 5cm{0 \hfill9}\vrule
+
+\bigskip
+Test number 13: text\_xwidth with different size:
+\smallskip
+
+\directlua{
+    local n = {
+        48, % 0
+        49, % 1
+        50, % 2
+        51, % 3
+        52, % 4
+        53, % 5
+        54, % 6
+        55, % 7
+        56, % 8
+        57, % 9
+    }
+    local ga = gacanvas:new()
+    local err = ga:text_xwidth(
+        tex.sp "0mm", tex.sp "50mm", 0, 0, n
+    ); assert(not err, err)
+    local err = ga:text_xwidth(
+        tex.sp "5mm", tex.sp "45mm", 0, tex.sp "3mm", n
+    ); assert(not err, err)
+    local err = ga:text_xwidth(
+        tex.sp "10mm", tex.sp "40mm", 0, tex.sp "6mm", n
+    ); assert(not err, err)
+    local err = ga:text_xwidth(
+        tex.sp "15mm", tex.sp "35mm", 0, tex.sp "9mm", n
+    ); assert(not err, err)
+    local err = ga:text_xwidth(
+        tex.sp "20mm", tex.sp "30mm", 0, tex.sp "12mm", n
+    ); assert(not err, err)
+    local err = ga:text_xwidth(
+        tex.sp "24mm", tex.sp "26mm", 0, tex.sp "15mm", n
+    ); assert(not err, err)
+    pdfnat:ga_to_hbox(ga, [[mybox]])
+}\vrule\box\mybox\vrule
+
+\bigskip
+Test number 14: place bars and text as text\_xwidth:
+\smallskip
+
+\directlua{
+    local b = {}
+    for i = 0, 9 do
+        b[i*2 + 1] = i*12*pt
+        b[i*2 + 2] = 0.4*pt
+    end
+    local n = { 48, 49, 50, 51, 52, 53, 54, 55, 56, 57,}
+    local ga = gacanvas:new()
+    %                    x0,    y1,    y2, bars
+    local err = ga:vbar(0.0,  0*pt, 25*pt, b)
+    local err = ga:vbar(0.0, 32*pt, 42*pt, b)
+    assert(not err, err)
+    %                            x1,    x2, ay,  ypos, chars
+    local err = ga:text_xwidth(0*pt, 108*pt, 0, 25*pt, n)
+    assert(not err, err)
+    pdfnat:ga_to_hbox(ga, [[mybox]])
+}\vrule\box\mybox\vrule
+
+\smallskip
+
+\directlua{
+    local b = {}
+    for i = 0, 8 do
+        b[i*2 + 1] = i*12*pt
+        b[i*2 + 2] = 0.2*pt
+    end
+    local n = { 48, 49, 50, 51, string.byte([[x]]), 53, 54, 55, 56,}
+    local ga = gacanvas:new()
+    %                    x0,    y1,    y2, bars
+    local err = ga:vbar(0.0,  0*pt, 25*pt, b)
+    local err = ga:vbar(0.0, 32*pt, 42*pt, b)
+    assert(not err, err)
+    %                            x1,    x2, ay,  ypos, chars
+    local err = ga:text_xwidth(0*pt, 96*pt, 0, 25*pt, n)
+    assert(not err, err)
+    pdfnat:ga_to_hbox(ga, [[mybox]])
+}\vrule\box\mybox\vrule
+
+\bigskip
+Test number 15: place text\_xwidth when text is two chars:
+
+\directlua{
+    local n = { 48, 56,} % 0 and 8
+    local ga = gacanvas:new()
+    %                            x1,    x2, ay,  ypos, chars
+    local err = ga:text_xwidth(0*pt, 32*pt, 0, 25*pt, n)
+    assert(not err, err)
+    pdfnat:ga_to_hbox(ga, [[mybox]])
+}\vrule\box\mybox\vrule
+
+
 \bye

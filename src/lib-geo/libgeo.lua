@@ -156,7 +156,7 @@ end
 -- draw the lines in the xy plane towards a driver's canvas
 -- tx is the absolute coordinate of the local origin
 -- y0, y1 are the y-coordinates of the vertical bound
-function Vbar:append_graphic(canvas, y1, y2, tx) --> canvas, err
+function Vbar:append_ga(canvas, y1, y2, tx) --> canvas, err
     assert(canvas, "'canvas' object must be provided")
     assert(y1, "y1 must be provided")
     assert(y2, "y2 must be provided")
@@ -265,7 +265,7 @@ function Text:from_int(n) --> object
     return o
 end
 
-function Text:append_graphic(canvas, xpos, ypos, ax, ay) --> canvas, err
+function Text:append_ga(canvas, xpos, ypos, ax, ay) --> canvas, err
     assert(type(canvas) == "table", "[ArgErr] 'canvas' object must be provided")
     assert(type(xpos) == "number", "[ArgErr] 'xpos' number required")
     assert(type(ypos) == "number", "[ArgErr] 'ypos' number required")
@@ -278,7 +278,7 @@ function Text:append_graphic(canvas, xpos, ypos, ax, ay) --> canvas, err
 end
 
 -- glyph equally spaced along the baseline
-function Text:append_graphic_xspaced(canvas, x1, xgap, ay, ypos) --> canvas, err
+function Text:append_ga_xspaced(canvas, x1, xgap, ay, ypos) --> canvas, err
     assert(type(canvas) == "table", "[ArgErr] 'canvas' object must be provided")
     assert(type(x1) == "number", "[ArgErr] 'x1' number required")
     assert(type(xgap) == "number", "[ArgErr] 'xgap' is not a number")
@@ -300,7 +300,7 @@ function Text:append_graphic_xspaced(canvas, x1, xgap, ay, ypos) --> canvas, err
 end
 
 -- text equally spaced but within [x1, x2] coordinate interval
-function Text:append_graphic_xwidth(canvas, x1, x2, ay, ypos) --> canvas, err
+function Text:append_ga_xwidth(canvas, x1, x2, ay, ypos) --> canvas, err
     assert(type(canvas) == "table", "[ArgErr] 'canvas' object must be provided")
     assert(type(x1) == "number", "[ArgErr] 'x1' number required")
     assert(type(x2) == "number", "[ArgErr] 'x2' is not a number")

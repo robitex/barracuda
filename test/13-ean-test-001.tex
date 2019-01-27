@@ -1,0 +1,230 @@
+% !TeX program = LuaTeX
+% Copyright (C) 2019 Roberto Giacomelli
+
+\newbox\mybox
+\nopagenumbers
+
+EAN encoder test.
+
+Test 1: one simple barcode EAN13 with default parameter:
+
+\directlua{
+local barracuda = require "barracuda"
+local barcode = barracuda:get_barcode_class()
+
+local ean13, err = barcode:new_encoder("ean-13")
+assert(not err, err)
+
+local symbo, err = ean13:from_string("8006194056290")
+assert(not err, err)
+
+local canvas = barracuda:new_canvas()
+symbo:append_ga(canvas)
+
+local drv, err = barracuda:load_driver("native")
+assert(not err, err)
+
+drv:ga_to_hbox(canvas, "mybox")
+}
+\vrule A\vrule\box\mybox \vrule A\vrule
+
+\medskip
+Test 2: one simple EAN8 barcode with default parameter:
+
+\directlua{
+local barracuda = require "barracuda"
+local barcode = barracuda:get_barcode_class()
+
+local ean8, err = barcode:new_encoder("ean-8")
+assert(not err, err)
+
+local symbo, err = ean8:from_string("96385074")
+assert(not err, err)
+
+local canvas = barracuda:new_canvas()
+symbo:append_ga(canvas)
+
+local drv, err = barracuda:load_driver("native")
+assert(not err, err)
+
+drv:ga_to_hbox(canvas, "mybox")
+}
+\vrule A\vrule\box\mybox \vrule A\vrule
+
+\medskip
+Test 3: one simple EAN5 barcode with default parameter:
+
+\directlua{
+local barracuda = require "barracuda"
+local barcode = barracuda:get_barcode_class()
+local ean5, err = barcode:new_encoder("ean-5")
+assert(not err, err)
+local symbo, err = ean5:from_string("54495")
+assert(not err, err)
+local canvas = barracuda:new_canvas()
+symbo:append_ga(canvas)
+local drv, err = barracuda:load_driver("native")
+assert(not err, err)
+drv:ga_to_hbox(canvas, "mybox")
+}
+\vrule A\vrule\box\mybox \vrule A\vrule
+
+\medskip
+Test 4: one simple EAN2 barcode with default parameter:
+
+\directlua{
+local barracuda = require "barracuda"
+local barcode = barracuda:get_barcode_class()
+local ean2, err = barcode:new_encoder("ean-2")
+assert(not err, err)
+local symbo, err = ean2:from_string("53")
+assert(not err, err)
+local canvas = barracuda:new_canvas()
+symbo:append_ga(canvas)
+local drv, err = barracuda:load_driver("native")
+assert(not err, err)
+drv:ga_to_hbox(canvas, "mybox")
+}
+\vrule A\vrule\box\mybox \vrule A\vrule
+
+\medskip
+Test 5: EAN13 + EAN5 barcode with default parameter:
+
+\directlua{
+local barracuda = require "barracuda"
+local barcode = barracuda:get_barcode_class()
+local ean, err = barcode:new_encoder("ean-13+5"); assert(not err, err)
+local n = 123456789012
+local c = ean:checksum(n)
+local s = n .. c
+local symbo, err = ean:from_string(s.."12345")
+assert(not err, err)
+local canvas = barracuda:new_canvas()
+symbo:append_ga(canvas)
+local drv, err = barracuda:load_driver("native")
+assert(not err, err)
+drv:ga_to_hbox(canvas, "mybox")
+}
+\vrule Test 5\vrule\box\mybox \vrule Test 5\vrule
+
+\medskip
+Test 6: EAN13 + EAN2 barcode with default parameter:
+
+\directlua{
+local barracuda = require "barracuda"
+local barcode = barracuda:get_barcode_class()
+local ean, err = barcode:new_encoder("ean-13+2"); assert(not err, err)
+local n = 123456789012
+local c = ean:checksum(n)
+local s = n .. c
+local symbo, err = ean:from_string(s.."12")
+assert(not err, err)
+local canvas = barracuda:new_canvas()
+symbo:append_ga(canvas)
+local drv, err = barracuda:load_driver("native")
+assert(not err, err)
+drv:ga_to_hbox(canvas, "mybox")
+}
+\vrule Test 6\vrule\box\mybox \vrule Test 6\vrule
+
+\medskip
+Test 7: EAN8 + EAN5 barcode with default parameter:
+
+\directlua{
+local barracuda = require "barracuda"
+local barcode = barracuda:get_barcode_class()
+local ean, err = barcode:new_encoder("ean-8+5"); assert(not err, err)
+local n = 1234567
+local c = ean:checksum(n)
+local s = n .. c
+local symbo, err = ean:from_string(s.."12345")
+assert(not err, err)
+local canvas = barracuda:new_canvas()
+symbo:append_ga(canvas)
+local drv, err = barracuda:load_driver("native")
+assert(not err, err)
+drv:ga_to_hbox(canvas, "mybox")
+}
+\vrule Test 7\vrule\box\mybox \vrule Test 7\vrule
+
+\medskip
+Test 8: EAN8 + EAN2 barcode with default parameter:
+
+\directlua{
+local barracuda = require "barracuda"
+local barcode = barracuda:get_barcode_class()
+local ean, err = barcode:new_encoder("ean-8+2"); assert(not err, err)
+local n = 7865431
+local c = ean:checksum(n)
+local s = n .. c
+local symbo, err = ean:from_string(s.."88")
+assert(not err, err)
+local canvas = barracuda:new_canvas()
+symbo:append_ga(canvas)
+local drv, err = barracuda:load_driver("native")
+assert(not err, err)
+drv:ga_to_hbox(canvas, "mybox")
+}
+\vrule Test 8\vrule\box\mybox \vrule Test 8\vrule
+
+\medskip
+Test 9: draw an EAN13 symbol with a user defined height.
+
+\smallskip
+We will test also the function barcode:enc\_by\_name(bc\_type, name),
+reusing encoders generated previuosly. The height parameter remain local
+to the object symbol.
+\smallskip
+
+\directlua{
+local barracuda = require "barracuda"
+local barcode = barracuda:get_barcode_class()
+local ean, err = barcode:enc_by_name("ean-13"); assert(not err, err)
+local n = 818571884348
+local c = ean:checksum(n)
+local s = n .. c
+local symbo, err = ean:from_string(s); assert(not err, err)
+local ok, err = symbo:set_param("height", tex.sp "5mm"); assert(ok, err)
+local canvas = barracuda:new_canvas()
+symbo:append_ga(canvas)
+
+local s2, err = ean:from_int(8001120972163); assert(not err, err)
+s2:append_ga(canvas, tex.sp "45mm", 0)
+
+local drv, err = barracuda:load_driver("native"); assert(not err, err)
+drv:ga_to_hbox(canvas, "mybox")
+}
+\vrule Test 9\vrule\box\mybox \vrule Test 9\vrule
+
+\medskip
+Test 10: draw EAN13 symbols with a user defined height.
+
+\smallskip
+The parameter height is setting up in the encoder so it will be global.
+\smallskip
+
+\directlua{
+local barracuda = require "barracuda"
+local barcode = barracuda:get_barcode_class()
+local ean, err = barcode:enc_by_name("ean-13"); assert(not err, err)
+local ok, err  = ean:set_param("height", tex.sp "5mm"); assert(ok, err)
+local n = 758458535897; local c = ean:checksum(n); local s = n .. c
+local s1, err = ean:from_string(s); assert(not err, err)
+local canvas = barracuda:new_canvas()
+s1:append_ga(canvas)
+local s2, err = ean:from_int(8001120972163); assert(not err, err)
+s2:append_ga(canvas, tex.sp "40mm", 0)
+local s3, err = ean:from_int(8000570000310); assert(not err, err)
+local ok, e = s3:set_param{height = tex.sp "10mm"}; assert(ok, e)
+s3:append_ga(canvas, tex.sp "90mm", 0)
+local drv, err = barracuda:load_driver("native"); assert(not err, err)
+drv:ga_to_hbox(canvas, "mybox")
+}
+\vrule Test 10\vrule\box\mybox \vrule Test 10\vrule
+
+\medskip
+That's all folk!
+
+\bye
+
+

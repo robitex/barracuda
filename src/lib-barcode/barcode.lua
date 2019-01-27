@@ -1,9 +1,10 @@
 
 -- Barcode abstract class
--- Copyright (C) 2018 Roberto Giacomelli
+-- Copyright (C) 2019 Roberto Giacomelli
+-- Please see LICENSE.TXT
 
 local Barcode = {
-    _VERSION     = "Barcode v0.0.3",
+    _VERSION     = "Barcode v0.0.5",
     _NAME        = "Barcode",
     _DESCRIPTION = "Barcode abstract class",
 }
@@ -13,9 +14,7 @@ Barcode.__index = Barcode
 Barcode._available_enc = {-- keys must be lowercase
     code39  = "lib-barcode.code39",
     code128 = "lib-barcode.code128",
-    ean13   = "lib-barcode.ean13",
-    ean5    = "lib-barcode.ean5",
-    ean2    = "lib-barcode.ean2",
+    ean     = "lib-barcode.ean",
     itf     = "lib-barcode.itf", -- Interleaved 2 of 5 (itf)
 }
 Barcode._builder_instances = {} -- encoder builder instances repository
@@ -55,7 +54,7 @@ pardef.ay = {
 
 -- Barcode methods
 
--- a fast and useful ordered stateless iterator troughtout parameter collection
+-- ordered stateless iterator troughtout parameter collection
 local function p_iter(state, i)
     i = i + 1
     local t = state[i]
@@ -65,52 +64,88 @@ local function p_iter(state, i)
 end
 -- main iterator function
 function Barcode:param_ord_iter()
-    local p1 = self._super_par_def
-    local p2 = self._par_def
-    local p2len = 0
     local state = {}
-    if p2 then
-        for pname, pdef in pairs(p2) do
+    -- append family parameter
+    local p2_family  = self._par_def -- base family parameters
+    local fam_len = 0
+    if p2_family then
+        for pname, pdef in pairs(p2_family) do
             state[pdef.order] = {
-                pname = pname,
-                pdef  = pdef,
+                pname   = pname,
+                pdef    = pdef,
                 isSuper = false,
             }
-            p2len = p2len + 1
+            fam_len = fam_len + 1
         end
-        assert(p2len == #state)
+        assert(fam_len == #state)
+    end
+    -- append the variant parameters
+    local var_len = 0
+    local var = self._variant
+    if var then -- specific variant parameters
+        local p2_variant = assert(self._par_def_variant[var])
+        for pname, pdef in pairs(p2_variant) do
+            if state[pname] then
+                error("[InternalError] overriding paramenter name '"..pname.."'")
+            end
+            state[pdef.order + fam_len] = {
+                pname   = pname,
+                pdef    = pdef,
+                isSuper = false,
+            }
+            var_len = var_len + 1
+        end
+        assert(fam_len + var_len == #state)
     end
     -- append the super class parameter to the iterator state
-    local p1len = 0
+    local p1 = self._super_par_def
+    local super_len = 0
     for pname, pdef in pairs(p1) do
         if state[pname] then
-            error("[InternalError] overriding paramenter '"..pname.."'")
+            error("[InternalError] overriding paramenter name '"..pname.."'")
         end
-        state[p2len + pdef.order] = {
+        state[fam_len + var_len + pdef.order] = {
             pname = pname,
             pdef  = pdef,
             isSuper = true,
         }
-        p1len = p1len + 1
+        super_len = super_len + 1
     end
-    assert(p1len + p2len == #state)
+    assert(super_len + fam_len + var_len == #state)
     return p_iter, state, 0
 end
 
 -- encoder costructor
+-- Symbology can be a family with many variant. This is represented
+-- in the first argument with a <family>-<variant> syntax.
+-- i.e. when bc_type is the string "ean-13", "ean" is the barcode
+-- family and "13" is the variant.
+-- For those barcodes not have variants, that syntax reducing to <encoder>
+-- such as for "code128" encoder
+-- id_enc is an optional identifier useful to retrive an encoder reference later
+-- opt    is an optional table with the user defined parameters
+--
 function Barcode:new_encoder(bc_type, id_enc, opt) --> object, err
     -- argument checking
     if type(bc_type) ~= "string" then
         return nil, "[ArgErr] 'bc_type' is not a string"
     end
-    local av_enc = self._available_enc
-    if not av_enc[bc_type] then -- is the barcode type a real module?
-        return nil, "[Err] barcode type '"..bc_type.."' not found"
-    end
-    if type(id_enc) == "string" or id_enc == nil then
-        id_enc = id_enc or "_noname"
+    local pdash = string.find(bc_type, "-")
+    local family, variant
+    if pdash then
+        family  = string.sub(bc_type, 1, pdash - 1)
+        variant = string.sub(bc_type, pdash + 1)
     else
-        return nil, "[ArgErr] provided 'id_enc' is wrong"
+        family = bc_type
+    end
+    local av_enc = self._available_enc
+    if not av_enc[family] then -- is the barcode type a real module?
+        return nil, "[Err] barcode type '"..family.."' not found"
+    end
+    if id_enc == nil then
+        id_enc = (variant or "") .. "_noname"
+    elseif type(id_enc) ~= "string" then
+        return nil, "[ArgErr] provided 'id_enc' is not a string"
     end
     if type(opt) == "table" or opt == nil then
         opt = opt or {}
@@ -119,12 +154,12 @@ function Barcode:new_encoder(bc_type, id_enc, opt) --> object, err
     end
     local tenc = self._builder_instances
     local builder;
-    if tenc[bc_type] then -- is the encoder builder already loaded?
-        builder = tenc[bc_type]
+    if tenc[family] then -- is the encoder builder already loaded?
+        builder = tenc[family]
     else -- loading the encoder builder
-        local mod_path = av_enc[bc_type]
+        local mod_path = av_enc[family]
         builder = require(mod_path)
-        tenc[bc_type] = assert(builder, "[InternalErr] module not found!")
+        tenc[family] = assert(builder, "[InternalErr] module not found!")
         builder._enc_instances = {}
     end
     if builder._enc_instances[id_enc] then
@@ -132,6 +167,7 @@ function Barcode:new_encoder(bc_type, id_enc, opt) --> object, err
     end
     local enc = {} -- the new encoder
     enc.__index = enc
+    enc._variant = variant
     setmetatable(enc, {
         __index = function(_, k)
             if builder[k] ~= nil then
@@ -167,26 +203,35 @@ function Barcode:new_encoder(bc_type, id_enc, opt) --> object, err
         end
     end
     if enc.config then -- this must be called after the parameter defintion
-        enc:config()
+        enc:config(variant)
     end
     return enc, nil
 end
 
 -- retrive encoder object already created
+-- 'name' is optional in case you didn't assign one to the ecnoder
 function Barcode:enc_by_name(bc_type, name) --> <encoder object>, <err>
     if type(bc_type) ~= "string" then
         return nil, "[ArgErr] 'bc_type' must be a string"
     end
-    local av_enc = self._available_enc
-    if not av_enc[bc_type] then -- is the barcode type a real module?
-        return nil, "[Err] barcode type '"..bc_type.."' not found"
+    local pdash = string.find(bc_type, "-")
+    local family, variant
+    if pdash then
+        family  = string.sub(bc_type, 1, pdash - 1)
+        variant = string.sub(bc_type, pdash + 1)
+    else
+        family = bc_type
     end
-    local builder = self._builder_instances[bc_type]
+    local av_enc = self._available_enc
+    if not av_enc[family] then -- is the barcode type a real module?
+        return nil, "[Err] barcode type '"..family.."' not found"
+    end
+    local builder = self._builder_instances[family]
     if builder == nil then
-        return nil, "[Err] enc builder '"..bc_type.."' not loaded, use 'new_encoder()'"
+        return nil, "[Err] enc builder '"..family.."' not loaded, use 'new_encoder()' method"
     end
     if name == nil then
-        name = "_noname"
+        name = (variant or "") .. "_noname"
     elseif type(name) ~= "string" then
         return nil, "[ArgErr] 'name' must be a string"
     end

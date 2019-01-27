@@ -23,7 +23,7 @@ end
 
 local canvas = barracuda:new_canvas()
 
-local _, err = symb:append_graphic(canvas)
+local _, err = symb:append_ga(canvas)
 assert(not err, err)
 
 -- native driver loading

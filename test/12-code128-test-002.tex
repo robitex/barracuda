@@ -19,7 +19,7 @@ local symbo, err = c128:from_string("5465468132546812")
 assert(not err, err)
 
 local canvas = barracuda:new_canvas()
-symbo:append_graphic(canvas)
+symbo:append_ga(canvas)
 
 local drv, err = barracuda:load_driver("native")
 assert(not err, err)
@@ -51,8 +51,8 @@ local s2_ax = s2:get_param("ax")
 assert(s2.ax == 0, "0 ax is "..tostring(s2.ax))
 
 local canvas = barracuda:new_canvas()
-s1:append_graphic(canvas)
-s2:append_graphic(canvas)
+s1:append_ga(canvas)
+s2:append_ga(canvas)
 
 local drv, err = barracuda:load_driver("native")
 assert(not err, err)
@@ -70,13 +70,13 @@ local c128, err = barracuda:get_barcode_class()
 
 local s, err = c128:from_string("123456"); assert(s, err)
 local canvas = barracuda:new_canvas()
-local _, err = s:append_graphic(canvas); assert(not err, err)
+local _, err = s:append_ga(canvas); assert(not err, err)
 
 local ok, err = s:set_param("ydim", tex.sp "15mm")
-local _, err = s:append_graphic(canvas, tex.sp "20mm"); assert(not err, err)
+local _, err = s:append_ga(canvas, tex.sp "20mm"); assert(not err, err)
 
 local ok, err = s:set_param("ydim", tex.sp "30mm")
-local _, err = s:append_graphic(canvas, tex.sp "40mm"); assert(not err, err)
+local _, err = s:append_ga(canvas, tex.sp "40mm"); assert(not err, err)
 
 local drv, err = barracuda:load_driver("native"); assert(drv, err)
 drv:ga_to_hbox(canvas, "mybox")
@@ -95,14 +95,14 @@ local c128, err = barcode:enc_by_name "code128"; assert(c128, err)
 local s, err = c128:from_string("ABCDEFGHI"); assert(s, err)
 
 local canvas = barracuda:new_canvas()
-local _, err = s:append_graphic(canvas); assert(not err, err)
+local _, err = s:append_ga(canvas); assert(not err, err)
 
 % set ay to 0.5 for the encoder
 local ok, err = c128:set_param("ay", 0.5); assert(ok, err)
-local _, err = s:append_graphic(canvas, tex.sp "30mm"); assert(not err, err)
+local _, err = s:append_ga(canvas, tex.sp "30mm"); assert(not err, err)
 % set locally to the symbol ay to 1.0
 local ok, err = s:set_param("ay", 1)
-local _, err = s:append_graphic(canvas, tex.sp "60mm"); assert(not err, err)
+local _, err = s:append_ga(canvas, tex.sp "60mm"); assert(not err, err)
 
 local drv, err = barracuda:load_driver("native"); assert(drv, err)
 drv:ga_to_hbox(canvas, "mybox")

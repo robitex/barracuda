@@ -11,7 +11,7 @@
     assert(enc, err)
     local symb, err = enc:from_string(s); assert(symb, err)
     local canvas = barracuda:new_canvas()
-    local _, err = symb:append_graphic(canvas); assert(not err, err)
+    local _, err = symb:append_ga(canvas); assert(not err, err)
     local drv, err = barracuda:load_driver("native"); assert(drv, err)
     drv:ga_to_hbox(canvas, "barracudabox")
 }%
