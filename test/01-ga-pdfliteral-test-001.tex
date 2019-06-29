@@ -1,36 +1,95 @@
 % !TeX program = LuaTeX
-% test for ga-canvas
+% test for ga-canvas pdfliteral driver
 %
 % Copyright (C) 2019 Roberto Giacomelli
-%
+% see LICENSE.txt file
+
+---ga--- is a binary format as an istruction set similar to
+a sort of assembler language that describes simple graphic
+objects like lines and rectangles.
+This file contains tests aiming to check the pdfliteral
+driver capability to render such ga streams---usually a Lua
+array.
+
+The pdfliteral driver directly inserts PDF vector graphic
+primitives within the output and should be intented as the
+"native" driver of barracuda package.
+
+The complete reference of the ---ga--- format is available
+throgh out the content of the "ga-grammar.tex" file.
+
+Please note that all dimensions are in scaled point, the
+very small \TeX{} internal unit, in fact we have that
+65536sp = 1pt.
+
+Running the source file with luatex. The typesetting engine
+executes the directlua macro, so vector graphics appear in
+the PDF output file.
+
 \newbox\mybox
 
----ga--- is a binary format as an istructions sequence
-that describes simple graphic object. This file contains
-tests that aim to check the pdfliteral driver capability
-to render ga streams---an usual Lua array.
+\directlua{% global Lua variable
+    pdfnat = require [[lib-driver.driver-pdfliteral]]
+    pt = tex.sp [[1pt]] % 1pt = 65536sp
+}
 
-The pdfliteral driver directly inserts PDF vector graphics
-primitives within the output and should be intented as the
-"native" driver.
+Let's start drawing an horizontal line 24pt in lenght:
+\directlua{
+   local ga = {33, 0*pt, 24*pt, 0*pt}
+   pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+}\box\mybox
 
-To understand the format please read the "ga-grammar.pdf" file.
-All dimensions are in scaled point, 65536sp = 1pt
+or two different parallel lines:
+\directlua{
+   local ga = {33, 0*pt, 24*pt, 0*pt, 33, 0*pt, 24*pt, 5*pt}
+   pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+}\box\mybox
 
-Running the source file with luatex, the typesetting engine
-executes the directlua macro. As a conseguence graphics
-appear in the PDF output file.
+and again two horizontal lines 5pt in thickness:
+\directlua{
+   local ga = {1, 5*pt, 33, -24*pt, 0*pt, -2.5*pt, 33, 0*pt, 24*pt, 2.5*pt}
+   pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+}\box\mybox
 
+Several vertical lines with addition of horizontal limits:
+\directlua{
+   local ga = {
+       34, -20*pt, 20*pt,  0*pt,
+       34, -15*pt, 15*pt,  5*pt,
+       34, -10*pt, 10*pt, 10*pt,
+       34,  -5*pt,  5*pt, 15*pt,
+       34, -.5*pt, .5*pt, 20*pt,
+       34,  -5*pt,  5*pt, 25*pt,
+       34, -10*pt, 10*pt, 30*pt,
+       34, -15*pt, 15*pt, 35*pt,
+       34, -20*pt, 20*pt, 40*pt,
+        1, .05*pt,
+       33,   0*pt, 40*pt, -20*pt,
+       33,   0*pt, 40*pt,  20*pt,
+   }
+   pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+}\box\mybox
+
+Finally a little rectangle:
+\directlua{
+   local ga = {
+       1, 5*pt,
+      48, 0*pt, 0*pt, 15*pt, 10*pt,
+   }
+   pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+}\box\mybox
+
+
+\bigskip
 Test number 1: a vbar 2pt width, 20pt height:
 \directlua{
-    pdfnat = require [[lib-driver.driver-pdfliteral]]
-    pt = tex.sp [[1pt]] % pt = 65536
     % vbar: 36 y1 y2 nbars x1 w1 x2 w2 ... xn wn
     local ga = {36, 0, 20*pt, 1, 0.0, 2*pt}
     pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
 }\box\mybox
 
-Test number 2: ten vbars equally spaced by 10pt:
+\bigskip
+Test number 2: ten vbars in a row equally spaced by 10pt:
 \directlua{
     local ga = {36, 0, 10*pt, 10,}
     for i = 0, 9 do
@@ -40,6 +99,7 @@ Test number 2: ten vbars equally spaced by 10pt:
     pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
 }\vrule\box\mybox\vrule
 
+\bigskip
 Test number 3: two series of vbars 10pt and 5pt large:
 \directlua{
     local ga = {36, 0, 10*pt, 10,}
@@ -58,7 +118,7 @@ Test number 3: two series of vbars 10pt and 5pt large:
     pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
 }\vrule\box\mybox\vrule
 
-Test number 4: a bunch of thin bars:
+Test number 4: a bunch of thin vertical bars:
 \directlua{
     local ga = {}
     ga[1] = 36    % vbar opcode
@@ -72,7 +132,7 @@ Test number 4: a bunch of thin bars:
     pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
 }\vrule\box\mybox\vrule
 
-Test number 5: two floor of a bunch of thin bars:
+Test number 5: two rows of a bunch of thin bars:
 \directlua{
     local ga = {}
     ga[1] = 36    % vbar opcode
@@ -94,32 +154,33 @@ Test number 5: two floor of a bunch of thin bars:
     pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
 }\vrule\box\mybox\vrule
 
-Test number 6: staircase of bars (manual insertion of data):
+Test number 6: staircase of bars (manual definition of data):
 \directlua{
-    local ga = {}
-    ga[1] =    36 % vbar opcode
-    ga[2] =  0*pt % y1
-    ga[3] = 20*pt % y2
-    ga[4] =     1 % number of bars
-    ga[5] =  5*pt % x
-    ga[6] = 10*pt % w
-    ga[7] =    36 % vbar opcode
-    ga[8] = 20*pt % y1
-    ga[9] = 40*pt % y2
-    ga[10] =    1 % number of bars
-    ga[11] = 15*pt % x
-    ga[12] = 10*pt % w
-    ga[13] =    36 % vbar opcode
-    ga[14] = 40*pt % y1
-    ga[15] = 60*pt % y2
-    ga[16] =    1 % number of bars
-    ga[17] = 25*pt % x
-    ga[18] = 10*pt % w
+    local ga = {
+        36, % vbar opcode
+      0*pt, % y1
+     20*pt, % y2
+         1, % number of bars
+      5*pt, % x
+     10*pt, % w
+        36, % vbar opcode
+     20*pt, % y1
+     40*pt, % y2
+         1, % number of bars
+     15*pt, % x
+     10*pt, % w
+        36, % vbar opcode
+     40*pt, % y1
+     60*pt, % y2
+         1, % number of bars
+     25*pt, % x
+     10*pt, % w
+    }
     pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
 }\vrule\box\mybox\vrule
 
 
-Test number 7: vbars with spaced text, all in three rows:
+Test number 7: vbars with spaced text, in three different rows:
 \directlua{
     local ga = {}
     ga[1] =    36 % vbar opcode
@@ -258,7 +319,7 @@ Test number 9: spaced text, check correct vertical alignment:
     pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
 }\vrule\box\mybox\vrule
 
-Test number 10: two centered texts and baseline aligned:
+Test number 10: two centered texts aligned to the baseline:
 \directlua{
     local ga = {}
     % 130 <ax: FLOAT> <ay: FLOAT> <xpos: DIM> <ypos: DIM> <c: CHARS>
@@ -291,11 +352,11 @@ Test number 10: two centered texts and baseline aligned:
 }\vrule\box\mybox\vrule
 
 So far, we have manually build data for a ga stream. This time we are going to
-use ga-canvas library.
+use the ga-canvas library.
 
 
 \bigskip
-All the test are repeated with the library gacanvas.
+All the previous tests are rebuild with the ga-canvas library.
 
 Test 1: a vbar 2pt width, 20pt height:
 \directlua{

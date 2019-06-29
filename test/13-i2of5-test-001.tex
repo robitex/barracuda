@@ -1,0 +1,44 @@
+% !TeX program = LuaTeX
+% Copyright (C) 2019 Roberto Giacomelli
+
+\newbox\mybox
+\nopagenumbers
+
+\directlua{barracuda = require "barracuda"}
+
+Interleaved 2 of 5 encoder test.
+
+Test 1: one simple barcode with default parameter:
+
+\directlua{
+local barcode = barracuda:get_barcode_class()
+
+local enc, err = barcode:new_encoder("i2of5"); assert(not err, err)
+local symbo, err = enc:from_int(54654681); assert(not err, err)
+local canvas = barracuda:new_canvas(); symbo:append_ga(canvas)
+local drv, err = barracuda:load_driver("native"); assert(not err, err)
+
+drv:ga_to_hbox(canvas, "mybox")
+}
+\vrule A\vrule\box\mybox \vrule A\vrule
+
+\bigskip
+Test 2: one simple barcode with default parameter:
+
+\directlua{
+local barcode = barracuda:get_barcode_class()
+local enc, err = barcode:enc_by_name("i2of5"); assert(not err, err)
+local symbo, err = enc:from_int(1234567895); assert(not err, err)
+local canvas = barracuda:new_canvas(); symbo:append_ga(canvas)
+local drv, err = barracuda:load_driver("native"); assert(not err, err)
+
+drv:ga_to_hbox(canvas, "mybox")
+}
+\vrule A\vrule\box\mybox \vrule A\vrule
+
+
+That's all folk!
+
+\bye
+
+

@@ -15,7 +15,7 @@ Barcode._available_enc = {-- keys must be lowercase
     code39  = "lib-barcode.code39",
     code128 = "lib-barcode.code128",
     ean     = "lib-barcode.ean",
-    itf     = "lib-barcode.itf", -- Interleaved 2 of 5 (itf)
+    i2of5   = "lib-barcode.i2of5", -- Interleaved 2 of 5
 }
 Barcode._builder_instances = {} -- encoder builder instances repository
 
@@ -54,7 +54,7 @@ pardef.ay = {
 
 -- Barcode methods
 
--- ordered stateless iterator troughtout parameter collection
+-- stateless iterator troughtout the ordered parameters collection
 local function p_iter(state, i)
     i = i + 1
     local t = state[i]
@@ -62,7 +62,8 @@ local function p_iter(state, i)
         return i, t
     end
 end
--- main iterator function
+
+-- main iterator on parameter definitions
 function Barcode:param_ord_iter()
     local state = {}
     -- append family parameter
@@ -86,7 +87,7 @@ function Barcode:param_ord_iter()
         local p2_variant = assert(self._par_def_variant[var])
         for pname, pdef in pairs(p2_variant) do
             if state[pname] then
-                error("[InternalError] overriding paramenter name '"..pname.."'")
+                error("[InternalErr] overriding paramenter '"..pname.."'")
             end
             state[pdef.order + fam_len] = {
                 pname   = pname,
@@ -116,14 +117,14 @@ function Barcode:param_ord_iter()
 end
 
 -- encoder costructor
--- Symbology can be a family with many variant. This is represented
+-- Symbology can be a family with many variants. This is represented
 -- in the first argument with a <family>-<variant> syntax.
 -- i.e. when bc_type is the string "ean-13", "ean" is the barcode
 -- family and "13" is the variant.
--- For those barcodes not have variants, that syntax reducing to <encoder>
+-- For whose barcodes that do not have variants, bc_type is simple <encoder>
 -- such as for "code128" encoder
 -- id_enc is an optional identifier useful to retrive an encoder reference later
--- opt    is an optional table with the user defined parameters
+-- opt    is an optional table with the user-defined parameters
 --
 function Barcode:new_encoder(bc_type, id_enc, opt) --> object, err
     -- argument checking
@@ -202,14 +203,14 @@ function Barcode:new_encoder(bc_type, id_enc, opt) --> object, err
             end
         end
     end
-    if enc.config then -- this must be called after the parameter defintion
+    if enc.config then -- this must be called after the parameter definition
         enc:config(variant)
     end
     return enc, nil
 end
 
 -- retrive encoder object already created
--- 'name' is optional in case you didn't assign one to the ecnoder
+-- 'name' is optional in case you didn't assign one to the encoder
 function Barcode:enc_by_name(bc_type, name) --> <encoder object>, <err>
     if type(bc_type) ~= "string" then
         return nil, "[ArgErr] 'bc_type' must be a string"
@@ -246,10 +247,9 @@ end
 
 -- check a parameter set
 -- this method check also reserved parameter
--- syntax:
--- :check_param({k=v, ...}, "default"|"current")
+-- argments: {k=v, ...}, "default" | "current"
 -- if ref is "default" parameters are checked with default values
--- if ref is "current" parameters are checked with the current values
+-- if ref is "current" parameters are checked with current values
 function Barcode:check_param(opt, ref) --> boolean, check report
     if type(opt) ~= "table" then
         return nil, "[ArgErr] opt is not a table"
@@ -264,11 +264,10 @@ function Barcode:check_param(opt, ref) --> boolean, check report
             return nil, "[ArgErr] ref can only be 'default' or 'current'"
         end
     end
-    -- preparing to the checking process
+    -- checking process
     local cktab  = {}
     local isOk   = true
-    local check_rpt
-    -- checking process
+    local err_rpt -- nil if no error
     for _, tpar in self:param_ord_iter() do
         local pname = tpar.pname
         local pdef  = tpar.pdef
@@ -278,15 +277,15 @@ function Barcode:check_param(opt, ref) --> boolean, check report
         else
             def_val = pdef.default
         end
-        local val = targ[pname] -- par = val
+        local val = opt[pname]
         if val ~= nil then
             local ok, err = pdef:fncheck(val, cktab)
             if ok then
                 cktab[pname] = val
             else -- error!
                 isOk = false
-                if check_rpt == nil then check_rpt = {} end
-                check_rpt[#check_rpt + 1] = {
+                if err_rpt == nil then err_rpt = {} end
+                err_rpt[#err_rpt + 1] = {
                     param       = pname,
                     checked_val = val,
                     default_val = def_val,
@@ -303,7 +302,7 @@ function Barcode:check_param(opt, ref) --> boolean, check report
         end
         cktab[pname] = v
     end
-    return isOk, check_rpt
+    return isOk, err_rpt
 end
 
 -- restore to the default values all the parameter
@@ -330,9 +329,9 @@ function Barcode:info() --> table
         param       = {},
     }
     local tpar   = info.param
-    for _, tpar in self:param_ord_iter() do
-        local id   = tpar.pname
-        local pdef = tpar.pdef
+    for _, pardef in self:param_ord_iter() do
+        local id   = pardef.pname
+        local pdef = pardef.pdef
         tpar[#tpar + 1] = {
             name       = id,
             descr      = nil, -- TODO:
@@ -358,8 +357,8 @@ function Barcode:get_param(id) --> value, err
     return res, nil
 end
 
--- set parameters only if it is not reserved
--- syntax:
+-- set a barcode parameter only if it is not reserved
+-- arguments:
 -- :set_param{key = value, key = value, ...}
 -- :set_param(key, value)
 function Barcode:set_param(arg1, arg2) --> boolean, err

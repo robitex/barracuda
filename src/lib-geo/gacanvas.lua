@@ -44,7 +44,7 @@ end
 
 -- vbar
 -- y1, y2 ordinates
--- opcode: 36 
+-- opcode: 36
 function gaCanvas:vbar(x0, y1, y2, bars) --> err
     if type(x0) ~= "number" then return "[ArgErr] 'x0' number expected" end
     if type(y1) ~= "number" then return "[ArgErr] 'y1' number expected" end

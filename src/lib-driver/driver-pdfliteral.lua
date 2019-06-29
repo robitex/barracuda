@@ -12,6 +12,10 @@ local PDFnative = {
     _DESCRIPTION = "a LuaTeX native pdfliteral driver for ga graphic stream",
 }
 
+local node = assert(node)
+local tex = assert(tex)
+local font = assert(font)
+
 -- text utility functions with node
 
 local function newglue(w) --> node
@@ -60,6 +64,15 @@ end
 -- xt: the output text object buffer
 -- return the updated program counter pointed to the next operation
 PDFnative.operation_v001 = {
+    -- set a pen line width
+    -- 1 <W: dim>
+    [1] = function (st, pc, ga, bf, xt)
+        local w = ga[pc]; pc = pc + 1
+        st.line_width = w
+        local bp = 65781.76 -- conversion ratio sp -> bp
+        bf[#bf + 1] = string.format("%0.6f w", w/bp)
+        return pc
+    end,
 
     [30] = function (st, pc, ga, bf, xt) -- start_bbox_group
         assert(st.bb_on)
@@ -86,8 +99,68 @@ PDFnative.operation_v001 = {
         end
         return pc
     end,
+
+    -- draw an horizontal single line
+    -- 33 <x1: DIM> <x2: DIM> <y: DIM>
+    [33] = function (st, pc, ga, bf, xt)
+        local x1 = ga[pc]; pc = pc + 1
+        local x2 = ga[pc]; pc = pc + 1
+        local  y = ga[pc]; pc = pc + 1
+        local bp = 65781.76 -- conversion ratio sp -> bp
+        bf[#bf + 1] = string.format("% 0.6f %0.6f m", x1/bp, y/bp)
+        bf[#bf + 1] = string.format("% 0.6f %0.6f l", x2/bp, y/bp)
+        bf[#bf + 1] = "S" -- stroke
+        if st.bb_on then -- eventually update bbox
+            local hw  = st.line_width/2
+            local by1 = y - hw
+            local by2 = y + hw
+            if st.bb_x1 == nil then
+                st.bb_x1 = x1
+                st.bb_x2 = x2
+                st.bb_y1 = by1
+                st.bb_y2 = by2
+            else
+                if  x1 < st.bb_x1 then st.bb_x1 =  x1 end
+                if  x2 > st.bb_x2 then st.bb_x2 =  x2 end
+                if by1 < st.bb_y1 then st.bb_y1 = by1 end
+                if by2 > st.bb_y2 then st.bb_y2 = by2 end
+            end
+        end
+        return pc
+    end,
+
+    -- draw a vertical single line
+    -- 34 <y1: DIM> <y2: DIM> <x: DIM>
+    [34] = function (st, pc, ga, bf, xt)
+        local y1 = ga[pc]; pc = pc + 1
+        local y2 = ga[pc]; pc = pc + 1
+        local x  = ga[pc]; pc = pc + 1
+        local bp = 65781.76 -- conversion ratio sp -> bp
+        bf[#bf + 1] = string.format("% 0.6f %0.6f m", x/bp, y1/bp)
+        bf[#bf + 1] = string.format("% 0.6f %0.6f l", x/bp, y2/bp)
+        bf[#bf + 1] = "S" -- stroke
+        if st.bb_on then -- eventually update bbox
+            local hw  = st.line_width/2
+            local bx1 = x - hw
+            local bx2 = x + hw
+            if st.bb_x1 == nil then
+                st.bb_x1 = bx1
+                st.bb_x2 = bx2
+                st.bb_y1 = y1
+                st.bb_y2 = y2
+            else
+                if bx1 < st.bb_x1 then st.bb_x1 = bx1 end
+                if bx2 > st.bb_x2 then st.bb_x2 = bx2 end
+                if y1 < st.bb_y1 then st.bb_y1 = y1 end
+                if y2 > st.bb_y2 then st.bb_y2 = y2 end
+            end
+        end
+        return pc
+    end,
+
+    -- draw a group of vertical lines
     -- 36 <y1: DIM> <y2: DIM> <b: UINT> <x1: DIM> <t1: DIM>
-    [36] = function(st, pc, ga, bf, xt) -- vbar 
+    [36] = function(st, pc, ga, bf, xt) -- vbar
         -- we have less memory consumption if we insert a bar as a rectangle
         -- rather than as a vertical line
         local y1   = ga[pc]; pc = pc + 1
@@ -134,6 +207,42 @@ PDFnative.operation_v001 = {
             end
         end
         return pc_next
+    end,
+
+    -- draw a rectangle
+    -- 48 <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>
+    [48] = function(st, pc, ga, bf, xt)
+        local x1   = ga[pc]; pc = pc + 1
+        local y1   = ga[pc]; pc = pc + 1
+        local x2   = ga[pc]; pc = pc + 1
+        local y2   = ga[pc]; pc = pc + 1
+        local w = x2 - x1 -- rectangle width
+        assert(w > 0)
+        local h = y2 - y1 -- rectangle height
+        assert(h > 0)
+        local bp = 65781.76 -- conversion ratio sp -> bp
+        local fmt = "%0.6f %0.6f %0.6f %0.6f re S"
+        -- pdf literal insertion <x y w h re>
+        bf[#bf + 1] = string.format(fmt, x1/bp, y1/bp, w/bp, h/bp)
+        
+        -- check the bounding box only if the corresponding flag is true
+        if st.bb_on then
+            local hw  = st.line_width/2
+            local bx1, bx2 = x1 - hw, x2 + hw
+            local by1, by2 = y1 - hw, y2 + hw
+            if st.bb_x1 == nil then
+                st.bb_x1 = bx1
+                st.bb_x2 = bx2
+                st.bb_y1 = by1
+                st.bb_y2 = by2
+            else
+                if bx1 < st.bb_x1 then st.bb_x1 = bx1 end
+                if bx2 > st.bb_x2 then st.bb_x2 = bx2 end
+                if by1 < st.bb_y1 then st.bb_y1 = by1 end
+                if by2 > st.bb_y2 then st.bb_y2 = by2 end
+            end
+        end
+        return pc
     end,
 
     [130] = function(st, pc, ga, bf, xt) -- text: ax ay xpos ypos string
@@ -313,13 +422,14 @@ end
 -- stream processing and hbox node building
 function PDFnative:ga_to_hbox(ga, hboxname)
     local op_fn = self.operation_v001
-    local bf = {"q"} -- stack saving
+    local bf = {"q 1 1"} -- new stack and line width equal to 1bp
     local xt = {} -- text buffer
-    local st = { -- process state
+    local st = { -- state of the process
+        line_width = 65781.76, -- line width like 1bp
         gtext = false, -- text group off
         bb_on = true, -- bounding box checking activation
-        bb_x1 = nil,  -- bounding box coordinates in scaled point
-        bb_y1 = nil,
+        bb_x1 = nil, -- bounding box coordinates in scaled point
+        bb_y1 = nil, -- nil means no data
         bb_x2 = nil,
         bb_y2 = nil,
     }
@@ -327,7 +437,7 @@ function PDFnative:ga_to_hbox(ga, hboxname)
     local data = ga._data
     while data[pc] do -- stream processing
         local opcode = data[pc]
-        local fn = op_fn[opcode]
+        local fn = assert(op_fn[opcode], "[InternalErr] Opcode ".. opcode.." not found")
         pc = fn(st, pc + 1, data, bf, xt)
     end
     bf[#bf + 1] = "Q" -- stack restoring

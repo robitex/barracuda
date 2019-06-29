@@ -3,7 +3,7 @@
 -- Copyright (C) 2019 Roberto Giacomelli
 -- see LICENSE.txt file
 --
--- variant identifiers:
+-- variant identifiers of EAN family:
 -- "13"   EAN13
 -- "8"    EAN8
 -- "5"    EAN5 add-on
@@ -414,7 +414,7 @@ function EAN:checksum(n) --> n, err
         for c in string.gmatch(n, ".") do
             local d = tonumber(c)
             if (not d) or d > 9 then
-                return nil, "[ArgErr] 's' contains a no digit char"
+                return nil, "[ArgErr] 's' contains a not digit char"
             end
             arr[#arr + 1] = d
         end
@@ -451,7 +451,8 @@ function EAN:from_array(array, opt) --> symbol, err
     end
     local ma_len = self._main_len
     local ao_len = self._addon_len
-    if #array ~= ma_len + (ao_len or 0) then
+    local symb_len = ma_len + (ao_len or 0)
+    if #array ~= symb_len then
         return nil, "[Err] not a "..symb_len.."-digits long array"
     end
     for _, d in ipairs(array) do

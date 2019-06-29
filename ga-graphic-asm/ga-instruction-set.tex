@@ -1,11 +1,10 @@
 % !TeX program = LuaLaTeX
-% Copyright (C) 2018 Roberto Giacomelli
+% Copyright (C) 2019 Roberto Giacomelli
 
 \documentclass{article}
 
 \usepackage{fontspec}
 \setmainfont{Libertinus Serif}
-\setmonofont{Ubuntu Mono}
 
 \usepackage[margin=18mm]{geometry}
 \usepackage{array}
@@ -16,9 +15,11 @@
 
 \begin{document}
 Goal: describe geometrical object like lines and rectangles
-mainly for a barcode drawing library
+mainly for a barcode drawing library.
 
-\section{\texttt{ga} grammar}
+
+
+\section{\texttt{ga} instruction set}
 
 A graphic data specification format called '\texttt{ga}' \emph{graphic alchemy},
 or if you want \emph{generic graphic assembler}.
@@ -30,11 +31,11 @@ ga<DIM, UINT> := generic graphic assembler
 
 ga<DIM, UINT> := +Elem<DIM, UINT>
 
-Elem<DIM, UINT> := Code<u8> +Args<DIM, UINT>
+Elem<DIM, UINT> := Code<u8> + Args<DIM, UINT>
 
 Code<u8> := State<u8> | Object<u8> | Fn<u8>
     State<u8>  :=   1 ->  31 -- graphic properties
-    Object<u8> :=  32 -> 239 -- graphic object
+    Object<u8> :=  32 -> 239 -- graphic objects
     Fn<u8>     := 240 -> 255 -- functions
 
 Args<DIM, UINT> : <x: DIM> | <e: u8> | <n: UINT> | <c: CHARS>
@@ -69,14 +70,15 @@ OpCode & Mnemonic key & Graphic property & Operands\\
 
 \subsection{Lines}
 
-A segment that starts from point P1 (x1, y1) and ends in P2 (x2, y2).
+A segment that starts from point P1 (x1, y1) and ends to P2 (x2, y2).
 
 \noindent\begin{tabular}{CLlL}
 \toprule
 OpCode & Mnemonic key & Graphic object & Operands\\
 \midrule
-32 & line & Line & <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>\\
-33 & line\_thick & Line with a thick & <w: DIM> <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>\\
+32 & line  & Line            & <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>\\
+33 & hline & Horizontal line & <x1: DIM> <x2: DIM> <y: DIM>\\
+34 & vline & Vertical line   & <y1: DIM> <y2: DIM> <x: DIM>\\
 \midrule
 36 & vbar & Vertical bars     & <y1: DIM> <y2: DIM> <b: UINT> <x1: DIM> <t1: DIM> ...\\
 37 & hbar & Horizontal bars   & <x1: DIM> <x2: DIM> <b: UINT> <y1: DIM> <t1: DIM> ...\\

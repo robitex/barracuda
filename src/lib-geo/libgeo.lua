@@ -111,16 +111,19 @@ function Vbar:from_int_revstep(ngen, mod, is_bar) --> <vbar object>
 end
 
 -- costructor useful for Code39 encoder
--- 1212 -> rev 2121 -> bar 1 2 2 2 -> b W B W
+-- i.e. 11212 -> rev -> 2 1 2 1 1 -> decodes to -> B w B w b
 -- build a yline array from the integer definition. Digit decoding rule:
 -- mod: b or w => 1 -- narrow bar/space
 -- MOD: B or W => 2 -- wide bar/space
+-- is_bar: the first element is a bar not a space, default to true
 function Vbar:from_int_revpair(ngen, mod, MOD, is_bar) --> <vbar object>
     assert(type(ngen) == "number", "Invalid argument for n")
     assert(type(mod) == "number", "Invalid argument for narrow module width")
     assert(type(MOD) == "number", "Invalid argument for wide module width")
-    assert(mod < MOD, "Not ordered module value")
-    if is_bar == nil then is_bar = true else
+    assert(mod < MOD, "Not ordered narrow/Wide values")
+    if is_bar == nil then
+        is_bar = true
+    else
         assert(type(is_bar) == "boolean", "Invalid argument for is_bar")
     end
     local yl = {}
@@ -133,7 +136,7 @@ function Vbar:from_int_revpair(ngen, mod, MOD, is_bar) --> <vbar object>
             w = mod
         elseif d == 2 then
             w = MOD
-        end; assert(w, "[InternalErr] Allowed digits 1, 2")
+        end; assert(w, "[InternalErr] Allowed digits are only 1 or 2")
         if is_bar then -- bars
             k = k + 1; yl[k] = x0 + w/2 -- xcenter
             k = k + 1; yl[k] = w        -- width
@@ -150,6 +153,44 @@ function Vbar:from_int_revpair(ngen, mod, MOD, is_bar) --> <vbar object>
     return o
 end
 
+-- return a Vbar inteleaving to sequence narrow/Wide
+-- tbar, tspace = {boolean sequence}, true -> narrow, false -> Wide
+function Vbar:from_two_tab(tbar, tspace, mod, MOD) --> <vbar object>
+    assert(type(tbar) == "table", "tbar must be a table")
+    assert(type(tspace) == "table", "tspace must be a table")
+    assert(#tbar == #tspace, "tbar and tspace must be longer the same")
+    assert(type(mod) == "number", "Invalid argument for narrow module width")
+    assert(type(MOD) == "number", "Invalid argument for wide module width")
+    assert(mod < MOD, "Not ordered narrow/Wide values")
+    local x0 = 0.0 -- x-coordinate
+    local yl = {}
+    for i = 1, #tbar do
+        local is_narrow = tbar[i]
+        assert(type(is_narrow) == "boolean", "[InternalErr] found a not boolean value")
+        if is_narrow then
+            yl[#yl + 1] = x0 + mod/2 -- bar x-coordinate
+            yl[#yl + 1] = mod -- bar width
+            x0 = x0 + mod
+        else
+            yl[#yl + 1] = x0 + MOD/2 -- bar x-coordinate
+            yl[#yl + 1] = MOD -- bar width
+            x0 = x0 + MOD
+        end
+        local is_narrow_space = tspace[i]
+        assert(type(is_narrow_space) == "boolean", "[InternalErr] found a not boolean value")
+        if is_narrow_space then
+            x0 = x0 + mod
+        else
+            x0 = x0 + MOD
+        end
+    end
+    local o = {
+        _yline = yl, -- [<xcenter>, <width>, ...] flat array
+        _x_lim = x0, -- external x coordinate
+    }
+    setmetatable(o, self)
+    return o
+end
 
 -- Vbar methods
 

@@ -273,7 +273,7 @@ function Code39:from_chars(symb, opt) --> symbol, err
     local vbar       = self._vbar
     local symb_def   = self._symb_def
     local mod, ratio = self.module, self.ratio
-    -- create every vbar object needed for symbol if not already present
+    -- create every vbar object needed for the symbol if not already loaded
     for _, s in ipairs(symb) do
         local n = symb_def[s]
         if not n then
