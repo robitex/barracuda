@@ -41,12 +41,12 @@ Task   7.3: test files                                                20__-__-__
 Task   7.2: labelreport.cls new LuaLaTeX class                        20__-__-__
 Task   7.1: a small lib for option parsing (and related Ars article)  20__-__-__
 
-<Version 0.0.6> implement Interleaved 2 of 5 encoder                  20__-__-__
-Task   6.4: test files                                                20__-__-__
-Task   6.3: add bearer bars for itf encoder                           20__-__-__
 
 COMPLETED TASK:
 
+<Version 0.0.6> implement Interleaved 2 of 5 encoder               🎉 2019-07-02
+Task   6.4: test files                                              ☑ 2019-07-02
+Task   6.3: add bearer bars for itf encoder                         ☑ 2019-07-02
 Task   6.2: check digit capability for itf 2 of 5 encoder           ☑ 2019-07-02
 Task   6.1: implement basic Interleaved 2 of 5 encoder              ☑ 2019-06-29
 

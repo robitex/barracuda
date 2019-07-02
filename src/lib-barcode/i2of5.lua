@@ -141,6 +141,54 @@ pardef.check_digit_method = { -- enumeration
     end,
 }
 
+pardef.bearer_bars_enabled = { -- boolean type
+    -- enable/disable Bearer bars around the barcode symbol
+    default    = false,
+    isReserved = false,
+    order      = 7,
+    fncheck    = function (_, flag, _) --> boolean, err
+        if type(flag) == "boolean" then
+            return true, nil
+        else
+            return false, "[TypeErr] not a boolean value"
+        end
+    end,
+}
+
+pardef.bearer_bars_thickness = { -- dimension
+    default    = 37.5 * 0.0254 * 186467, -- 5 modules
+    unit       = "sp", -- scaled point
+    isReserved = false,
+    order      = 8,
+    fncheck = function (_self, thick, tpardef) --> boolean, err
+        local module = tpardef.module
+        if thick >= 2*module then
+            return true, nil
+        end
+        return false, "[OutOfRange] thickness too small"
+    end,
+}
+
+pardef.bearer_bars_layout = { -- enumeration
+    -- determine the algorithm for the check digit calculation
+    default       = "hbar",
+    isReserved    = false,
+    order         = 9,
+    method_enum = {
+        frame = true, -- a rectangle around the symbol
+        hbar = true, -- top and bottom horizontal bars
+    },
+    fncheck       = function (self, e, _) --> boolean, err
+        if type(e) ~= "string" then return false, "[TypeError] not a string" end
+        local keys = self.method_enum
+        if keys[e] == true then
+            return true, nil
+        else
+            return false, "[Err] enum value not found"
+        end
+    end,
+}
+
 -- auxiliary functions
 
 -- separate a non negative integer in its digits
@@ -319,7 +367,25 @@ function ITF:append_ga(canvas, tx, ty) --> canvas
     -- bounding box setting
     local x1 = xpos + (2 + ratio)*xdim
     local qz = self.quietzone
-    local err = canvas:stop_bbox_group(x0 - qz, y0, x1 + qz, y1)
+    local b1x,  b1y = x0 - qz, y0
+    local b2x,  b2y = x1 + qz, y1
+    if self.bearer_bars_enabled then
+        local w = self.bearer_bars_thickness
+        local e0 = canvas:linethick(w); assert(not e0, e0)
+        b1y, b2y = b1y - w, b2y + w
+        local layout = self.bearer_bars_layout
+        if layout == "hbar" then
+            local e1 = canvas:hline(b1x, b2x, y0 - w/2); assert(not e1, e1)
+            local e2 = canvas:hline(b1x, b2x, y1 + w/2); assert(not e2, e2)
+        elseif layout == "frame" then
+            local e = canvas:rectangle(b1x - w/2, y0 - w/2, b2x + w/2, y1 + w/2)
+            assert(not e, e)
+            b1x, b2x = b1x - w, b2x + w
+        else
+            error("[IntenalErr] bearer bars layout option is wrong")
+        end
+    end
+    local err = canvas:stop_bbox_group(b1x, b1y, b2x, b2y)
     assert(not err, err)
     return canvas
 end

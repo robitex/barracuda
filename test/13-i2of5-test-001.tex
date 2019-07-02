@@ -144,6 +144,36 @@ drv:ga_to_hbox(canvas, "mybox")
 \vrule A\vrule\box\mybox \vrule A\vrule
 
 
+\bigskip
+Test 6: bearer bars please:
+
+\directlua{
+local barcode = barracuda:get_barcode_class()
+local enc, err = barcode:enc_by_name("i2of5"); assert(not err, err)
+local symbo, err = enc:from_int(747867239, {bearer_bars_enabled = true})
+assert(not err, err)
+local canvas = barracuda:new_canvas(); symbo:append_ga(canvas)
+local drv, err = barracuda:load_driver("native"); assert(not err, err)
+
+drv:ga_to_hbox(canvas, "mybox")
+}
+\vrule A\vrule\box\mybox \vrule A\vrule
+
+\bigskip
+Test 7: bearer bars all around the symbol:
+
+\directlua{
+local barcode = barracuda:get_barcode_class()
+local enc, err = barcode:enc_by_name("i2of5"); assert(not err, err)
+local symbo, err = enc:from_int(986790868, {bearer_bars_enabled = true, bearer_bars_layout="frame"})
+assert(not err, err)
+local canvas = barracuda:new_canvas(); symbo:append_ga(canvas)
+local drv, err = barracuda:load_driver("native"); assert(not err, err)
+
+drv:ga_to_hbox(canvas, "mybox")
+}
+\vrule A\vrule\box\mybox \vrule A\vrule
+
 That's all folk!
 
 \bye

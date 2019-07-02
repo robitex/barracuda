@@ -26,6 +26,14 @@ end
 function gaCanvas:from_tcp_server() --> err
 end
 
+function gaCanvas:linethick(w) --> err
+    if type(w) ~= "number" then return "[ArgErr] 'w' number expected" end
+    if w < 0 then return "[ArgErr] negative value for 'w'" end
+    local data = self._data
+    data[#data + 1] = 1 -- opcode for line thickness
+    data[#data + 1] = w
+end
+
 -- insert a line from point (x1, y1) to (x2, y2)
 -- 32 x1 y1 x2 y2
 function gaCanvas:line(x1, y1, x2, y2) --> err
@@ -40,6 +48,35 @@ function gaCanvas:line(x1, y1, x2, y2) --> err
     data[#data + 1] = y1
     data[#data + 1] = x2
     data[#data + 1] = y2
+end
+
+-- insert an horizontal line from point (x1, y) to (x2, y)
+-- 33 x1 x2 y
+function gaCanvas:hline(x1, x2, y) --> err
+    if type(x1) ~= "number" then return "[ArgErr] 'x1' number expected" end
+    if type(x2) ~= "number" then return "[ArgErr] 'x2' number expected" end
+    if type(y) ~= "number" then return "[ArgErr] 'y2' number expected" end
+    -- append
+    local data = self._data
+    data[#data + 1] = 33 -- hline
+    data[#data + 1] = x1
+    data[#data + 1] = x2
+    data[#data + 1] = y
+end
+
+-- insert a rectangle from point (x1, x2) to (x2, y2)
+--  48 <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>
+function gaCanvas:rectangle(x1, y1, x2, y2) --> err
+    if type(x1) ~= "number" then return "[ArgErr] 'x1' number expected" end
+    if type(y1) ~= "number" then return "[ArgErr] 'y1' number expected" end
+    if type(x2) ~= "number" then return "[ArgErr] 'x2' number expected" end
+    if type(y2) ~= "number" then return "[ArgErr] 'y2' number expected" end
+    local d = self._data
+    d[#d + 1] = 48
+    d[#d + 1] = x1
+    d[#d + 1] = y1
+    d[#d + 1] = x2
+    d[#d + 1] = y2
 end
 
 -- vbar
