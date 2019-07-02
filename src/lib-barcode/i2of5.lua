@@ -102,25 +102,107 @@ pardef.quietzone = {
     end,
 }
 
--- auxiliary function
-local function check_mod10(t)
-    local sum = 0
-    local l = #t
-    for i = 1,l,2 do
-        sum = sum + 3*t[i]
+pardef.check_digit_policy = { -- enumeration
+    default    = "none",
+    isReserved = false,
+    policy_enum = {
+        add    = true, -- add a check digit to the symbol
+        verify = true, -- check the last digit of the symbol as check digit
+        none   = true, -- do nothing
+    },
+    order      = 5,
+    fncheck    = function (self, e, _) --> boolean, err
+        if type(e) ~= "string" then return false, "[TypeError] not a string" end
+        local keys = self.policy_enum
+        if keys[e] == true then
+            return true, nil
+        else
+            return false, "[Err] enum value not found"
+        end
+    end,
+}
+
+pardef.check_digit_method = { -- enumeration
+    -- determine the algorithm for the check digit calculation
+    default       = "mod_10",
+    isReserved    = false,
+    order         = 6,
+    method_enum = {
+        mod_10 = true, -- MOD 10 check digits method
+    },
+    fncheck       = function (self, e, _) --> boolean, err
+        if type(e) ~= "string" then return false, "[TypeError] not a string" end
+        local keys = self.method_enum
+        if keys[e] == true then
+            return true, nil
+        else
+            return false, "[Err] enum value not found"
+        end
+    end,
+}
+
+-- auxiliary functions
+
+-- separate a non negative integer in its digits
+local function n_to_arr(n) --> digits lenght, {d_n-1, ..., d_1, d_0}
+    assert(type(n) == "number", "[InternalErr] non a number")
+    assert(n >= 0, "[InternalErr] unsupported negative number")
+    assert(n - math.floor(n) == 0, "[InternalErr] unsupported float number")
+    local digits = {}
+    local slen
+    if n == 0 then
+        digits[#digits + 1] = 0
+        slen = 1 
+    else
+        slen = 0
+        while n > 0 do
+            local d = n % 10
+            digits[#digits + 1] = d
+            n = (n - d) / 10
+            slen = slen + 1
+        end
     end
-    for i = 2,l,2 do
-        sum = sum + t[i]
+    for k = 1, slen/2  do -- array reversing
+        local h = slen - k + 1
+        local d = digits[k]
+        digits[k] = digits[h]
+        digits[h] = d
+    end
+    return slen, digits
+end
+
+local function rshift(t)
+    local tlen = #t
+    for i = tlen, 1, -1 do
+        t[i + 1] = t[i]
+    end
+    t[1] = 0
+end
+
+
+local function check_mod10(t, last)
+    local sum = 0
+    local w = true
+    for i = last, 1, -1 do
+        if w then
+            sum = sum + 3*t[i]
+        else
+            sum = sum + t[i]
+        end
+        w = not w
     end
     local m = sum % 10
     if m == 0 then return 0 else return 10 - m end
 end
 
--- t: array of digits
--- len: array position where data ends
-function ITF:checkdigit_mod10(t, len)
-    return 0
+local function checkdigit(t, last, method)
+    if method == "mod_10" then
+        return check_mod10(t, last)
+    else
+        assert(false, "[InternalErr] unknow method")
+    end 
 end
+
 
 -- configuration function
 function ITF:config() --> ok, err
@@ -147,41 +229,63 @@ function ITF:config() --> ok, err
     return true, nil
 end
 
+-- public functions
+
+function ITF:get_checkdigit(n, method)
+    if type(n) ~= "number" then return nil, "[ArgErr] 'n' is not a number" end
+    if n < 0 then return nil, "[ArgErr] found a negative number" end
+    if n - math.floor(n) ~= 0 then return nil, "[ArgErr] found a float number" end
+    method = method or self.check_digit_method
+    local last, t = n_to_arr(n)
+    return checkdigit(t, last, method)
+end
 
 -- constructors
 -- return the symbol object or an error message
 function ITF:from_int(n, opt) --> symbol, err
     if type(n) ~= "number" then return nil, "[ArgErr] 'n' is not a number" end
-    assert(n > 0, "unsupported negative integer")
-    assert( n - math.floor(n) == 0, "unsupported float number")
-    local digits = {}
-    while n > 0 do
-        local d = n % 10
-        digits[#digits + 1] = d
-        n = (n - d) / 10
-    end
-    local slen = #digits
-    assert((slen % 2) == 0, "unsupported odd integer")
-    for k = 1, slen/2  do -- array reversing
-        local h = slen - k + 1
-        local d = digits[k]
-        digits[k] = digits[h]
-        digits[h] = d
-    end
-    local o = {} -- create an ITF barcode object
-    o._data = digits
-    setmetatable(o, self)
-    if opt ~= nil then
-        if type(opt) ~= "table" then
-            return nil, "[ArgErr] opt is not a table"
-        else
-           local ok, err = o:set_param(opt)
-           if not ok then
-               return nil, err
-           end
-        end
+    if n < 0 then return nil, "[ArgErr] found a negative number" end
+    if n - math.floor(n) ~= 0 then return nil, "[ArgErr] found a float number" end
+    if (opt ~= nil) and (type(opt) ~= "table") then
+        return nil, "[ArgErr] 'opt' is not a table"
     end
 
+    local slen, digits = n_to_arr(n)
+    local o = {} -- derive an ITF barcode object
+    setmetatable(o, self)
+    o._data = digits
+    if opt ~= nil then
+       local ok, err = o:set_param(opt)
+       if not ok then
+           return nil, err
+       end
+    end
+    -- check digit action
+    local policy = o.check_digit_policy
+    local is_even = (slen % 2 == 0)
+    if policy == "none" then
+        if not is_even then
+            rshift(digits) -- add a heading zero for padding
+        end
+    elseif policy == "add" then
+        if is_even then
+            rshift(digits)
+            slen = slen + 1
+        end
+        local c = checkdigit(digits, slen, o.check_digit_method)
+        digits[#digits + 1] = c
+    elseif policy == "verify" then
+        if not is_even then
+            rshift(digits)
+            slen = slen + 1
+        end
+        local c = checkdigit(digits, slen - 1, o.check_digit_method)
+        if c ~= digits[slen] then
+            return nil, "[DataErr] wrong check digit"
+        end
+    else
+        return nil, "[InternalError] wrong enum value"
+    end
     return o, nil
 end
 
@@ -189,7 +293,6 @@ end
 -- tx, ty is an optional translator vector
 function ITF:append_ga(canvas, tx, ty) --> canvas
     local err = canvas:start_bbox_group(); assert(not err, err)
-
     -- draw start symbols
     local xdim = self.module
     local ratio = self.ratio

@@ -36,6 +36,113 @@ drv:ga_to_hbox(canvas, "mybox")
 }
 \vrule A\vrule\box\mybox \vrule A\vrule
 
+% check digit tests
+
+\directlua{% verify check digits, the last one
+local code = {
+    7352621,
+    9624764,
+    7592881,
+    5344147,
+    742238,
+    199766,
+    4544739,
+    2774794,
+    8509895,
+    8285157,
+    5387564,
+    5534371,
+    2155678,
+    4529545,
+    4689164,
+    1674910,
+    5317837,
+    4117698,
+}
+local barcode = barracuda:get_barcode_class()
+local enc, err = barcode:enc_by_name("i2of5"); assert(not err, err)
+for _, n in ipairs(code) do
+    local smbl, err = enc:from_int(n, {check_digit_policy="verify"})
+    assert(not err, err)
+end
+}
+
+\directlua{% check digits evaluation
+local code = {
+    ["735262"] = 1,
+    ["962476"] = 4,
+    ["759288"] = 1,
+    ["534414"] = 7,
+    ["74223"] = 8,
+    ["19976"] = 6,
+    ["454473"] = 9,
+    ["277479"] = 4,
+    ["850989"] = 5,
+    ["828515"] = 7,
+    ["538756"] = 4,
+    ["553437"] = 1,
+    ["215567"] = 8,
+    ["452954"] = 5,
+    ["468916"] = 4,
+    ["167491"] = 0,
+    ["531783"] = 7,
+    ["411769"] = 8,
+}
+local barcode = barracuda:get_barcode_class()
+local enc, err = barcode:enc_by_name("i2of5"); assert(not err, err)
+for sc, ck in pairs(code) do
+    local n = tonumber(sc)
+    local c, err = enc:get_checkdigit(n)
+    assert(not err, err)
+    assert(c == ck, "Wrong check digit "..c.." vs "..ck .." for "..sc)
+end
+}
+
+\bigskip
+Test 3: one simple barcode with check digit automatically added:
+
+\directlua{
+local barcode = barracuda:get_barcode_class()
+local enc, err = barcode:enc_by_name("i2of5"); assert(not err, err)
+local symbo, err = enc:from_int(454473, {check_digit_policy="add"})
+assert(not err, err)
+local canvas = barracuda:new_canvas(); symbo:append_ga(canvas)
+local drv, err = barracuda:load_driver("native"); assert(not err, err)
+
+drv:ga_to_hbox(canvas, "mybox")
+}
+\vrule A\vrule\box\mybox \vrule A\vrule
+
+\bigskip
+Test 4: a second simple barcode with check digit automatically added:
+
+\directlua{
+local barcode = barracuda:get_barcode_class()
+local enc, err = barcode:enc_by_name("i2of5"); assert(not err, err)
+local symbo, err = enc:from_int(74223, {check_digit_policy="add"})
+assert(not err, err)
+local canvas = barracuda:new_canvas(); symbo:append_ga(canvas)
+local drv, err = barracuda:load_driver("native"); assert(not err, err)
+
+drv:ga_to_hbox(canvas, "mybox")
+}
+\vrule A\vrule\box\mybox \vrule A\vrule
+
+\bigskip
+Test 5: a symbol with native check digits:
+
+\directlua{
+local barcode = barracuda:get_barcode_class()
+local enc, err = barcode:enc_by_name("i2of5"); assert(not err, err)
+local symbo, err = enc:from_int(121891259, {check_digit_policy="verify"})
+assert(not err, err)
+local canvas = barracuda:new_canvas(); symbo:append_ga(canvas)
+local drv, err = barracuda:load_driver("native"); assert(not err, err)
+
+drv:ga_to_hbox(canvas, "mybox")
+}
+\vrule A\vrule\box\mybox \vrule A\vrule
+
 
 That's all folk!
 
