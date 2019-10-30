@@ -27,13 +27,12 @@ executes the directlua macro, so vector graphics appear in
 the PDF output file.
 
 \newbox\mybox
-
-\directlua{% global Lua variable
-    pdfnat = require [[lib-driver.driver-pdfliteral]]
+\directlua{
+    pdfnat = require [[lib-driver.driver-pdfliteral]] % global Lua variable
     pt = tex.sp [[1pt]] % 1pt = 65536sp
 }
 
-Let's start drawing an horizontal line 24pt in lenght:
+Let's start drawing an horizontal line 24pt long:
 \directlua{
    local ga = {33, 0*pt, 24*pt, 0*pt}
    pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
@@ -45,7 +44,7 @@ or two different parallel lines:
    pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
 }\box\mybox
 
-and again two horizontal lines 5pt in thickness:
+and again two horizontal lines 5pt thick:
 \directlua{
    local ga = {1, 5*pt, 33, -24*pt, 0*pt, -2.5*pt, 33, 0*pt, 24*pt, 2.5*pt}
    pdfnat:ga_to_hbox({_data = ga}, [[mybox]])

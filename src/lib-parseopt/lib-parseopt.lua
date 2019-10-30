@@ -111,7 +111,7 @@ end
 -- }
 --
 local function checkOptDef(opt) -- ok, err
-    if type(opt) ~= "table" then false, "[ArgErr] table expected" end
+    if type(opt) ~= "table" then return false, "[ArgErr] table expected" end
     --
 end
 

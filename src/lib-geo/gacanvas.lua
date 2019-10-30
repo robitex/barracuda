@@ -1,5 +1,5 @@
 -- class gaCanvas
--- Copyright (C) 2018 Roberto Giacomelli
+-- Copyright (C) 2019 Roberto Giacomelli
 
 -- ga -- basic function
 
@@ -16,7 +16,7 @@ gaCanvas.__index = gaCanvas
 function gaCanvas:new() --> object
     local o = {
         _data = {},
-        _v    = 1, -- version of the ga format
+        _v    = 100, -- version of the ga format
     }
     setmetatable(o, self)
     return o
@@ -116,14 +116,14 @@ function gaCanvas:vbar(x0, y1, y2, bars) --> err
     end
 end
 
--- Stop to check the bounding box
+-- Stop checking the bounding box
 -- code: 30
 function gaCanvas:start_bbox_group() --> err
     local data = self._data
     data[#data + 1] = 30
 end
 
--- restart to check the bounding box
+-- restart checking the bounding box
 -- and insert one for the entire object group
 -- code: 31 x1 y1 x2 y2
 function gaCanvas:stop_bbox_group(x1, y1, x2, y2) --> err
@@ -211,7 +211,7 @@ end
 
 
 
--- under assessment opcodes
+-- opcodes under assessment
 
 -- [start_text_group] 140
 function gaCanvas:start_text_group() --> err

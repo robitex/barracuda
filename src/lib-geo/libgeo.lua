@@ -31,7 +31,7 @@ function Vbar:from_array(yl_arr) --> <vbar object>
         assert(type(w) == "number", "[InternalErr] not a number")
         xlim = x + w/2
     end
-    assert(i % 2 == 0, "[InternalErr] not an even index")
+    assert(i % 2 == 0, "[InternalErr] the index is not even")
     assert(i > 0, "[InternalErr] empty array")
     local o = {
         _yline = yl_arr, -- [<xcenter>, <width>, ...] flat array

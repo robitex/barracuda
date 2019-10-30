@@ -1,15 +1,15 @@
 --
 -- ga Intermediate Graphic Language for barcode drawing
--- Copyright (C) 2018 Roberto Giacomelli
+-- Copyright (C) 2019 Roberto Giacomelli
 --
 -- All dimension must be in scaled point (sp)
--- ga Driver LuaTeX native implementation (node+pdfliteral)
+-- ga LuaTeX Driver (native implementation node+pdfliteral)
 
 -- class for drawing elementary geometric elements
 local PDFnative = {
-    _VERSION     = "PDFnative v0.0.3",
+    _VERSION     = "PDFnative v0.0.4",
     _NAME        = "PDFnative",
-    _DESCRIPTION = "a LuaTeX native pdfliteral driver for ga graphic stream",
+    _DESCRIPTION = "A LuaTeX native pdfliteral driver for ga graphic stream",
 }
 
 local node = assert(node)
@@ -56,15 +56,15 @@ end
 
 -- operation functions
 -- operation_v001 corresponds to the version 1 of ga graphic assembler spec
--- this table indexed every opcode to a function that takes these arguments:
+-- this table indexes every opcode to a function that takes these arguments:
 -- st: state
 -- pc: program counter
 -- ga: ga stream
 -- bf: the output pdfliteral buffer
 -- xt: the output text object buffer
--- return the updated program counter pointed to the next operation
+-- and return the updated program counter pointed to the next operation
 PDFnative.operation_v001 = {
-    -- set a pen line width
+    -- set a line width
     -- 1 <W: dim>
     [1] = function (st, pc, ga, bf, xt)
         local w = ga[pc]; pc = pc + 1
@@ -73,7 +73,6 @@ PDFnative.operation_v001 = {
         bf[#bf + 1] = string.format("%0.6f w", w/bp)
         return pc
     end,
-
     [30] = function (st, pc, ga, bf, xt) -- start_bbox_group
         assert(st.bb_on)
         st.bb_on = false
@@ -99,8 +98,7 @@ PDFnative.operation_v001 = {
         end
         return pc
     end,
-
-    -- draw an horizontal single line
+    -- draw an horizontal line
     -- 33 <x1: DIM> <x2: DIM> <y: DIM>
     [33] = function (st, pc, ga, bf, xt)
         local x1 = ga[pc]; pc = pc + 1
@@ -128,8 +126,7 @@ PDFnative.operation_v001 = {
         end
         return pc
     end,
-
-    -- draw a vertical single line
+    -- draw a vertical line
     -- 34 <y1: DIM> <y2: DIM> <x: DIM>
     [34] = function (st, pc, ga, bf, xt)
         local y1 = ga[pc]; pc = pc + 1
@@ -157,8 +154,7 @@ PDFnative.operation_v001 = {
         end
         return pc
     end,
-
-    -- draw a group of vertical lines
+    -- draw a group of vertical lines (vbar)
     -- 36 <y1: DIM> <y2: DIM> <b: UINT> <x1: DIM> <t1: DIM>
     [36] = function(st, pc, ga, bf, xt) -- vbar
         -- we have less memory consumption if we insert a bar as a rectangle
@@ -208,7 +204,6 @@ PDFnative.operation_v001 = {
         end
         return pc_next
     end,
-
     -- draw a rectangle
     -- 48 <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>
     [48] = function(st, pc, ga, bf, xt)
@@ -224,8 +219,7 @@ PDFnative.operation_v001 = {
         local fmt = "%0.6f %0.6f %0.6f %0.6f re S"
         -- pdf literal insertion <x y w h re>
         bf[#bf + 1] = string.format(fmt, x1/bp, y1/bp, w/bp, h/bp)
-        
-        -- check the bounding box only if the corresponding flag is true
+        -- check the bounding box only if the flag is true
         if st.bb_on then
             local hw  = st.line_width/2
             local bx1, bx2 = x1 - hw, x2 + hw
@@ -244,7 +238,6 @@ PDFnative.operation_v001 = {
         end
         return pc
     end,
-
     [130] = function(st, pc, ga, bf, xt) -- text: ax ay xpos ypos string
         local ax   = ga[pc]; pc = pc + 1
         local ay   = ga[pc]; pc = pc + 1
@@ -282,14 +275,13 @@ PDFnative.operation_v001 = {
         xt[#xt + 1] = {hbox, x, y - d, w, h}
         return pc + 1
     end,
-
     [131] = function(st, pc, ga, bf, xt) -- text_xspaced x1 xgap ay ypos chars
         local x1   = ga[pc]; pc = pc + 1
         local xgap = ga[pc]; pc = pc + 1
         local ay   = ga[pc]; pc = pc + 1
         local ypos = ga[pc]; pc = pc + 1
         assert(ga[pc] ~= 0, "[InternalErr] No char")
-        local head, last -- node list
+        local head, last, xc -- node list
         local c1 = ga[pc]; pc = pc + 1 -- first char
         head, last, xc = append_glyph(head, last, c1)
         local x = x1 - xc/2 -- x hbox coordinate
@@ -328,7 +320,6 @@ PDFnative.operation_v001 = {
         xt[#xt + 1] = {hbox, x, y - d, w, h}
         return pc + 1
     end,
-    
     -- text_xwidth
     -- <ay: FLOAT> <x1: DIM> <x2: DIM> <y: DIM> <c: CHARS>
     [132] = function (st, pc, ga, bf, xt)
@@ -358,6 +349,7 @@ PDFnative.operation_v001 = {
         for _ = 1, i - 1 do
             local g = c_curr.next
             local c_next = g.next
+            local w_2
             w_1, w_2 = c_curr.width, c_next.width
             g.width = xgap - (w_1 + w_2)/2
             c_curr = c_next
@@ -422,7 +414,7 @@ end
 -- stream processing and hbox node building
 function PDFnative:ga_to_hbox(ga, hboxname)
     local op_fn = self.operation_v001
-    local bf = {"q 1 1"} -- new stack and line width equal to 1bp
+    local bf = {"q"} -- a new stack
     local xt = {} -- text buffer
     local st = { -- state of the process
         line_width = 65781.76, -- line width like 1bp

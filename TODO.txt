@@ -39,7 +39,7 @@ Task   8.1: opt in the EAN constructor                                20__-__-__
 <Version 0.0.7> alpha version of the labelreport LuaLaTeX class       20__-__-__
 Task   7.3: test files                                                20__-__-__
 Task   7.2: labelreport.cls new LuaLaTeX class                        20__-__-__
-Task   7.1: a small lib for option parsing (and related Ars article)  20__-__-__
+Task   7.1: a small lib for option parsing                            20__-__-__
 
 
 COMPLETED TASK:

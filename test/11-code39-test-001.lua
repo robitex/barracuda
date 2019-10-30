@@ -1,4 +1,4 @@
--- Copyright (C) 2018 Roberto Giacomelli
+-- Copyright (C) 2019 Roberto Giacomelli
 -- test Code 39 encoder
 
 local barracuda = require "barracuda"
@@ -31,7 +31,7 @@ local canvas = barracuda:new_canvas()
 symb:append_ga(canvas)
 
 -- native driver
-local drv, err = barracuda:load_driver("native")
+local _drv, err = barracuda:load_driver("native")
 assert(not err, err)
 
 for _, code in ipairs(canvas._data) do print(code) end
