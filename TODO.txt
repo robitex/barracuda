@@ -31,18 +31,18 @@ Task   x.5: a number parameter can be a string? unit measure...       20__-__-__
 
 SCHEDULED TASK:
 
-<Version 0.0.8> move costructors to the barcode abstract class        20__-__-__
-Task   8.3: recompile all the test files                              20__-__-__
-Task   8.2: new costructor method in the barcode superclass           20__-__-__
-Task   8.1: opt in the EAN constructor                                20__-__-__
-
-<Version 0.0.7> alpha version of the labelreport LuaLaTeX class       20__-__-__
-Task   7.3: test files                                                20__-__-__
-Task   7.2: labelreport.cls new LuaLaTeX class                        20__-__-__
-Task   7.1: a small lib for option parsing                            20__-__-__
-
+<Version 0.0.x> move costructors to the barcode abstract class        20__-__-__
+Task   x.3: recompile all the test files                              20__-__-__
+Task   x.2: new costructor method in the barcode superclass           20__-__-__
+Task   x.1: opt in the EAN constructor                                20__-__-__
 
 COMPLETED TASK:
+
+<Version 0.0.7> code refactoring for ga-canvas                     🎉 2019-11-02
+Task   7.4: new functions canvas:encode_<obj>()                     ☑ 2019-11-02
+Task   7.3: text position options for Code39 became two indipendent ☑ 2019-11-02
+Task   7.2: added a new code39 test file (and bugs fixed)           ☑ 2019-11-02
+Task   7.1: added subdirectories in the test tree                   ☑ 2019-11-02
 
 <Version 0.0.6> implement Interleaved 2 of 5 encoder               🎉 2019-07-02
 Task   6.4: test files                                              ☑ 2019-07-02
@@ -67,7 +67,7 @@ Task   3.1: import and refactoring previous Code128 encoder code    ☑ 2018-12-
 
 <Version 0.0.2>                                                    🎉 2018-12-11
 Task   2.5: option text_gap for code39                              ☑ 2018-12-11
-Task   2.4: resolve the horizontal correction in spaced text        ☑ 2018-12-11
+Task   2.4: resolved the horizontal correction in spaced text       ☑ 2018-12-11
 Task   2.3: further text option for the Code39 encoder              ☑ 2018-12-06
 Task   2.2: include minimal text ability to the system
 Task   2.1: design and implement a basic framework

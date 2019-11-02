@@ -151,83 +151,54 @@ pardef.text_enabled = { -- boolean type
     end,
 }
 
--- define a text label layout
-pardef.text_pos = { -- enumeration
-    default       = "bottom-left",
-    isReserved    = false,
-    order         = 7,
-    text_pos_enum = { -- i.e. "center-top" or even "top-center" or simply "top"
-        vpos = {"top", "bottom"},
-        hpos = {"left", "center", "right", "spaced"},
+-- define the text label vertical position
+pardef.text_vpos = { -- enumeration
+    default    = "bottom",
+    isReserved = false,
+    order      = 7,
+    policy_enum = {
+        top    = true, -- place text at the top of symbol
+        bottom = true, -- place text under the symbol
     },
-    fncheck       = function (self, e, _) --> boolean, err
-        if type(e) ~= "string" then return false, "[TypeErr] not a string" end
-        local enum_vpos = self.text_pos_enum.vpos
-        local enum_hpos = self.text_pos_enum.hpos
-        local vkey = {}; for _, k in ipairs(enum_vpos) do vkey[k] = true end
-        local hkey = {}; for _, k in ipairs(enum_hpos) do hkey[k] = true end
-        -- parsing
-        local p1 = e:find("-")
-        if p1 then
-            local s1 = e:sub(1, p1 - 1)
-            local s2 = e:sub(p1 + 1)
-            if vkey[s1] then
-                if hkey[s2] then
-                    return true, nil
-                else
-                    return false, "[Err] incorrect option"
-                end
-            elseif hkey[s1] then
-                if vkey[s2] then
-                    return true, nil
-                else
-                    return false, "[Err] incorrect option"
-                end
-            else
-                return false, "[Err] option not found"
-            end
-        else -- single option
-            if vkey[e] or hkey[e] then
-                return true, nil
-            else
-                return false, "[Err] option not found"
-            end
+    fncheck    = function (self, e, _) --> boolean, err
+        if type(e) ~= "string" then return false, "[TypeError] not a string" end
+        local keys = self.policy_enum
+        if keys[e] == true then
+            return true, nil
+        else
+            return false, "[Err] enumeration value '"..e.."' not found"
         end
     end,
-    fnparse = function (self, e, v, h) --> vopt, hopt
-        local enum_vpos = self.text_pos_enum.vpos
-        local enum_hpos = self.text_pos_enum.hpos
-        local vkey = {}; for _, k in ipairs(enum_vpos) do vkey[k] = true end
-        local hkey = {}; for _, k in ipairs(enum_hpos) do hkey[k] = true end
-        -- parsing
-        local p1 = e:find("-")
-        if p1 then
-            local s1 = e:sub(1, p1 - 1)
-            local s2 = e:sub(p1 + 1)
-            if vkey[s1] and hkey[s2] then
-                v = s1
-                h = s2
-            elseif hkey[s1] and vkey[s2] then
-                v = s2
-                h = s1
-            end
-        else -- single option
-            if vkey[e] then
-                v = e
-            elseif hkey[e] then
-                h = e
-            end
+}
+
+-- define the text label horizontal position
+pardef.text_hpos = { -- enumeration
+    default    = "left",
+    isReserved = false,
+    order      = 8,
+    policy_enum = {
+        left = true,
+        center = true,
+        right = true,
+        spaced = true,
+    },
+    fncheck    = function (self, e, _) --> boolean, err
+        if type(e) ~= "string" then return false, "[TypeError] not a string" end
+        local keys = self.policy_enum
+        if keys[e] == true then
+            return true, nil
+        else
+            return false, "[Err] enumeration value '"..e.."' not found"
         end
-        return v, h
-    end
+    end,
 }
 
 -- vertical dimension between symbol and text
 pardef.text_gap = {
     default    = 2.2 * 65536, -- 2.2 pt
     isReserved = false,
-    order      = 8,
-    unit       = "em", --> TODO: please analyzing this asap
+    order      = 9,
+    unit       = "em", --> TODO: please put this under further analisys asap
     fncheck    = function(self, g, _) --> boolean, err
         if type(g) == "number" then
             if g > 0 then
@@ -245,7 +216,7 @@ pardef.text_gap = {
 pardef.text_star = {
     default    = false,
     isReserved = false,
-    order      = 9,
+    order      = 10,
     fncheck    = function(self, flag, _) --> boolean, err
         if type(flag) == "boolean" then
             return true, nil
@@ -291,7 +262,7 @@ function Code39:from_chars(symb, opt) --> symbol, err
     setmetatable(obj, self)
     if opt ~= nil then
         if type(opt) ~= "table" then
-            return nil, "[ArgErr] opt is not a table"
+            return nil, "[ArgErr] 'opt' is not a table"
         else
            local ok, err = obj:set_param(opt)
            if not ok then
@@ -337,28 +308,28 @@ function Code39:append_ga(canvas, tx, ty) --> canvas
     local x1         = x0 + w
     local y1         = y0 + h
     local xpos       = x0
-    local err = canvas:start_bbox_group(); assert(not err, err)
+    local err
+    err = canvas:start_bbox_group()
+    assert(not err, err)
     local vbar = self._vbar
     -- start/stop symbol
     local term_vbar = vbar['*']
     -- draw start symbol
-    local _, err = term_vbar:append_ga(canvas, y0, y1, xpos)
+    err = canvas:encode_Vbar(term_vbar, xpos, y0, y1)
     assert(not err, err)
-    -- draw code symbol
-    for _, c in ipairs(code) do
+    for _, c in ipairs(code) do -- draw code symbols
         xpos = xpos + xgap
         local vb = vbar[c]
-        local _, err = vb:append_ga(canvas, y0, y1, xpos)
+        err = canvas:encode_Vbar(vb, xpos, y0, y1)
         assert(not err, err)
     end
     -- draw stop symbol
-    local _, err = term_vbar:append_ga(canvas, y0, y1, xpos + xgap)
+    err = canvas:encode_Vbar(term_vbar, xpos + xgap, y0, y1)
     assert(not err, err)
     -- bounding box setting
     local qz = self.quietzone
-    local err = canvas:stop_bbox_group(x0 - qz, y0, x1 + qz, y1)
+    err = canvas:stop_bbox_group(x0 - qz, y0, x1 + qz, y1)
     assert(not err, err)
-
     -- check height as the minimum of 15% of length
     -- TODO: message could warn the user
     -- if 0.15 * w > h then
@@ -380,44 +351,41 @@ function Code39:append_ga(canvas, tx, ty) --> canvas
         local Text = self._libgeo.Text
         local txt  = Text:from_chars(chars)
         -- setup text position
-        local pardef = self._par_def
-        local pdef = pardef.text_pos
-        local default = pdef.default
-        local vopt_d, hopt_d = pdef:fnparse(default)
-        local vo, ho = pdef:fnparse(self.text_pos, vopt_d, hopt_d)
-        local txtgap = self.text_gap
-        local ypos, tay; if vo == "top" then  -- vertical setup
-            ypos = y1 + txtgap
+        local txt_vpos = self.text_vpos
+        local txt_gap = self.text_gap
+        local ypos, tay; if txt_vpos == "top" then  -- vertical setup
+            ypos = y1 + txt_gap
             tay = 0.0
-        elseif vo == "bottom" then
-            ypos = y0 - txtgap
+        elseif txt_vpos == "bottom" then
+            ypos = y0 - txt_gap
             tay = 1.0
         else
             error("[IntenalErr] text vertical placement option is wrong")
         end
-        if ho == "spaced" then -- horizontal setup
+        local txt_hpos = self.text_hpos
+        if txt_hpos == "spaced" then -- horizontal setup
             local xaxis = x0
             if not self.text_star then
                 xaxis = xaxis + xgap
             end
             xaxis = xaxis + xs/2
-            local _, err = txt:append_ga_xspaced(canvas, xaxis, xgap, tay, ypos)
+            err = canvas:encode_Text_xspaced(txt, xaxis, xgap, ypos, tay)
             assert(not err, err)
         else
             local xpos, tax
-            if ho == "left" then
+            if txt_hpos == "left" then
                 xpos = x0
                 tax = 0.0
-            elseif ho == "center" then
-                xpos = (x1 - x0)/2
+            elseif txt_hpos == "center" then
+                xpos = (x1 + x0)/2
                 tax = 0.5
-            elseif ho == "right" then
+            elseif txt_hpos == "right" then
                 xpos = x1
                 tax = 1.0
             else
                 error("[InternalErr] wrong option for text_pos")
             end
-            local _, err = txt:append_ga(canvas, xpos, ypos, tax, tay)
+            err = canvas:encode_Text(txt, xpos, ypos, tax, tay)
             assert(not err, err)
         end
     end
@@ -425,5 +393,4 @@ function Code39:append_ga(canvas, tx, ty) --> canvas
 end
 
 return Code39
-
 --

@@ -2,6 +2,11 @@
 -- test Code 39 encoder
 
 local barracuda = require "barracuda"
+
+for k, v in pairs(barracuda) do
+    print(k,v)
+end
+
 local barcode = barracuda:get_barcode_class()
 
 local c39, err = barcode:new_encoder("code39")

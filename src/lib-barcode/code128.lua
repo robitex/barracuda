@@ -23,7 +23,7 @@ Code128._int_def_bar = {-- code bar definitions
     111242, 121142, 121241, 114212, 124112, 124211, 411212, 421112, 421211,
     212141, 214121, 412121, 111143, 111341, 131141, 114113, 114311, 411113,
     411311, 113141, 114131, 311141, 411131, 211412, 211214, 211232,
-    2331112, -- this is the stop char [106]
+    2331112, -- this is the stop char at index 106
 }
 
 Code128._codeset = {
@@ -338,18 +338,19 @@ function Code128:append_ga(canvas, tx, ty) --> canvas
     local y1 = y0 + h
     local xpos = x0
     -- drawing the symbol
-    local err = canvas:start_bbox_group()
+    local err
+    err = canvas:start_bbox_group()
     assert(not err, err)
     for _, c in ipairs(data) do
         local vb = self._vbar[c]
-        local _, err = vb:append_ga(canvas, y0, y1, xpos)
+        err = canvas:encode_Vbar(vb, xpos, y0, y1)
         assert(not err, err)
         xpos = xpos + sw
     end
     -- bounding box setting
     local qz = self.quietzone_factor * xdim
     -- { xmin, ymin, xmax, ymax }
-    local err = canvas:stop_bbox_group(x0 - qz, y0, x1 + qz, y1)
+    err = canvas:stop_bbox_group(x0 - qz, y0, x1 + qz, y1)
     assert(not err, err)
     return canvas
 end

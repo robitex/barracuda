@@ -572,32 +572,33 @@ fn_append_ga_variant["13"] = function (ean, canvas, tx, ty, ax, ay)
     local s_width    = 7*mod
     local code_seq   = ean._codeset_seq[code[1]]
     -- draw the start symbol
-    local err = canvas:start_bbox_group(); assert(not err, err)
+    local err
+    err = canvas:start_bbox_group(); assert(not err, err)
     local be = ean._13_start_stop_vbar
-    local _, err = be:append_ga(canvas, y0, y1, xpos); assert(not err, err)
+    err = canvas:encode_Vbar(be, xpos, y0, y1); assert(not err, err)
     xpos = xpos + 3*mod
     -- draw the first 6 numbers
     for i = 2, 7 do
         local codeset = code_seq[i-1]
         local n = code[i]
         local vbar = ean._13_codeset_vbar[codeset][n]
-        local _, e = vbar:append_ga(canvas, ys, y1, xpos); assert(not e, e)
+        err = canvas:encode_Vbar(vbar, xpos, ys, y1); assert(not err, err)
         xpos = xpos + s_width
     end
     -- draw the control symbol
     local ctrl = ean._13_ctrl_center_vbar
-    local _, err = ctrl:append_ga(canvas, y0, y1, xpos); assert(not err, err)
+    err = canvas:encode_Vbar(ctrl, xpos, y0, y1); assert(not err, err)
     xpos = xpos + 5*mod
     -- draw the last 6 numbers
     for i = 8, 13 do
         local codeset = code_seq[i-1]
         local n = code[i]
         local vbar = ean._13_codeset_vbar[codeset][n]
-        local _, e = vbar:append_ga(canvas, ys, y1, xpos); assert(not e, e)
+        err = canvas:encode_Vbar(vbar, xpos, ys, y1); assert(not err, err)
         xpos = xpos + s_width
     end
     -- draw the stop char
-    local _, err = be:append_ga(canvas, y0, y1, xpos)
+    err = canvas:encode_Vbar(be, xpos, y0, y1); assert(not err, err)
     -- bounding box set up
     local qzl = ean.quietzone_left_factor * mod
     local qzr = ean.quietzone_right_factor * mod
@@ -608,17 +609,18 @@ fn_append_ga_variant["13"] = function (ean, canvas, tx, ty, ax, ay)
         local txt_1 = Text:from_digit_array(code, 1,  1)
         local txt_2 = Text:from_digit_array(code, 2,  7)
         local txt_3 = Text:from_digit_array(code, 8, 13)
-        local y_bl  = ys - ean.text_ygap_factor * mod
-        local mx    = ean.text_xgap_factor
-        local _, err = txt_1:append_ga(canvas, x0 - qzl, y_bl, 0, 1)
+        local y_bl = ys - ean.text_ygap_factor * mod
+        local mx = ean.text_xgap_factor
+        local err
+        err = canvas:encode_Text(txt_1, x0 - qzl, y_bl, 0, 1)
         assert(not err, err)
         local x2_1 = x0 + (3+mx)*mod
         local x2_2 = x0 + (46-mx)*mod
-        local _, err = txt_2:append_ga_xwidth(canvas, x2_1, x2_2, 1, y_bl)
+        err = canvas:encode_Text_xwidth(txt_2, x2_1, x2_2, y_bl, 1)
         assert(not err, err)
         local x3_1 = x0 + (49+mx)*mod
         local x3_2 = x0 + (92-mx)*mod
-        local _, err = txt_3:append_ga_xwidth(canvas, x3_1, x3_2, 1, y_bl)
+        err = canvas:encode_Text_xwidth(txt_3, x3_1, x3_2, y_bl, 1)
         assert(not err, err)
     end
 end
@@ -637,33 +639,34 @@ fn_append_ga_variant["8"] = function (ean, canvas, tx, ty, ax, ay)
     local ys         = y0 + bars_depth
     local s_width    = 7*mod
     -- draw the start symbol
-    local err = canvas:start_bbox_group(); assert(not err, err)
+    local err
+    err = canvas:start_bbox_group(); assert(not err, err)
     local be = ean._8_start_stop_vbar
-    local _, err = be:append_ga(canvas, y0, y1, xpos); assert(not err, err)
+    err = canvas:encode_Vbar(be, xpos, y0, y1); assert(not err, err)
     xpos = xpos + 3*mod
     -- draw the first 4 numbers
     local t_vbar = ean._8_codeset_vbar
     local cs14 = ean._codeset14_8
     for i = 1, 4 do
-        local n    = code[i]
+        local n = code[i]
         local vbar = t_vbar[cs14][n]
-        local _, e = vbar:append_ga(canvas, ys, y1, xpos); assert(not e, e)
+        err = canvas:encode_Vbar(vbar, xpos, ys, y1); assert(not err, err)
         xpos = xpos + s_width
     end
     -- draw the control symbol
     local ctrl = ean._8_ctrl_center_vbar
-    local _, err = ctrl:append_ga(canvas, y0, y1, xpos); assert(not err, err)
+    err = canvas:encode_Vbar(ctrl, xpos, y0, y1); assert(not err, err)
     xpos = xpos + 5*mod
     -- draw the product code
     local cs58 = ean._codeset58_8
     for i = 5, 8 do
         local n    = code[i]
         local vbar = t_vbar[cs58][n]
-        local _, e = vbar:append_ga(canvas, ys, y1, xpos); assert(not e, e)
+        err = canvas:encode_Vbar(vbar, xpos, ys, y1); assert(not err, err)
         xpos = xpos + s_width
     end
     -- draw the stop char
-    local _, err = be:append_ga(canvas, y0, y1, xpos)
+    err = canvas:encode_Vbar(be, xpos, y0, y1); assert(not err, err)
     -- bounding box set up
     local qzl = ean.quietzone_left_factor * mod
     local qzr = ean.quietzone_right_factor * mod
@@ -677,11 +680,11 @@ fn_append_ga_variant["8"] = function (ean, canvas, tx, ty, ax, ay)
         local mx    = ean.text_xgap_factor
         local x1_1 = x0 + ( 3 + mx)*mod
         local x1_2 = x0 + (32 - mx)*mod
-        local _, err = t_1:append_ga_xwidth(canvas, x1_1, x1_2, 1, y_bl)
+        err = canvas:encode_Text_xwidth(t_1, x1_1, x1_2, y_bl, 1)
         assert(not err, err)
         local x2_1 = x0 + (35+mx)*mod
         local x2_2 = x0 + (64-mx)*mod
-        local _, err = t_2:append_ga_xwidth(canvas, x2_1, x2_2, 1, y_bl)
+        err = canvas:encode_Text_xwidth(t_2, x2_1, x2_2, y_bl, 1)
         assert(not err, err)
     end
 end
@@ -700,9 +703,10 @@ fn_append_ga_variant["5"] = function (ean, canvas, tx, ty, ax, ay, h)
     local sep_w  = 2*mod
     local code   = ean.code5
     -- draw the start symbol
-    local err = canvas:start_bbox_group(); assert(not err, err)
+    local err
+    err = canvas:start_bbox_group(); assert(not err, err)
     local start = ean._5_start_vbar
-    local _, err = start:append_ga(canvas, y0, y1, xpos); assert(not err, err)
+    err = canvas:encode_Vbar(start, xpos, y0, y1); assert(not err, err)
     xpos = xpos + 4*mod
     local ck = checksum_5_2(code, 1, 5)
     local codeset = ean._codeset_5[ck]
@@ -712,10 +716,10 @@ fn_append_ga_variant["5"] = function (ean, canvas, tx, ty, ax, ay, h)
     for i, d in ipairs(code) do
         local cs = codeset[i] -- 1 or 2
         local vbar = t_vbar[cs][d]
-        local _, e = vbar:append_ga(canvas, y0, y1, xpos); assert(not e, e)
+        err = canvas:encode_Vbar(vbar, xpos, y0, y1); assert(not err, err)
         xpos = xpos + sym_w
         if i < 5 then
-            local _, e = sep:append_ga(canvas, y0, y1, xpos); assert(not e, e)
+            err = canvas:encode_Vbar(sep, xpos, y0, y1); assert(not err, err)
             xpos = xpos + sep_w
         end
     end
@@ -730,7 +734,7 @@ fn_append_ga_variant["5"] = function (ean, canvas, tx, ty, ax, ay, h)
         local y_bl = y1 + ean.text_ygap_factor * mod
         local x1_1 = x0 + 3*mod
         local x1_2 = x1 - 3*mod
-        local _, err = txt:append_ga_xwidth(canvas, x1_1, x1_2, 0, y_bl)
+        err = canvas:encode_Text_xwidth(txt, x1_1, x1_2, y_bl, 0)
         assert(not err, err)
     end
 end
@@ -748,9 +752,10 @@ fn_append_ga_variant["2"] = function (ean, canvas, tx, ty, ax, ay, h)
     local sym_w  = 7*mod
     local sep_w  = 2*mod
     -- draw the start symbol
-    local err = canvas:start_bbox_group(); assert(not err, err)
+    local err
+    err = canvas:start_bbox_group(); assert(not err, err)
     local start = ean._2_start_vbar
-    local _, err = start:append_ga(canvas, y0, y1, xpos); assert(not err, err)
+    err = canvas:encode_Vbar(start, xpos, y0, y1); assert(not err, err)
     xpos = xpos + 4*mod
     local code = ean.code2
     local r = checksum_5_2(code, 1, 2)
@@ -767,14 +772,14 @@ fn_append_ga_variant["2"] = function (ean, canvas, tx, ty, ax, ay, h)
     local t_vbar = ean._2_codeset_vbar
     local d1 = code[1] -- render the first digit
     local vb1 = t_vbar[s1][d1]
-    local _, e = vb1:append_ga(canvas, y0, y1, xpos); assert(not e, e)
+    err = canvas:encode_Vbar(vb1, xpos, y0, y1); assert(not err, err)
     xpos = xpos + sym_w
     local sep  = ean._2_sep_vbar
-    local _, e = sep:append_ga(canvas, y0, y1, xpos); assert(not e, e)
+    err = canvas:encode_Vbar(sep, xpos, y0, y1); assert(not err, err)
     xpos = xpos + sep_w
     local d2 = code[2] -- render the second digit
     local vb2 = t_vbar[s2][d2]
-    local _, e = vb2:append_ga(canvas, y0, y1, xpos); assert(not e, e)
+    err = canvas:encode_Vbar(vb2, xpos, y0, y1); assert(not err, err)
     -- bounding box set up
     local qzl = ean.quietzone_left_factor * mod
     local qzr = ean.quietzone_right_factor * mod
@@ -786,7 +791,7 @@ fn_append_ga_variant["2"] = function (ean, canvas, tx, ty, ax, ay, h)
         local y_bl = y1 + ean.text_ygap_factor * mod
         local x1_1 = x0 + 3*mod
         local x1_2 = x1 - 3*mod
-        local _, err = txt:append_ga_xwidth(canvas, x1_1, x1_2, 0, y_bl)
+        err = canvas:encode_Text_xwidth(txt, x1_1, x1_2, y_bl, 0)
         assert(not err, err)
     end
 end

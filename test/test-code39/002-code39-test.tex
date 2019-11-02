@@ -33,7 +33,7 @@ local c39, err = barracuda:get_barcode_class()
                           :enc_by_name("code39"); assert(c39, err)
 
 local s1, err = c39:from_string("ZKPQJ31"); assert(s1, err)
-local s2, err = c39:from_string("RTFG746", {text_pos="top"}); assert(s2, err)
+local s2, err = c39:from_string("RTFG746", {text_vpos="top"}); assert(s2, err)
 
 local canvas = barracuda:new_canvas()
 local _, err = s1:append_ga(canvas)
@@ -63,7 +63,7 @@ local _, err = s1:append_ga(canvas); assert(not err, err)
 
 local h = s1:get_param("height")
 c39:set_param("height", 2*h)
-c39:set_param {text_pos = "top"}
+c39:set_param {text_vpos = "top"}
 
 local _, err = s1:append_ga(canvas, 0.0, h + tex.sp "5pt")
 assert(not err, err)
@@ -90,7 +90,8 @@ local h, err = s1:get_param("height"); assert(h, err)
 local ok, err = s1:set_param{
     height = h/2,
     text_enabled = true,
-    text_pos = "bottom-spaced",
+    text_vpos = "bottom",
+    text_hpos = "spaced",
     text_star = true,
     ay = 1,
 }; assert(ok, err)

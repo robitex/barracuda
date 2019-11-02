@@ -49,8 +49,7 @@ Barracuda._drv_available_drv = { -- keys must be lowercase
     -- tikz = "lib-driver.driver-tikz",
 }
 
--- encoder builder loader
--- barcode_type: is the encoder type in lowercase chars
+-- encoder builder
 function Barracuda:get_barcode_class() --> Barcode class object
     return self._barcode
 end

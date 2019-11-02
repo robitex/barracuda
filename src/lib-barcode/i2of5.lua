@@ -350,7 +350,8 @@ function ITF:append_ga(canvas, tx, ty) --> canvas
     local y0 = ty or 0
     local y1 = y0 + self.height
     local start = self._vbar_start
-    local _, e1 = start:append_ga(canvas, y0, y1, xpos); assert(not e1, e1)
+    local err
+    err = canvas:encode_Vbar(start, xpos, y0, y1); assert(not err, err)
     xpos = xpos + 4 * xdim
     -- draw code symbol
     local digits = self._data
@@ -358,12 +359,12 @@ function ITF:append_ga(canvas, tx, ty) --> canvas
     for i = 1, #digits, 2 do
         local index = 10 * digits[i] + digits[i+1]
         local b = vbars[index]
-        local _, e = b:append_ga(canvas, y0, y1, xpos); assert(not e, e)
+        err = canvas:encode_Vbar(b, xpos, y0, y1); assert(not err, err)
         xpos = xpos + symb_len
     end
     -- draw the stop symbol
     local stop = self._vbar_stop
-    local _, e2 = stop:append_ga(canvas, y0, y1, xpos); assert(not e2, e2)
+    err = canvas:encode_Vbar(stop, xpos, y0, y1); assert(not err, err)
     -- bounding box setting
     local x1 = xpos + (2 + ratio)*xdim
     local qz = self.quietzone
@@ -371,15 +372,15 @@ function ITF:append_ga(canvas, tx, ty) --> canvas
     local b2x,  b2y = x1 + qz, y1
     if self.bearer_bars_enabled then
         local w = self.bearer_bars_thickness
-        local e0 = canvas:linethick(w); assert(not e0, e0)
+        err = canvas:encode_linethick(w); assert(not err, err)
         b1y, b2y = b1y - w, b2y + w
         local layout = self.bearer_bars_layout
         if layout == "hbar" then
-            local e1 = canvas:hline(b1x, b2x, y0 - w/2); assert(not e1, e1)
-            local e2 = canvas:hline(b1x, b2x, y1 + w/2); assert(not e2, e2)
+            err = canvas:encode_hline(b1x, b2x, y0 - w/2); assert(not err, err)
+            err = canvas:encode_hline(b1x, b2x, y1 + w/2); assert(not err, err)
         elseif layout == "frame" then
-            local e = canvas:rectangle(b1x - w/2, y0 - w/2, b2x + w/2, y1 + w/2)
-            assert(not e, e)
+            err = canvas:encode_rectangle(b1x - w/2, y0 - w/2, b2x + w/2, y1 + w/2)
+            assert(not err, err)
             b1x, b2x = b1x - w, b2x + w
         else
             error("[IntenalErr] bearer bars layout option is wrong")

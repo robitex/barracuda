@@ -192,26 +192,6 @@ function Vbar:from_two_tab(tbar, tspace, mod, MOD) --> <vbar object>
     return o
 end
 
--- Vbar methods
-
--- draw the lines in the xy plane towards a driver's canvas
--- tx is the absolute coordinate of the local origin
--- y0, y1 are the y-coordinates of the vertical bound
-function Vbar:append_ga(canvas, y1, y2, tx) --> canvas, err
-    assert(canvas, "'canvas' object must be provided")
-    assert(y1, "y1 must be provided")
-    assert(y2, "y2 must be provided")
-    tx = tx or 0
-    if y1 > y2 then -- re-ordering y-coordinates
-        y1, y2 = y2, y1
-    end
-    local yl = self._yline
-    local err = canvas:vbar(tx, y1, y2, yl)
-    return canvas, err
-end
-
-
-
 -- Text class
 
 libgeo.Text = {}
@@ -304,53 +284,6 @@ function Text:from_int(n) --> object
     }
     setmetatable(o, self)
     return o
-end
-
-function Text:append_ga(canvas, xpos, ypos, ax, ay) --> canvas, err
-    assert(type(canvas) == "table", "[ArgErr] 'canvas' object must be provided")
-    assert(type(xpos) == "number", "[ArgErr] 'xpos' number required")
-    assert(type(ypos) == "number", "[ArgErr] 'ypos' number required")
-    ax = ax or 0; assert(type(ax) == "number", "[ArgErr] 'ax' is not a number")
-    ay = ay or 0; assert(type(ay) == "number", "[ArgErr] 'ay' is not a number")
-    
-    local chars = self.codepoint
-    local err = canvas:text(xpos, ypos, ax, ay, chars)
-    return canvas, err
-end
-
--- glyph equally spaced along the baseline
-function Text:append_ga_xspaced(canvas, x1, xgap, ay, ypos) --> canvas, err
-    assert(type(canvas) == "table", "[ArgErr] 'canvas' object must be provided")
-    assert(type(x1) == "number", "[ArgErr] 'x1' number required")
-    assert(type(xgap) == "number", "[ArgErr] 'xgap' is not a number")
-    assert(type(ay) == "number", "[ArgErr] 'ay' is not a number")
-    assert(type(ypos) == "number", "[ArgErr] 'ypos' number required")
-    local chars = self.codepoint
-    local err
-    if xgap > 0 then
-        err = canvas:text_xspaced(x1, xgap, ay, ypos, chars)
-    elseif xgap < 0 then
-        local n = #chars
-        x1 = x1 + (n - 1) * xgap
-        xgap = -xgap
-        err = canvas:text_xspaced(x1, xgap, ay, ypos, chars)
-    else -- xgap == 0
-        error("xgap is zero")
-    end
-    return canvas, err
-end
-
--- text equally spaced but within [x1, x2] coordinate interval
-function Text:append_ga_xwidth(canvas, x1, x2, ay, ypos) --> canvas, err
-    assert(type(canvas) == "table", "[ArgErr] 'canvas' object must be provided")
-    assert(type(x1) == "number", "[ArgErr] 'x1' number required")
-    assert(type(x2) == "number", "[ArgErr] 'x2' is not a number")
-    assert(type(ay) == "number", "[ArgErr] 'ay' is not a number")
-    assert(type(ypos) == "number", "[ArgErr] 'ypos' number required")
-    if x1 > x2 then x1, x2 = x2, x1 end -- reorder coordinates
-    local chars = self.codepoint
-    local err = canvas:text_xwidth(x1, x2, ay, ypos, chars)
-    return canvas, err
 end
 
 return libgeo

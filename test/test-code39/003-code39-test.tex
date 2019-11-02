@@ -1,0 +1,54 @@
+% !TeX program = LuaTeX
+% Copyright (C) 2019 Roberto Giacomelli
+
+\newbox\mybox
+\nopagenumbers
+
+Test 3: the same Code 39 symbol drawing multiple time on the same canvas
+
+\directlua{
+local barracuda = require "barracuda"
+local c39, err = barracuda:get_barcode_class()
+                          :new_encoder("code39")
+assert(not err, err)
+local err
+local symbol
+symbol, err = c39:from_string("ABCDEF12QJ31+")
+assert(not err, err)
+
+local ok, err = c39:set_param("text_vpos", "top")
+assert(ok, err)
+
+local canvas = barracuda:new_canvas()
+symbol:append_ga(canvas)
+
+local ok, err = symbol:set_param("text_hpos", "center")
+assert(ok, err)
+symbol:append_ga(canvas, tex.sp "4.5cm")
+
+local ok, err = symbol:set_param("text_hpos", "right")
+assert(ok, err)
+symbol:append_ga(canvas, tex.sp "9.0cm")
+
+local ok, err = c39:set_param("text_vpos", "bottom")
+assert(ok, err)
+
+local ok, err = symbol:set_param("text_hpos", "left")
+symbol:append_ga(canvas, 0, tex.sp "-2.0cm")
+
+local ok, err = symbol:set_param("text_hpos", "center")
+assert(ok, err)
+symbol:append_ga(canvas, tex.sp "4.5cm", tex.sp "-2.0cm")
+
+local ok, err = symbol:set_param("text_hpos", "right")
+assert(ok, err)
+symbol:append_ga(canvas, tex.sp "9.0cm", tex.sp "-2.0cm")
+
+local drv, err = barracuda:load_driver("native")
+assert(not err, err)
+drv:ga_to_hbox(canvas, "mybox")
+}
+\box\mybox
+\bye
+
+
