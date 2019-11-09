@@ -124,7 +124,7 @@ function Vbar:from_int_revpair(ngen, mod, MOD, is_bar) --> <vbar object>
     if is_bar == nil then
         is_bar = true
     else
-        assert(type(is_bar) == "boolean", "Invalid argument for is_bar")
+        assert(type(is_bar) == "boolean", "Invalid argument for 'is_bar'")
     end
     local yl = {}
 	local x0 = 0.0
@@ -144,7 +144,7 @@ function Vbar:from_int_revpair(ngen, mod, MOD, is_bar) --> <vbar object>
         is_bar = not is_bar
         x0 = x0 + w
     end
-    assert(not is_bar, "[InternalErr] the last element in not a bar")
+    assert(not is_bar, "[InternalErr] the last element is not a bar")
     local o = {
         _yline = yl, -- [<xcenter>, <width>, ...] flat array
         _x_lim = x0, -- external x coordinate

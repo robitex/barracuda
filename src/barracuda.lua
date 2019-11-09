@@ -19,7 +19,7 @@
 -- Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 local Barracuda = {
-    _VERSION     = "barracuda v0.0.3",
+    _VERSION     = "barracuda v0.0.7",
     _NAME        = "Barracuda",
     _DESCRIPTION = "Library for barcode typesetting",
     _URL         = "https://github.com/robitex/barracuda",
@@ -29,10 +29,10 @@ local Barracuda = {
 -- basic rules
 -- fields that start with an undercore are private
 -- class name follows the snake case naming convention
--- the barracuda table is the only global object to access every package
--- functionality.
+-- the 'barracuda' table is the only global object to access every package
+-- libraries.
 
--- basic sub-module loading
+-- essential sub-module loading
 Barracuda._libgeo   = require "lib-geo.libgeo"      -- basic vestor object
 Barracuda._barcode  = require "lib-barcode.barcode" -- barcode abstract class
 Barracuda._gacanvas = require "lib-geo.gacanvas"    -- ga stream library

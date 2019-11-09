@@ -3,7 +3,7 @@
 -- Copyright (C) 2019 Roberto Giacomelli
 -- see LICENSE.txt file
 --
--- variant identifiers of EAN family:
+-- variant identifiers of the EAN family barcodes:
 -- "13"   EAN13
 -- "8"    EAN8
 -- "5"    EAN5 add-on
@@ -335,7 +335,6 @@ end
 
 -- utility function
 
-
 -- the checksum of EAN8 or EAN13 code
 -- 'data' is an array of digits
 local function checksum_8_13(data, stop_index)
@@ -437,119 +436,24 @@ function EAN:get_code() --> string
     return table.concat(code)
 end
 
+-- internal methods for Barcode costructors
 
--- costructors section
-
--- costructor: from an array of digits
---
-function EAN:from_array(array, opt) --> symbol, err
-    if type(array) ~= "table" then
-        return nil, "[ArgErr] array is not a table"
-    end
-    if opt ~= nil and type(opt) ~= "table" then
-         return nil, "[ArgErr] 'opt' is not a table"
-    end
-    local ma_len = self._main_len
-    local ao_len = self._addon_len
-    local symb_len = ma_len + (ao_len or 0)
-    if #array ~= symb_len then
-        return nil, "[Err] not a "..symb_len.."-digits long array"
-    end
-    for _, d in ipairs(array) do
-        if type(d) ~= "number" then
-            return nil, "[Err] array contains a not numeric element"
-        end
-        if d - math.floor(d) > 0 then
-            return nil, "[Err] array contains a not integer number"
-        end
-        if d < 0 or d > 9 then
-            return nil, "[Err] array contains a not single digit number"
-        end
+function EAN:_finalize() --> ok, err
+    local l1 = self._main_len
+    local l2 = self._addon_len
+    local ok_len = l1 + (l2 or 0)
+    local symb_len = self._code_len
+    if symb_len ~= ok_len then
+        return false, "[ArgErr] not a "..ok_len.."-digits long array"
     end
     if self._is_last_checksum then -- is the last digit ok?
-        local ck = checksum_8_13(array, ma_len - 1)
-        if ck ~= array[ma_len] then
-            return nil, "[Err] wrong checksum digit"
+        local data = self._code_data
+        local ck = checksum_8_13(data, l1 - 1)
+        if ck ~= data[l1] then
+            return false, "[Err] wrong checksum digit"
         end
     end
-    local o = {} -- create an EAN object
-    if ao_len ~= nil then -- an add_on symbol is present
-        local t1 = {}
-        for i = 1, ma_len do
-            t1[i] = array[i]
-        end
-        o["code"..tostring(ma_len)] = t1 -- i.e. o.code13 = {...}
-        local t2 = {}
-        for i = ma_len + 1, ma_len + ao_len do
-            t2[#t2 + 1] = array[i]
-        end
-        o["code"..tostring(ao_len)] = t2 -- i.e. o.code5 = {...}
-    else -- stand alone symbol
-        local t = {} -- clone array
-        for _, d in ipairs(array) do
-            t[#t + 1] = d
-        end
-        o["code"..tostring(ma_len)] = t -- i.e. o.code13 = {...}
-    end
-    setmetatable(o, self)
-    return o, nil
-end
-
--- constructor
-function EAN:from_int(n, opt) --> symbol, err
-    if type(n) ~= "number" then return nil, "[ArgErr] 'n' is not a number" end
-    if n < 0 then return nil, "[ArgErr] 'n' must be a positive integer" end
-    if n - math.floor(n) ~= 0 then
-        return nil, "[ArgErr] 'n' is not an integer"
-    end
-    if opt ~= nil and type(opt) ~= "table" then
-        return nil, "[ArgErr] 'opt' is not a table"
-    end
-    local arr = {}
-    local i = 0
-    while n > 0 do
-        local d = n % 10
-        i = i + 1
-        arr[i] = d
-        n = (n - d) / 10
-    end
-    for k = 1, i/2  do -- reverse the array
-        local d = arr[k]
-        local h = i - k + 1
-        arr[k] = arr[h]
-        arr[h] = d
-    end
-    return self:from_array(arr)
-end
-
--- costructor: from a string
---
-function EAN:from_string(s, opt) --> symbol, err
-    if type(s) ~= "string" then return nil, "[ArgErr] 's' is not a string" end
-    local s_len = #s
-    if s_len == 0 then return nil, "[ArgErr] 's' is an empty string" end
-    local b1_len = self._main_len
-    local b2_len = self._addon_len or 0
-    local b12 = b1_len + b2_len
-    if s_len < b12 then
-        return nil, "[ArgErr] 's' is a too short string"
-    end
-    if opt ~= nil and type(opt) ~= "table" then
-        return nil, "[ArgErr] 'opt' is not a table"
-    end
-    local symb = {}
-    for c = 1, b1_len do
-        local d = tonumber(s:sub(c, c))
-        if not d then return nil, "[ArgErr] 's' contains a not digit char" end
-        symb[c] = d
-    end
-    for c = b1_len + 1, b12 do
-        local i = s_len + c - b12
-        local d = tonumber(s:sub(i, i))
-        if not d then return nil, "[ArgErr] 's' contains a not digit char" end
-        symb[c] = d
-    end
-    return self:from_array(symb)
+    return true, nil
 end
 
 -- drawing functions
@@ -559,7 +463,7 @@ local fn_append_ga_variant = EAN._append_ga_variant
 
 -- draw EAN13 symbol
 fn_append_ga_variant["13"] = function (ean, canvas, tx, ty, ax, ay)
-    local code       = ean.code13
+    local code       = ean._code_data
     local mod        = ean.mod
     local bars_depth = mod * ean.bars_depth_factor
     local w, h       = 95*mod, ean.height + bars_depth
@@ -627,7 +531,7 @@ end
 
 -- draw EAN8 symbol
 fn_append_ga_variant["8"] = function (ean, canvas, tx, ty, ax, ay)
-    local code       = ean.code8
+    local code       = ean._code_data
     local mod        = ean.mod
     local bars_depth = mod * ean.bars_depth_factor
     local w, h       = 67*mod, ean.height + bars_depth
@@ -691,6 +595,14 @@ end
 
 -- draw EAN5 add-on symbol
 fn_append_ga_variant["5"] = function (ean, canvas, tx, ty, ax, ay, h)
+    local code = ean._code_data
+    local l1 = ean._main_len
+    local i1; if l1 == 5 then
+        i1 = 1
+    else
+        i1 = l1 + 1
+    end
+    local i2 = i1 + 4
     local mod    = ean.mod
     local w      = 47*mod
     h = h or ean.height
@@ -701,24 +613,26 @@ fn_append_ga_variant["5"] = function (ean, canvas, tx, ty, ax, ay, h)
     local xpos   = x0 -- current insertion x-coord
     local sym_w  = 7*mod
     local sep_w  = 2*mod
-    local code   = ean.code5
     -- draw the start symbol
     local err
     err = canvas:start_bbox_group(); assert(not err, err)
     local start = ean._5_start_vbar
     err = canvas:encode_Vbar(start, xpos, y0, y1); assert(not err, err)
     xpos = xpos + 4*mod
-    local ck = checksum_5_2(code, 1, 5)
+    local ck = checksum_5_2(code, i1, 5)
     local codeset = ean._codeset_5[ck]
     local sep    = ean._5_sep_vbar
     local t_vbar = ean._5_codeset_vbar
     -- draw the five digits
-    for i, d in ipairs(code) do
-        local cs = codeset[i] -- 1 or 2
+    local k = 0
+    for i = i1, i2 do
+        k = k + 1
+        local cs = codeset[k] -- 1 or 2
+        local d = code[i]
         local vbar = t_vbar[cs][d]
         err = canvas:encode_Vbar(vbar, xpos, y0, y1); assert(not err, err)
         xpos = xpos + sym_w
-        if i < 5 then
+        if k < 5 then
             err = canvas:encode_Vbar(sep, xpos, y0, y1); assert(not err, err)
             xpos = xpos + sep_w
         end
@@ -730,7 +644,7 @@ fn_append_ga_variant["5"] = function (ean, canvas, tx, ty, ax, ay, h)
     assert(not err, err)
     if ean.text_enabled then -- human readable text
         local Text = ean._libgeo.Text
-        local txt  = Text:from_digit_array(code)
+        local txt  = Text:from_digit_array(code, i1, i2)
         local y_bl = y1 + ean.text_ygap_factor * mod
         local x1_1 = x0 + 3*mod
         local x1_2 = x1 - 3*mod
@@ -741,24 +655,30 @@ end
 
 -- draw EAN2 symbol
 fn_append_ga_variant["2"] = function (ean, canvas, tx, ty, ax, ay, h)
-    local mod    = ean.mod
-    local w      = 20*mod
+    local code = ean._code_data
+    local l1 = ean._main_len
+    local i1; if l1 == 2 then
+        i1 = 1
+    else
+        i1 = l1 + 1
+    end
+    local mod = ean.mod
+    local w = 20*mod
     h = h or ean.height
-    local x0     = (tx or 0.0) - ax * w
-    local y0     = (ty or 0.0) - ay * h
-    local x1     = x0 + w
-    local y1     = y0 + h
-    local xpos   = x0 -- current insertion x-coord
-    local sym_w  = 7*mod
-    local sep_w  = 2*mod
+    local x0 = (tx or 0.0) - ax * w
+    local y0 = (ty or 0.0) - ay * h
+    local x1 = x0 + w
+    local y1 = y0 + h
+    local xpos = x0 -- current insertion x-coord
+    local sym_w = 7*mod
+    local sep_w = 2*mod
     -- draw the start symbol
     local err
     err = canvas:start_bbox_group(); assert(not err, err)
     local start = ean._2_start_vbar
     err = canvas:encode_Vbar(start, xpos, y0, y1); assert(not err, err)
     xpos = xpos + 4*mod
-    local code = ean.code2
-    local r = checksum_5_2(code, 1, 2)
+    local r = checksum_5_2(code, i1, 2)
     local s1, s2
     if r == 0 then     -- LL scheme
         s1, s2 = 1, 1
@@ -770,14 +690,14 @@ fn_append_ga_variant["2"] = function (ean, canvas, tx, ty, ax, ay, h)
         s1, s2 = 2, 2
     end
     local t_vbar = ean._2_codeset_vbar
-    local d1 = code[1] -- render the first digit
+    local d1 = code[i1] -- render the first digit
     local vb1 = t_vbar[s1][d1]
     err = canvas:encode_Vbar(vb1, xpos, y0, y1); assert(not err, err)
     xpos = xpos + sym_w
     local sep  = ean._2_sep_vbar
     err = canvas:encode_Vbar(sep, xpos, y0, y1); assert(not err, err)
     xpos = xpos + sep_w
-    local d2 = code[2] -- render the second digit
+    local d2 = code[i1 + 1] -- render the second digit
     local vb2 = t_vbar[s2][d2]
     err = canvas:encode_Vbar(vb2, xpos, y0, y1); assert(not err, err)
     -- bounding box set up
@@ -787,7 +707,7 @@ fn_append_ga_variant["2"] = function (ean, canvas, tx, ty, ax, ay, h)
     assert(not err, err)
     if ean.text_enabled then -- human readable text
         local Text  = ean._libgeo.Text
-        local txt = Text:from_digit_array(code)
+        local txt = Text:from_digit_array(code, i1, i1 + 1)
         local y_bl = y1 + ean.text_ygap_factor * mod
         local x1_1 = x0 + 3*mod
         local x1_2 = x1 - 3*mod

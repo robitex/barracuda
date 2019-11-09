@@ -245,6 +245,133 @@ function Barcode:enc_by_name(bc_type, name) --> <encoder object>, <err>
     end
 end
 
+-- base constructors common to all encoders
+-- for numeric only simbology
+function Barcode:_check_char(c) --> elem, err
+    if type(c) ~= "string" or #c ~= 1 then
+        return nil, "[InternalErr] invalid char"
+    end
+    local n = string.byte(c) - 48
+    if n < 0 or n > 9 then
+        return nil, "[ArgErr] found a not digit char"
+    end
+    return n, nil
+end
+
+function Barcode:_check_digit(n) --> elem, err
+    if type(n) ~= "number" then
+        return nil, "[InternalErr] not a number"
+    end
+    if n < 0 or n > 9 then
+        return nil, "[InternalErr] not a digit"
+    end
+    return n, nil
+end
+
+-- not empty string --> Barcode object
+function Barcode:from_string(symb, opt) --> object, err
+    assert(self._check_char, "[InternalErr] undefined _check_char() method")
+    if type(symb) ~= "string" then
+        return nil, "[ArgErr] 'symb' is not a string"
+    end
+    if #symb == 0 then
+        return nil, "[ArgErr] 'symb' is an empty string"
+    end
+    local chars = {}
+    local len = 0
+    for c in string.gmatch(symb, ".") do
+        local elem, err = self:_check_char(c)
+        if err then
+            return nil, err
+        else
+            chars[#chars+1] = elem
+            len = len + 1
+        end
+    end
+    -- build the barcode object
+    local o = {
+        _code_data = chars, -- array of chars
+        _code_len = len, -- symbol lenght
+    }
+    setmetatable(o, self)
+    if opt ~= nil then
+        if type(opt) ~= "table" then
+            return nil, "[ArgErr] 'opt' is not a table"
+        else
+            local ok, err = o:set_param(opt)
+            if not ok then
+                return nil, err
+            end
+        end
+    end
+    if o._finalize then
+        local ok, e = o:_finalize()
+        if not ok then return nil, e end
+    end
+    return o, nil
+end
+
+--> positive integer --> Barcode object
+function Barcode:from_uint(n, opt) --> object, err
+    assert(self._check_digit, "[InternalErr] undefined _check_digit() method")
+    if type(n) ~= "number" then return nil, "[ArgErr] 'n' is not a number" end
+    if n < 0 then return nil, "[ArgErr] 'n' must be a positive integer" end
+    if n - math.floor(n) ~= 0 then
+        return nil, "[ArgErr] 'n' is not an integer"
+    end
+    if opt ~= nil and type(opt) ~= "table" then
+        return nil, "[ArgErr] 'opt' is not a table"
+    end
+    local digits = {}
+    local i = 0
+    if n == 0 then
+        local elem, err = self:_check_digit(0)
+        if err then
+            return nil, err
+        end
+        digits[1] = elem
+        i = 1
+    else
+        while n > 0 do
+            local d = n % 10
+            i = i + 1
+            local elem, err = self:_check_digit(d)
+            if err then
+                return nil, err
+            end
+            digits[i] = elem
+            n = (n - d) / 10
+        end
+        for k = 1, i/2  do -- reverse the array
+            local d = digits[k]
+            local h = i - k + 1
+            digits[k] = digits[h]
+            digits[h] = d
+        end
+    end
+    -- build the barcode object
+    local o = {
+        _code_data = digits, -- array of digits
+        _code_len = i, -- symbol lenght
+    }
+    setmetatable(o, self)
+    if opt ~= nil then
+        if type(opt) ~= "table" then
+            return nil, "[ArgErr] 'opt' is not a table"
+        else
+            local ok, err = o:set_param(opt)
+            if not ok then
+                return nil, err
+            end
+        end
+    end
+    if o._finalize then
+        local ok, e = o:_finalize()
+        if not ok then return nil, e end
+    end
+    return o, nil
+end
+
 -- check a parameter set
 -- this method check also reserved parameter
 -- argments: {k=v, ...}, "default" | "current"

@@ -10,7 +10,6 @@ Task   x.1: ? visual debug                                            20__-__-__
 ?         :                                                           20__-__-__
 ?         : ? TiKZ driver                                             20__-__-__
 ?         : ? PGF driver                                              20__-__-__
-Task   x.1: ? SVG driver                                              20__-__-__
 Task   x.x: debug driver, ga code pretty printing                     20__-__-__
 
 ?         :                                                           20__-__-__
@@ -28,17 +27,20 @@ Task     9: implement eventually new ideas                            20__-__-__
 Task   x.5: a number parameter can be a string? unit measure...       20__-__-__
 
 
-
 SCHEDULED TASK:
-
-<Version 0.0.x> move costructors to the barcode abstract class        20__-__-__
-Task   x.3: recompile all the test files                              20__-__-__
-Task   x.2: new costructor method in the barcode superclass           20__-__-__
-Task   x.1: opt in the EAN constructor                                20__-__-__
+Task   x.1: ? SVG driver                                              20__-__-__
 
 COMPLETED TASK:
 
+<Version 0.0.8> move costructors to the barcode abstract class     🎉 2019-11-09
+Task   8.5: adopted new Barcode costructors in the EAN encoder      ☑ 2019-11-09
+Task   8.4: adopted new Barcode costructors in the ITF encoder      ☑ 2019-11-09
+Task   8.3: adopted new Barcode costructors in the Code128 encoder  ☑ 2019-11-09
+Task   8.2: adopted new Barcode costructors in the Code39 encoder   ☑ 2019-11-04
+Task   8.1: new costructor method in the barcode superclass         ☑ 2019-11-04
+
 <Version 0.0.7> code refactoring for ga-canvas                     🎉 2019-11-02
+Task   7.5: recompile all the test files                            ☑ 2019-11-02
 Task   7.4: new functions canvas:encode_<obj>()                     ☑ 2019-11-02
 Task   7.3: text position options for Code39 became two indipendent ☑ 2019-11-02
 Task   7.2: added a new code39 test file (and bugs fixed)           ☑ 2019-11-02

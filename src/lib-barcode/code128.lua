@@ -266,24 +266,32 @@ local function encode128(arr, codeset, switch) --> data, err :TODO:
     return res
 end
 
--- Code 128 costructors
+-- Code 128 internal functions used by Barcode costructors
 
--- costructor: from an array of chars
-function Code128:from_chars(arr, opt) --> symbol, err
-    if type(arr) ~= "table" then return nil, "[ArgErr] arr must be a table" end
-    if #arr == 0 then return nil, "[ArgErr] arr is an empty array" end
-    local chr = {}
-    for _, c in ipairs(arr) do
-        local b = string.byte(c)
-        if b > 127 then
-            local fmt = "The '%d' char is ASCII extented not yet implemented"
-            return nil, string.format(fmt, codepoint)
-        end
-        chr[#chr + 1] = b
+function Code128:_check_char(c) --> elem, err
+    if type(c) ~= "string" or #c ~= 1 then
+        return nil, "[InternalErr] invalid char"
     end
+    local b = string.byte(c)
+    if b > 127 then
+        local fmt = "[unimplemented] the '%d' is an ASCII extented char"
+        return nil, string.format(fmt, c)
+    end
+    return b, nil
+end
+
+function Code128:_check_digit(n) --> elem, err
+    if type(n) ~= "number" then
+        return nil, "[InternalErr] invalid digit"
+    end
+    return n + 48, nil
+end
+
+function Code128:_finalize() --> ok, err
+    local chr = assert(self._code_data, "[InternalErr] '_code_data' field is nil")
     local data, err = encode128(chr, self._codeset, self._switch)
-    if err then return nil, err end
-    -- load dynamically the geometric bar definition
+    if err then return false, err end
+    -- load dynamically required Vbar objects
     local vbar = self._vbar
     local oVbar = self._libgeo.Vbar
     for _, c in ipairs(data) do
@@ -293,34 +301,8 @@ function Code128:from_chars(arr, opt) --> symbol, err
             vbar[c] = oVbar:from_int(n, mod, true)
         end
     end
-    local symb = { -- build the Code128 object
-        code = arr, -- array of chars
-        data = data,-- array with encoded byte
-    }
-    setmetatable(symb, self)
-    if opt ~= nil then
-        if type(opt) ~= "table" then
-            return nil, "[ArgErr] opt is not a table"
-        else
-           local ok, err = symb:set_param(opt)
-           if not ok then
-               return nil, err
-           end
-        end
-    end
-    return symb
-end
-
--- costructor: from an ASCII string
--- string.utfvalues() is a LuaTeX only function
-function Code128:from_string(s, opt) --> symbol, err
-    if type(s) ~= "string" then return nil, "[ArgErr] not a string" end
-    if #s == 0 then return nil, "[ArgErr] Empty string" end
-    local symb = {}
-    for c in string.gmatch(s, ".") do
-        symb[#symb + 1] = c
-    end
-    return self:from_chars(symb, opt)
+    self._enc_data = data
+    return true, nil
 end
 
 -- Drawing into the provided channel the geometrical barcode data
@@ -329,7 +311,7 @@ end
 function Code128:append_ga(canvas, tx, ty) --> canvas
     local xdim, h = self.xdim, self.ydim
     local sw = 11*xdim -- the width of a symbol
-    local data = self.data
+    local data = self._enc_data
     local w = #data * sw + 2 * xdim -- total symbol width
     local ax, ay = self.ax, self.ay
     local x0 = (tx or 0) - ax * w

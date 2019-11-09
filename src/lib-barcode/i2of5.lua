@@ -191,11 +191,8 @@ pardef.bearer_bars_layout = { -- enumeration
 
 -- auxiliary functions
 
--- separate a non negative integer in its digits
-local function n_to_arr(n) --> digits lenght, {d_n-1, ..., d_1, d_0}
-    assert(type(n) == "number", "[InternalErr] non a number")
-    assert(n >= 0, "[InternalErr] unsupported negative number")
-    assert(n - math.floor(n) == 0, "[InternalErr] unsupported float number")
+-- separate a non negative integer in its digits {d_n-1, ..., d_1, d_0}
+local function n_to_arr(n) --> len, digits
     local digits = {}
     local slen
     if n == 0 then
@@ -288,60 +285,47 @@ function ITF:get_checkdigit(n, method)
     return checkdigit(t, last, method)
 end
 
--- constructors
--- return the symbol object or an error message
-function ITF:from_int(n, opt) --> symbol, err
-    if type(n) ~= "number" then return nil, "[ArgErr] 'n' is not a number" end
-    if n < 0 then return nil, "[ArgErr] found a negative number" end
-    if n - math.floor(n) ~= 0 then return nil, "[ArgErr] found a float number" end
-    if (opt ~= nil) and (type(opt) ~= "table") then
-        return nil, "[ArgErr] 'opt' is not a table"
-    end
+-- internal methods for constructors
 
-    local slen, digits = n_to_arr(n)
-    local o = {} -- derive an ITF barcode object
-    setmetatable(o, self)
-    o._data = digits
-    if opt ~= nil then
-       local ok, err = o:set_param(opt)
-       if not ok then
-           return nil, err
-       end
-    end
+function ITF:_finalize() --> ok, err
     -- check digit action
-    local policy = o.check_digit_policy
+    local policy = self.check_digit_policy
+    local slen = self._code_len
     local is_even = (slen % 2 == 0)
+    local digits = self._code_data
     if policy == "none" then
         if not is_even then
             rshift(digits) -- add a heading zero for padding
+            slen = slen + 1
         end
     elseif policy == "add" then
         if is_even then
-            rshift(digits)
+            rshift(digits) -- add a heading zero for padding
             slen = slen + 1
         end
-        local c = checkdigit(digits, slen, o.check_digit_method)
+        local c = checkdigit(digits, slen, self.check_digit_method)
         digits[#digits + 1] = c
     elseif policy == "verify" then
         if not is_even then
             rshift(digits)
             slen = slen + 1
         end
-        local c = checkdigit(digits, slen - 1, o.check_digit_method)
+        local c = checkdigit(digits, slen - 1, self.check_digit_method)
         if c ~= digits[slen] then
-            return nil, "[DataErr] wrong check digit"
+            return false, "[DataErr] wrong check digit"
         end
     else
-        return nil, "[InternalError] wrong enum value"
+        return false, "[InternalError] wrong enum value"
     end
-    return o, nil
+    self._code_len = slen
+    return true, nil
 end
 
 -- drawing function
 -- tx, ty is an optional translator vector
 function ITF:append_ga(canvas, tx, ty) --> canvas
     local err = canvas:start_bbox_group(); assert(not err, err)
-    -- draw start symbols
+    -- draw the start symbol
     local xdim = self.module
     local ratio = self.ratio
     local symb_len = 2 * xdim * (3 + 2*ratio)
@@ -353,8 +337,8 @@ function ITF:append_ga(canvas, tx, ty) --> canvas
     local err
     err = canvas:encode_Vbar(start, xpos, y0, y1); assert(not err, err)
     xpos = xpos + 4 * xdim
-    -- draw code symbol
-    local digits = self._data
+    -- draw the code symbol
+    local digits = self._code_data
     local vbars = self._vbar_data
     for i = 1, #digits, 2 do
         local index = 10 * digits[i] + digits[i+1]

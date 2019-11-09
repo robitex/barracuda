@@ -8,13 +8,13 @@
 
 Interleaved 2 of 5 encoder test.
 
-Test 1: one simple barcode with default parameter:
+Test 1: one simple barcode with default parameters:
 
 \directlua{
 local barcode = barracuda:get_barcode_class()
 
 local enc, err = barcode:new_encoder("i2of5"); assert(not err, err)
-local symbo, err = enc:from_int(54654681); assert(not err, err)
+local symbo, err = enc:from_uint(54654681); assert(not err, err)
 local canvas = barracuda:new_canvas(); symbo:append_ga(canvas)
 local drv, err = barracuda:load_driver("native"); assert(not err, err)
 
@@ -28,7 +28,7 @@ Test 2: one simple barcode with default parameter:
 \directlua{
 local barcode = barracuda:get_barcode_class()
 local enc, err = barcode:enc_by_name("i2of5"); assert(not err, err)
-local symbo, err = enc:from_int(1234567895); assert(not err, err)
+local symbo, err = enc:from_uint(1234567895); assert(not err, err)
 local canvas = barracuda:new_canvas(); symbo:append_ga(canvas)
 local drv, err = barracuda:load_driver("native"); assert(not err, err)
 
@@ -62,7 +62,7 @@ local code = {
 local barcode = barracuda:get_barcode_class()
 local enc, err = barcode:enc_by_name("i2of5"); assert(not err, err)
 for _, n in ipairs(code) do
-    local smbl, err = enc:from_int(n, {check_digit_policy="verify"})
+    local smbl, err = enc:from_uint(n, {check_digit_policy="verify"})
     assert(not err, err)
 end
 }
@@ -104,7 +104,7 @@ Test 3: one simple barcode with check digit automatically added:
 \directlua{
 local barcode = barracuda:get_barcode_class()
 local enc, err = barcode:enc_by_name("i2of5"); assert(not err, err)
-local symbo, err = enc:from_int(454473, {check_digit_policy="add"})
+local symbo, err = enc:from_uint(454473, {check_digit_policy="add"})
 assert(not err, err)
 local canvas = barracuda:new_canvas(); symbo:append_ga(canvas)
 local drv, err = barracuda:load_driver("native"); assert(not err, err)
@@ -119,7 +119,7 @@ Test 4: a second simple barcode with check digit automatically added:
 \directlua{
 local barcode = barracuda:get_barcode_class()
 local enc, err = barcode:enc_by_name("i2of5"); assert(not err, err)
-local symbo, err = enc:from_int(74223, {check_digit_policy="add"})
+local symbo, err = enc:from_uint(74223, {check_digit_policy="add"})
 assert(not err, err)
 local canvas = barracuda:new_canvas(); symbo:append_ga(canvas)
 local drv, err = barracuda:load_driver("native"); assert(not err, err)
@@ -134,7 +134,7 @@ Test 5: a symbol with native check digits:
 \directlua{
 local barcode = barracuda:get_barcode_class()
 local enc, err = barcode:enc_by_name("i2of5"); assert(not err, err)
-local symbo, err = enc:from_int(121891259, {check_digit_policy="verify"})
+local symbo, err = enc:from_uint(121891259, {check_digit_policy="verify"})
 assert(not err, err)
 local canvas = barracuda:new_canvas(); symbo:append_ga(canvas)
 local drv, err = barracuda:load_driver("native"); assert(not err, err)
@@ -150,7 +150,7 @@ Test 6: bearer bars please:
 \directlua{
 local barcode = barracuda:get_barcode_class()
 local enc, err = barcode:enc_by_name("i2of5"); assert(not err, err)
-local symbo, err = enc:from_int(747867239, {bearer_bars_enabled = true})
+local symbo, err = enc:from_uint(747867239, {bearer_bars_enabled = true})
 assert(not err, err)
 local canvas = barracuda:new_canvas(); symbo:append_ga(canvas)
 local drv, err = barracuda:load_driver("native"); assert(not err, err)
@@ -165,7 +165,22 @@ Test 7: bearer bars all around the symbol:
 \directlua{
 local barcode = barracuda:get_barcode_class()
 local enc, err = barcode:enc_by_name("i2of5"); assert(not err, err)
-local symbo, err = enc:from_int(986790868, {bearer_bars_enabled = true, bearer_bars_layout="frame"})
+local symbo, err = enc:from_uint(986790868, {bearer_bars_enabled = true, bearer_bars_layout="frame"})
+assert(not err, err)
+local canvas = barracuda:new_canvas(); symbo:append_ga(canvas)
+local drv, err = barracuda:load_driver("native"); assert(not err, err)
+
+drv:ga_to_hbox(canvas, "mybox")
+}
+\vrule A\vrule\box\mybox \vrule A\vrule
+
+
+Test 8: bearer bars all around the symbol (with string costructor):
+
+\directlua{
+local barcode = barracuda:get_barcode_class()
+local enc, err = barcode:enc_by_name("i2of5"); assert(not err, err)
+local symbo, err = enc:from_string("986790868", {bearer_bars_enabled = true, bearer_bars_layout="frame"})
 assert(not err, err)
 local canvas = barracuda:new_canvas(); symbo:append_ga(canvas)
 local drv, err = barracuda:load_driver("native"); assert(not err, err)

@@ -1,5 +1,5 @@
 % !TeX program = LuaTeX
-% Copyright (C) 2018 Roberto Giacomelli
+% Copyright (C) 2019 Roberto Giacomelli
 
 \newbox\mybox
 \nopagenumbers
@@ -9,7 +9,10 @@ Code 128 encoder test.
 Test 1: one simple barcode with default parameter:
 
 \directlua{
-local barracuda = require "barracuda"
+barracuda = require "barracuda"
+}
+
+\directlua{
 local barcode = barracuda:get_barcode_class()
 
 local c128, err = barcode:new_encoder("code128")
@@ -33,7 +36,6 @@ second one) takes the anchor parameters from the super class Barcode, while
 the second one takes anchors from itself:
 
 \directlua{
-local barracuda = require "barracuda"
 local barcode = barracuda:get_barcode_class()
 local ok, err = barcode:set_param{ax = 1, ay = 1} % super class set up
 assert(ok, err)
@@ -64,7 +66,6 @@ will take to super class Barcode, previously set to 1.0. So, the symbols will
 be aligned to the top:
 
 \directlua{
-local barracuda = require "barracuda"
 local c128, err = barracuda:get_barcode_class()
                            :enc_by_name "code128"; assert(c128, err)
 
@@ -86,7 +87,6 @@ Test 4: set up vertical anchor globally to 0.0, locally to the encoder to 0.5
 and locally to 1.0:
 
 \directlua{
-local barracuda = require "barracuda"
 local barcode = barracuda:get_barcode_class()
 % set ay globally to 0.0
 local ok, err = barcode:set_param("ay", 0); assert(ok, err)
@@ -108,6 +108,17 @@ local drv, err = barracuda:load_driver("native"); assert(drv, err)
 drv:ga_to_hbox(canvas, "mybox")
 }\box\mybox
 
+Test 5: uint() costructor:
+
+\directlua{
+local barcode = barracuda:get_barcode_class()
+local c128, err = barcode:enc_by_name("code128"); assert(c128, err)
+local s, e = c128:from_uint(1234567890); assert(s, e)
+local canvas = barracuda:new_canvas()
+local _, errc = s:append_ga(canvas); assert(not errc, errc)
+local drv, errd = barracuda:load_driver("native"); assert(drv, errd)
+drv:ga_to_hbox(canvas, "mybox")
+}\box\mybox
 
 
 

@@ -236,65 +236,50 @@ function Code39:config() --> ok, err
     return true, nil
 end
 
-function Code39:from_chars(symb, opt) --> symbol, err
-    if type(symb) ~= "table" then return nil, "[ArgErr] symb is not a table" end
-    if #symb == 0 then return nil, "[ArgErr] symb is an empty array" end
-    -- loading the Vbar definitions on the fly (dynamic loading)
-    local g_Vbar     = self._libgeo.Vbar
-    local vbar       = self._vbar
-    local symb_def   = self._symb_def
-    local mod, ratio = self.module, self.ratio
-    -- create every vbar object needed for the symbol if not already loaded
-    for _, s in ipairs(symb) do
-        local n = symb_def[s]
-        if not n then
-            local fmt = "[Err] '%s' is not a valid Code 39 symbol"
-            return nil, string.format(fmt, s)
-        end
-        if not vbar[s] then
-            vbar[s] = g_Vbar:from_int_revpair(n, mod, mod*ratio)
-        end
+-- overriding Barcode method
+function Code39:_check_char(c) --> elem, err
+    if type(c) ~= "string" or #c ~= 1 then
+        return nil, "[InternalErr] invalid char"
     end
-    -- build the Code39 symbol object
-    local obj = {
-        code = symb, -- array of chars
-    }
-    setmetatable(obj, self)
-    if opt ~= nil then
-        if type(opt) ~= "table" then
-            return nil, "[ArgErr] 'opt' is not a table"
-        else
-           local ok, err = obj:set_param(opt)
-           if not ok then
-               return nil, err
-           end
-        end
+    local symb_def = self._symb_def
+    local n = symb_def[c]
+    if not n then
+        local fmt = "[ArgErr] '%s' is not a valid Code 39 symbol"
+        return nil, string.format(fmt, c)
     end
-    return obj, nil
+    return c, nil
 end
 
--- symbol costructors
--- return the symbol object or an error message
-function Code39:from_string(s, opt) --> symbol, err
-    if type(s) ~= "string" then return nil, "[ArgErr] not a string" end
-    if #s == 0 then return nil, "[ArgErr] Empty string" end
-    local symb_def = self._symb_def
-    local chars = {}
-    for c in string.gmatch(s, ".") do
-        local n = symb_def[c]
-        if not n then
-            local fmt = "[Err] '%s' is not a valid Code 39 symbol"
-            return nil, string.format(fmt, c)
-        end
-        chars[#chars+1] = c
+-- overriding Barcode method
+function Code39:_check_digit(n) --> elem, err
+    if type(n) ~= "number" then
+        return nil, "[InteranlErr] not a number"
     end
-    return self:from_chars(chars, opt)
+    if n < 0 or n > 9 then
+        return nil, "[InternalErr] not a digit"
+    end
+    return tostring(n), nil
+end
+
+function Code39:_finalize() --> ok, err
+    local v = assert(self._code_data, "[InternalErr] '_code_data' field is nil")
+    local vbar = self._vbar
+    local g_Vbar = self._libgeo.Vbar
+    local mod, ratio = self.module, self.ratio
+    local symb_def = self._symb_def
+    for _, c in ipairs(v) do
+        if not vbar[c] then
+            local n1 = symb_def[c]
+            vbar[c] = g_Vbar:from_int_revpair(n1, mod, mod*ratio)
+        end
+    end
+    return true, nil
 end
 
 -- tx, ty is an optional translator vector
 function Code39:append_ga(canvas, tx, ty) --> canvas
-    local code       = self.code
-    local ns         = #code -- number of chars inside the symbol
+    local code       = self._code_data
+    local ns         = self._code_len -- number of chars inside the symbol
     local mod        = self.module
     local ratio      = self.ratio
     local interspace = self.interspace
