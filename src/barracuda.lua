@@ -18,62 +18,42 @@
 -- along with this program; if not, write to the Free Software
 -- Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-local Barracuda = {
-    _VERSION     = "barracuda v0.0.7",
-    _NAME        = "Barracuda",
-    _DESCRIPTION = "Library for barcode typesetting",
-    _URL         = "https://github.com/robitex/barracuda",
-    _LICENSE     = [[GNU GENERAL PUBLIC LICENSE, Version 2, June 1991]],
-}
-
--- basic rules
+-- Basic Conventions:
 -- fields that start with an undercore are private
 -- class name follows the snake case naming convention
 -- the 'barracuda' table is the only global object to access every package
--- libraries.
+-- modules.
+
+local Barracuda = {
+    _VERSION     = "barracuda v0.0.9",
+    _NAME        = "Barracuda",
+    _DESCRIPTION = "Lua library for barcode printing",
+    _URL         = "https://github.com/robitex/barracuda",
+    _LICENSE     = "GNU GENERAL PUBLIC LICENSE, Version 2, June 1991",
+}
 
 -- essential sub-module loading
 Barracuda._libgeo   = require "lib-geo.libgeo"      -- basic vestor object
-Barracuda._barcode  = require "lib-barcode.barcode" -- barcode abstract class
 Barracuda._gacanvas = require "lib-geo.gacanvas"    -- ga stream library
+Barracuda._barcode  = require "lib-barcode.barcode" -- barcode abstract class
 
 local Barcode = Barracuda._barcode
 Barcode._libgeo = Barracuda._libgeo
-
-Barracuda._drv_instance = {} -- driver instances repository
-
--- driver_type/submodule name
-Barracuda._drv_available_drv = { -- keys must be lowercase
-    native  = "lib-driver.driver-pdfliteral",
-    -- svg  = "lib-driver.driver-svg",
-    -- tikz = "lib-driver.driver-tikz",
-}
 
 -- encoder builder
 function Barracuda:get_barcode_class() --> Barcode class object
     return self._barcode
 end
 
---
-function Barracuda:load_driver(drv)
-    if type(drv) ~= "string" then
-        return nil, "[ArgErr] 'drv' is not a string"
+-- where we place output driver library
+function Barracuda:get_driver() --> Driver object, err
+    if not self._lib_driver then
+        self._lib_driver = require "lib-driver.driver"
     end
-    if not self._drv_available_drv[drv] then
-        return nil, "[Err] driver '"..drv.."' not found"
-    end
-    local tdrv = self._drv_instance
-    if tdrv[drv] then -- is the encoder builder already loaded?
-        return tdrv[drv], nil --> driver, no error
-    else -- loading driver
-        local mod = self._drv_available_drv[drv]
-        local driver = require(mod)
-        tdrv[drv] = driver
-        return driver, nil --> driver, no error
-    end
+    return self._lib_driver
 end
 
-function Barracuda:new_canvas()
+function Barracuda:new_canvas() --> driver
     local gacanvas = self._gacanvas
     return gacanvas:new()
 end

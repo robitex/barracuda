@@ -44,8 +44,7 @@ local ok, err = symbol:set_param("text_hpos", "right")
 assert(ok, err)
 symbol:append_ga(canvas, tex.sp "9.0cm", tex.sp "-2.0cm")
 
-local drv, err = barracuda:load_driver("native")
-assert(not err, err)
+local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }
 \box\mybox

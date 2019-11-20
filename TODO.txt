@@ -1,36 +1,29 @@
-TODO.txt
+Development Program Task Table
 
-Development program, alias what we must TODO:
-
-?         :                                                           20__-__-__
-?         : ?                                                         20__-__-__
-?         : ? example directory                                       20__-__-__
-Task   x.1: ? visual debug                                            20__-__-__
-
-?         :                                                           20__-__-__
-?         : ? TiKZ driver                                             20__-__-__
-?         : ? PGF driver                                              20__-__-__
+Task   x.x: TiKZ driver                                               20__-__-__
+Task   x.x: PGF driver                                                20__-__-__
 Task   x.x: debug driver, ga code pretty printing                     20__-__-__
-
-?         :                                                           20__-__-__
-?         :                                                           20__-__-__
-?         :                                                           20__-__-__
-?         :                                                           20__-__-__
-Task   x.1: ? make thing happen: font property for text               20__-__-__
-Task   x.2: ? develop ConTeXt mkiv user module                        20__-__-__
-Task   x.1: ? develop LaTeX user package                              20__-__-__
-Task   x.x: ?                                                         20__-__-__
-Task   x.x: ? coherent error management                               20__-__-__
-Task   x.x: ? proportional options                                    20__-__-__
-Task     x: time to get an usable manual even if minimal              20__-__-__
-Task     9: implement eventually new ideas                            20__-__-__
-Task   x.5: a number parameter can be a string? unit measure...       20__-__-__
-
+Task   x.x: make thing happen: font property for text                 20__-__-__
+Task   x.x: develop ConTeXt mkiv user module                          20__-__-__
+Task   x.x: develop LaTeX user package                                20__-__-__
+Task   x.x: coherent error management                                 20__-__-__
+Task   x.x: proportional options                                      20__-__-__
+Task   x.x: a number parameter can be a string? unit measure...       20__-__-__
 
 SCHEDULED TASK:
-Task   x.1: ? SVG driver                                              20__-__-__
+
+Task   9.x: time to get an usable manual even if minimal              20__-__-__
+Task   9.x: guard text in EAN simbology                             ☑ 2019-__-__
+Task   9.x: SVG support for text                                    ☑ 2019-__-__
 
 COMPLETED TASK:
+
+<Version 0.0.9> prelude to v0.1 version                               2019-__-__
+
+Task   9.3: SVG driver first run                                    ☑ 2019-11-20
+Task 9.2.2: implement ga opcode for line-join style                 ☑ 2019-11-10
+Task 9.2.1: implement ga opcode for line-cap style                  ☑ 2019-11-10
+Task   9.1: lib-parseopt as a separated project                     ☑ 2019-11-10
 
 <Version 0.0.8> move costructors to the barcode abstract class     🎉 2019-11-09
 Task   8.5: adopted new Barcode costructors in the EAN encoder      ☑ 2019-11-09

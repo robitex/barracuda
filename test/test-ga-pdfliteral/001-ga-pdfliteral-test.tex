@@ -28,31 +28,35 @@ the PDF output file.
 
 \newbox\mybox
 \directlua{
-    pdfnat = require [[lib-driver.driver-pdfliteral]] % global Lua variable
+    driver = require [[lib-driver.driver]] % global Lua variables
     pt = tex.sp [[1pt]] % 1pt = 65536sp
 }
 
-Let's start drawing an horizontal line 24pt long:
+Let's start drawing an horizontal line 100pt long:
 \directlua{
-   local ga = {33, 0*pt, 24*pt, 0*pt}
-   pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+   local ga = {_data = {33, 0*pt, 100*pt, 0*pt}}
+   driver:ga_to_hbox(ga, [[mybox]])
 }\box\mybox
 
-or two different parallel lines:
+or two different parallel lines 24pt long:
 \directlua{
-   local ga = {33, 0*pt, 24*pt, 0*pt, 33, 0*pt, 24*pt, 5*pt}
-   pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+   local ga = {_data = {33, 0*pt, 24*pt, 0*pt, 33, 0*pt, 24*pt, 5*pt}}
+   driver:ga_to_hbox(ga, [[mybox]])
 }\box\mybox
 
-and again two horizontal lines 5pt thick:
+and again two horizontal lines 10pt thick, touching a corner:
 \directlua{
-   local ga = {1, 5*pt, 33, -24*pt, 0*pt, -2.5*pt, 33, 0*pt, 24*pt, 2.5*pt}
-   pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+   local ga = {_data = {
+       1,   10*pt,
+       33, -24*pt,  0*pt, -5*pt,
+       33,   0*pt, 24*pt,  5*pt,
+   }}
+   driver:ga_to_hbox(ga, [[mybox]])
 }\box\mybox
 
-Several vertical lines with addition of horizontal limits:
+Several vertical lines with its horizontal limits:
 \directlua{
-   local ga = {
+   local ga = { _data = {
        34, -20*pt, 20*pt,  0*pt,
        34, -15*pt, 15*pt,  5*pt,
        34, -10*pt, 10*pt, 10*pt,
@@ -65,26 +69,25 @@ Several vertical lines with addition of horizontal limits:
         1, .05*pt,
        33,   0*pt, 40*pt, -20*pt,
        33,   0*pt, 40*pt,  20*pt,
-   }
-   pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+   }}
+   driver:ga_to_hbox(ga, [[mybox]])
 }\box\mybox
 
 Finally a little rectangle:
 \directlua{
-   local ga = {
+   local ga = {_data = {
        1, 5*pt,
       48, 0*pt, 0*pt, 15*pt, 10*pt,
-   }
-   pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+   }}
+   driver:ga_to_hbox(ga, [[mybox]])
 }\box\mybox
-
 
 \bigskip
 Test number 1: a vbar 2pt width, 20pt height:
 \directlua{
-    % vbar: 36 y1 y2 nbars x1 w1 x2 w2 ... xn wn
-    local ga = {36, 0, 20*pt, 1, 0.0, 2*pt}
-    pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+    % vbar: <36> y1 y2 <nbars> x1 w1 x2 w2 ... xn wn
+    local ga = {_data = {36, 0, 20*pt, 1, 0.0, 2*pt}}
+    driver:ga_to_hbox(ga, [[mybox]])
 }\box\mybox
 
 \bigskip
@@ -95,7 +98,7 @@ Test number 2: ten vbars in a row equally spaced by 10pt:
         ga[i*2 + 5] = 5*pt + i*20*pt
         ga[i*2 + 6] = 10*pt
     end
-    pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+    driver:ga_to_hbox({_data = ga}, [[mybox]])
 }\vrule\box\mybox\vrule
 
 \bigskip
@@ -114,10 +117,11 @@ Test number 3: two series of vbars 10pt and 5pt large:
         ga[i*2 + 29] = 15*pt + i*20*pt
         ga[i*2 + 30] = 5*pt
     end
-    pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+    driver:ga_to_hbox({_data = ga}, [[mybox]])
 }\vrule\box\mybox\vrule
 
-Test number 4: a bunch of thin vertical bars:
+\bigskip
+Test number 4: a bunch of thin vertical bars (25):
 \directlua{
     local ga = {}
     ga[1] = 36    % vbar opcode
@@ -128,9 +132,10 @@ Test number 4: a bunch of thin vertical bars:
         ga[i*2 + 5] = 1*pt + i*4*pt
         ga[i*2 + 6] = 2*pt
     end
-    pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
-}\vrule\box\mybox\vrule
+    driver:ga_to_hbox({_data = ga}, [[mybox]])
+}\vrule A\box\mybox A\vrule
 
+\bigskip
 Test number 5: two rows of a bunch of thin bars:
 \directlua{
     local ga = {}
@@ -150,10 +155,11 @@ Test number 5: two rows of a bunch of thin bars:
         ga[i*2 + 59] = 3*pt + i*4*pt
         ga[i*2 + 60] = 2*pt
     end
-    pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+    driver:ga_to_hbox({_data = ga}, [[mybox]])
 }\vrule\box\mybox\vrule
 
-Test number 6: staircase of bars (manual definition of data):
+\bigskip
+Test number 6: staircase of Vbars (manually data definition):
 \directlua{
     local ga = {
         36, % vbar opcode
@@ -175,10 +181,10 @@ Test number 6: staircase of bars (manual definition of data):
      25*pt, % x
      10*pt, % w
     }
-    pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+    driver:ga_to_hbox({_data = ga}, [[mybox]])
 }\vrule\box\mybox\vrule
 
-
+\bigskip
 Test number 7: vbars with spaced text, in three different rows:
 \directlua{
     local ga = {}
@@ -213,10 +219,11 @@ Test number 7: vbars with spaced text, in three different rows:
     ga[52] = 71 % G
     ga[53] = 72 % H
     ga[54] = 0
-    pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+    driver:ga_to_hbox({_data = ga}, [[mybox]])
 }\vrule\box\mybox\vrule
 
-Test number 8: spaced text, check correct vertical alignment:
+\bigskip
+Test number 8: spaced text (checking the correct vertical alignment):
 \directlua{
     local ga = {}
     ga[1] =    36 % vbar opcode
@@ -264,9 +271,10 @@ Test number 8: spaced text, check correct vertical alignment:
     ga[66] = 55 % 7
     ga[67] = 56 % 8
     ga[68] = 0
-    pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+    driver:ga_to_hbox({_data = ga}, [[mybox]])
 }\vrule\box\mybox\vrule
 
+\bigskip
 Test number 9: spaced text, check correct vertical alignment:
 \directlua{
     local ga = {}
@@ -315,9 +323,10 @@ Test number 9: spaced text, check correct vertical alignment:
     ga[66] = 55 % 7
     ga[67] = 56 % 8
     ga[68] = 0
-    pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+    driver:ga_to_hbox({_data = ga}, [[mybox]])
 }\vrule\box\mybox\vrule
 
+\bigskip
 Test number 10: two centered texts aligned to the baseline:
 \directlua{
     local ga = {}
@@ -347,38 +356,42 @@ Test number 10: two centered texts aligned to the baseline:
     ga[23] =  56 % 8
     ga[24] =  57 % 9
     ga[25] =   0
-    pdfnat:ga_to_hbox({_data = ga}, [[mybox]])
+    driver:ga_to_hbox({_data = ga}, [[mybox]])
 }\vrule\box\mybox\vrule
 
-So far, we have manually build data for a ga stream. This time we are going to
+\bigskip
+So far, we have manually build data for ga stream. Next we are going to
 use the ga-canvas library.
 
-
 \bigskip
-All the previous tests are rebuild with the ga-canvas library.
+In fact, all the previous tests are rebuild with the ga-canvas library.
 
 Test 1: a vbar 2pt width, 20pt height:
 \directlua{
     gacanvas = require "lib-geo.gacanvas"
     local ga = gacanvas:new()
-    local err = ga:vbar(0.0, 0.0, 20*pt, {0.0, 2*pt}) % x, w
+    local vbar = {_yline = {0.0, 2*pt}}
+    local err = ga:encode_Vbar(vbar, 0.0, 0.0, 20*pt) % x, w
     assert(not err, err)
-    pdfnat:ga_to_hbox(ga, [[mybox]])
+    driver:ga_to_hbox(ga, [[mybox]])
 }\box\mybox
 
+\bigskip
 Test 2: ten vbars equally spaced by 10pt:
 \directlua{
     local ga = gacanvas:new()
-    local bars = {}
+    local data = {}
     for i = 0, 9 do
-        bars[i*2 + 1] =  5*pt + i*20*pt % x
-        bars[i*2 + 2] = 10*pt           % w
+        data[i*2 + 1] =  5*pt + i*20*pt % x
+        data[i*2 + 2] = 10*pt           % w
     end
-    local err = ga:vbar(0.0, 0.0, 10*pt, bars)
+    local bars = {_yline = data}
+    local err = ga:encode_Vbar(bars, 0.0, 0.0, 10*pt)
     assert(not err, err)
-    pdfnat:ga_to_hbox(ga, [[mybox]])
+    driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
+\bigskip
 Test 3: two series of vbars 10pt and 5pt large:
 \directlua{
     local b1 = {}
@@ -392,13 +405,14 @@ Test 3: two series of vbars 10pt and 5pt large:
         b2[i*2 + 2] = 5*pt
     end
     local ga = gacanvas:new()
-    local err = ga:vbar(0.0, 0.0, 10*pt, b1)
+    local err = ga:encode_Vbar({_yline=b1}, 0.0, 0.0, 10*pt)
     assert(not err, err)
-    err = ga:vbar(10.0*pt, 2.5*pt, 7.5*pt, b2)
+    err = ga:encode_Vbar({_yline=b2}, 10.0*pt, 2.5*pt, 7.5*pt)
     assert(not err, err)
-    pdfnat:ga_to_hbox(ga, [[mybox]])
+    driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
+\bigskip
 Test 4: a bunch of thin bars:
 \directlua{
     local b = {}
@@ -407,38 +421,42 @@ Test 4: a bunch of thin bars:
         b[i*2 + 2] = 2*pt
     end
     local ga = gacanvas:new()
-    local err = ga:vbar(0.0, 5*pt, 25*pt, b)
+    local err = ga:encode_Vbar({_yline=b}, 0.0, 5*pt, 25*pt)
     assert(not err, err)
-    pdfnat:ga_to_hbox(ga, [[mybox]])
+    driver:ga_to_hbox(ga, [[mybox]])
 }\vrule{ }\box\mybox{ }\vrule
 
-Test 5: two floor of a bunch of thin bars:
+\bigskip
+Test 5: two levels of a bunch of thin bars:
 \directlua{
     local b = {}
     for i = 0, 24 do
         b[i*2 + 1] = i*4*pt
         b[i*2 + 2] = 2*pt
     end
+    local b = {_yline=b}
     local ga = gacanvas:new()
-    local err = ga:vbar(0.0, 5*pt, 25*pt, b)
+    local err = ga:encode_Vbar(b, 0.0, 5*pt, 25*pt)
     assert(not err, err)
-    err = ga:vbar(2*pt, 25*pt, 45*pt, b)
-    pdfnat:ga_to_hbox(ga, [[mybox]])
+    err = ga:encode_Vbar(b, 2*pt, 25*pt, 45*pt, b)
+    driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
+\bigskip
 Test number 6: staircase of bars (manual insertion of data):
 \directlua{
-    local b = {0.0, 10*pt}
+    local b = {_yline={0.0, 10*pt}}
     local ga = gacanvas:new()
-    local err = ga:vbar(0.0, 0.0, 20*pt, b)
+    local err = ga:encode_Vbar(b, 0.0, 0.0, 20*pt)
     assert(not err, err)
-    err = ga:vbar(10*pt, 20*pt, 40*pt, b)
+    err = ga:encode_Vbar(b, 10*pt, 20*pt, 40*pt)
     assert(not err, err)
-    err = ga:vbar(20*pt, 40*pt, 60*pt, b)
+    err = ga:encode_Vbar(b, 20*pt, 40*pt, 60*pt)
     assert(not err, err)
-    pdfnat:ga_to_hbox(ga, [[mybox]])
+    driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
+\bigskip
 Test number 7: vbars with spaced text, all in three rows:
 \directlua{
     local b = {}
@@ -446,12 +464,13 @@ Test number 7: vbars with spaced text, all in three rows:
         b[i*2+1] = i*10*pt
         b[i*2+2] = 5*pt
     end
+    local vb = {_yline=b}
     local ga = gacanvas:new()
-    local err = ga:vbar(0.0, 0.0, 20*pt, b)
+    local err = ga:encode_Vbar(vb, 0.0, 0.0, 20*pt)
     assert(not err, err)
-    local err = ga:vbar(0.0, 30*pt, 50*pt, b)
+    local err = ga:encode_Vbar(vb, 0.0, 30*pt, 50*pt)
     assert(not err, err)
-    local c = {
+    local txt = {codepoint = {
         65, % A
         66, % B
         67, % C
@@ -460,12 +479,13 @@ Test number 7: vbars with spaced text, all in three rows:
         70, % F
         71, % G
         72, % H
-    }
-    err = ga:text_xspaced(0.0, 10*pt, 0.5, 25*pt, c)
+    }}
+    err = ga:encode_Text_xspaced(txt, 0.0, 10*pt, 25*pt, 0.5)
     assert(not err, err)
-    pdfnat:ga_to_hbox(ga, [[mybox]])
+    driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
+\bigskip
 Test 8: spaced text, check correct vertical alignment:
 \directlua{
     local b = {}
@@ -473,12 +493,13 @@ Test 8: spaced text, check correct vertical alignment:
         b[i*2+1] = i*10*pt
         b[i*2+2] = 2*pt
     end
+    b = {_yline=b}
     local ga = gacanvas:new()
-    local err = ga:vbar(0.0, 0.0, 20*pt, b)
+    local err = ga:encode_Vbar(b, 0.0, 0.0, 20*pt)
     assert(not err, err)
-    local err = ga:vbar(0.0, 40*pt, 60*pt, b)
+    local err = ga:encode_Vbar(b, 0.0, 40*pt, 60*pt)
     assert(not err, err)
-    local c = {
+    local c = { codepoint = {
         65, % A
         66, % B
         67, % C
@@ -487,10 +508,10 @@ Test 8: spaced text, check correct vertical alignment:
         70, % F
         71, % G
         72, % H
-    }
-    err = ga:text_xspaced(0.0, 10*pt, 0.0, 30*pt, c)
+    }}
+    err = ga:encode_Text_xspaced(c, 0.0, 10*pt, 30*pt, 0.0)
     assert(not err, err)
-    local n = {
+    local n = { codepoint = {
         49, % 1
         50, % 2
         51, % 3
@@ -499,12 +520,13 @@ Test 8: spaced text, check correct vertical alignment:
         54, % 6
         55, % 7
         56, % 8
-    }
-    err = ga:text_xspaced(0.0, 10*pt, 1.0, 30*pt, n)
+    }}
+    err = ga:encode_Text_xspaced(n, 0.0, 10*pt, 30*pt, 1.0)
     assert(not err, err)
-    pdfnat:ga_to_hbox(ga, [[mybox]])
+    driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
+\bigskip
 Test number 9: spaced text, check correct vertical alignment:
 \directlua{
     local b = {}
@@ -512,12 +534,13 @@ Test number 9: spaced text, check correct vertical alignment:
         b[i*2+1] = i*10*pt
         b[i*2+2] = 8*pt
     end
+    b = {_yline = b}
     local ga = gacanvas:new()
-    local err = ga:vbar(0.0, 0.0, 20*pt, b)
+    local err = ga:encode_Vbar(b, 0.0, 0.0, 20*pt)
     assert(not err, err)
-    local err = ga:vbar(0.0, 40*pt, 60*pt, b)
+    local err = ga:encode_Vbar(b, 0.0, 40*pt, 60*pt)
     assert(not err, err)
-    local c = {
+    local c = { codepoint = {
         65, % A
         66, % B
         67, % C
@@ -526,10 +549,10 @@ Test number 9: spaced text, check correct vertical alignment:
         70, % F
         71, % G
         72, % H
-    }
-    err = ga:text_xspaced(0.0, 10*pt, 0.0, 20*pt, c)
+    }}
+    err = ga:encode_Text_xspaced(c, 0.0, 10*pt, 20*pt, 0.0)
     assert(not err, err)
-    local n = {
+    local n = { codepoint = {
         49, % 1
         50, % 2
         51, % 3
@@ -538,15 +561,16 @@ Test number 9: spaced text, check correct vertical alignment:
         54, % 6
         55, % 7
         56, % 8
-    }
-    err = ga:text_xspaced(0.0, 10*pt, 1.0, 40*pt, n)
+    }}
+    err = ga:encode_Text_xspaced(n, 0.0, 10*pt, 40*pt, 1.0)
     assert(not err, err)
-    pdfnat:ga_to_hbox(ga, [[mybox]])
-}\vrule\box\mybox\vrule
+    driver:ga_to_hbox(ga, [[mybox]])
+}\vrule{ }\box\mybox{ }\vrule
 
+\bigskip
 Test number 10: two centered texts and baseline aligned:
 \directlua{
-    local n = {
+    local n = { codepoint = {
         48, % 0
         49, % 1
         50, % 2
@@ -557,23 +581,24 @@ Test number 10: two centered texts and baseline aligned:
         55, % 7
         56, % 8
         57, % 9
-    }
+    }}
     local ga = gacanvas:new()
-    local err = ga:text(0, 0, 0.5, 0, n)
+    local err = ga:encode_Text(n, 0, 0, 0.5, 0)
     assert(not err, err)
-    local a = {
+    local a = { codepoint = {
         65, % A
         string.byte("Q"), % Q
         67, % C
-    }
-    err = ga:text(0, 0, 0.5, 1, a)
+    }}
+    err = ga:encode_Text(a, 0, 0, 0.5, 1)
     assert(not err, err)
-    pdfnat:ga_to_hbox(ga, [[mybox]])
+    driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
-Test number 11: two centered texts and baseline aligned:
+\bigskip
+Test number 11: two centered texts aligned:
 \directlua{
-    local n = {
+    local n = { codepoint = {
         48, % 0
         49, % 1
         50, % 2
@@ -584,25 +609,25 @@ Test number 11: two centered texts and baseline aligned:
         55, % 7
         56, % 8
         57, % 9
-    }
+    }}
     local ga = gacanvas:new()
-    local err = ga:text(0, 0, 0.5, 1, n)
+    local err = ga:encode_Text(n, 0, 0, 0.5, 1)
     assert(not err, err)
-    local a = {
+    local a = { codepoint = {
         65, % A
         string.byte("Q"), % Q
         67, % C
-    }
-    err = ga:text(0, 0, 0.5, 0, a)
+    }}
+    err = ga:encode_Text(a, 0, 0, 0.5, 0)
     assert(not err, err)
-    pdfnat:ga_to_hbox(ga, [[mybox]])
+    driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
 \bigskip
 Test number 12: text\_xwidth opcode:
 
 \directlua{
-    local n = {
+    local n = { codepoint = {
         48, % 0
         49, % 1
         50, % 2
@@ -613,11 +638,11 @@ Test number 12: text\_xwidth opcode:
         55, % 7
         56, % 8
         57, % 9
-    }
+    }}
     local ga = gacanvas:new()
-    local err = ga:text_xwidth(0, tex.sp "5cm", 0, 0, n)
+    local err = ga:encode_Text_xwidth(n, 0, tex.sp "5cm", 0, 0)
     assert(not err, err)
-    pdfnat:ga_to_hbox(ga, [[mybox]])
+    driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
 \vrule\hbox to 5cm{0 \hfill9}\vrule
@@ -627,7 +652,7 @@ Test number 13: text\_xwidth with different size:
 \smallskip
 
 \directlua{
-    local n = {
+    local n = {codepoint = {
         48, % 0
         49, % 1
         50, % 2
@@ -638,27 +663,22 @@ Test number 13: text\_xwidth with different size:
         55, % 7
         56, % 8
         57, % 9
-    }
+    }}
     local ga = gacanvas:new()
-    local err = ga:text_xwidth(
-        tex.sp "0mm", tex.sp "50mm", 0, 0, n
-    ); assert(not err, err)
-    local err = ga:text_xwidth(
-        tex.sp "5mm", tex.sp "45mm", 0, tex.sp "3mm", n
-    ); assert(not err, err)
-    local err = ga:text_xwidth(
-        tex.sp "10mm", tex.sp "40mm", 0, tex.sp "6mm", n
-    ); assert(not err, err)
-    local err = ga:text_xwidth(
-        tex.sp "15mm", tex.sp "35mm", 0, tex.sp "9mm", n
-    ); assert(not err, err)
-    local err = ga:text_xwidth(
-        tex.sp "20mm", tex.sp "30mm", 0, tex.sp "12mm", n
-    ); assert(not err, err)
-    local err = ga:text_xwidth(
-        tex.sp "24mm", tex.sp "26mm", 0, tex.sp "15mm", n
-    ); assert(not err, err)
-    pdfnat:ga_to_hbox(ga, [[mybox]])
+    %                                (txt, x1, x2, ypos, ay) --> err
+    local err = ga:encode_Text_xwidth(n, tex.sp "0mm", tex.sp "50mm", 0, 0) 
+    assert(not err, err)
+    local err = ga:encode_Text_xwidth(n, tex.sp "5mm", tex.sp "45mm", tex.sp "3mm", 0)
+    assert(not err, err)
+    local err = ga:encode_Text_xwidth(n, tex.sp "10mm", tex.sp "40mm", tex.sp "6mm", 0)
+    assert(not err, err)
+    local err = ga:encode_Text_xwidth(n, tex.sp "15mm", tex.sp "35mm", tex.sp "9mm", 0)
+    assert(not err, err)
+    local err = ga:encode_Text_xwidth(n, tex.sp "20mm", tex.sp "30mm", tex.sp "12mm", 0)
+    assert(not err, err)
+    local err = ga:encode_Text_xwidth(n, tex.sp "24mm", tex.sp "26mm", tex.sp "15mm", 0)
+    assert(not err, err)
+    driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
 \bigskip
@@ -671,49 +691,50 @@ Test number 14: place bars and text as text\_xwidth:
         b[i*2 + 1] = i*12*pt
         b[i*2 + 2] = 0.4*pt
     end
-    local n = { 48, 49, 50, 51, 52, 53, 54, 55, 56, 57,}
+    b = {_yline = b}
+    local n = {codepoint = { 48, 49, 50, 51, 52, 53, 54, 55, 56, 57,}}
     local ga = gacanvas:new()
-    %                    x0,    y1,    y2, bars
-    local err = ga:vbar(0.0,  0*pt, 25*pt, b)
-    local err = ga:vbar(0.0, 32*pt, 42*pt, b)
+    %                         (vbar, x0, y1, y2) --> err
+    local err = ga:encode_Vbar(b, 0.0,  0*pt, 25*pt)
+    local err = ga:encode_Vbar(b, 0.0, 32*pt, 42*pt)
     assert(not err, err)
-    %                            x1,    x2, ay,  ypos, chars
-    local err = ga:text_xwidth(0*pt, 108*pt, 0, 25*pt, n)
+    %                            (txt, x1, x2, ypos, ay) --> err
+    local err = ga:encode_Text_xwidth(n, 0*pt, 108*pt, 25*pt, 0)
     assert(not err, err)
-    pdfnat:ga_to_hbox(ga, [[mybox]])
+    driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
 \smallskip
-
 \directlua{
     local b = {}
     for i = 0, 8 do
         b[i*2 + 1] = i*12*pt
         b[i*2 + 2] = 0.2*pt
     end
+    b = {_yline = b}
     local n = { 48, 49, 50, 51, string.byte([[x]]), 53, 54, 55, 56,}
+    n = {codepoint = n}
     local ga = gacanvas:new()
     %                    x0,    y1,    y2, bars
-    local err = ga:vbar(0.0,  0*pt, 25*pt, b)
-    local err = ga:vbar(0.0, 32*pt, 42*pt, b)
+    local err = ga:encode_Vbar(b, 0.0,  0*pt, 25*pt)
+    local err = ga:encode_Vbar(b, 0.0, 32*pt, 42*pt)
     assert(not err, err)
-    %                            x1,    x2, ay,  ypos, chars
-    local err = ga:text_xwidth(0*pt, 96*pt, 0, 25*pt, n)
+    %                (txt, x1, x2, ypos, ay) --> err
+    local err = ga:encode_Text_xwidth(n, 0*pt, 96*pt, 25*pt, 0)
     assert(not err, err)
-    pdfnat:ga_to_hbox(ga, [[mybox]])
+    driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
 \bigskip
-Test number 15: place text\_xwidth when text is two chars:
+Test number 15: place text\_xwidth when text is only two chars long:
 
 \directlua{
-    local n = { 48, 56,} % 0 and 8
+    local n = {codepoint = { 48, 56,}} % 0 and 8
     local ga = gacanvas:new()
-    %                            x1,    x2, ay,  ypos, chars
-    local err = ga:text_xwidth(0*pt, 32*pt, 0, 25*pt, n)
+    %                           (txt, x1, x2, ypos, ay) --> err
+    local err = ga:encode_Text_xwidth(n, 0*pt, 32*pt, 25*pt, 0)
     assert(not err, err)
-    pdfnat:ga_to_hbox(ga, [[mybox]])
+    driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
-
 
 \bye

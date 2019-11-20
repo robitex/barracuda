@@ -4,7 +4,7 @@
 \newbox\mybox
 \nopagenumbers
 
-Test 4: uint costructor
+Test 4: check uint costructor:
 
 \directlua{
 barracuda = require "barracuda"
@@ -19,26 +19,24 @@ assert(not err, err)
 local canvas = barracuda:new_canvas()
 symbol:append_ga(canvas)
 
-local drv, err = barracuda:load_driver("native")
-assert(not err, err)
+local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }
 \box\mybox
 
 \directlua{
 local c39, err = barracuda:get_barcode_class()
-                          :enc_by_name("code39"); assert(c39, err)
-assert(not err, err)
-local err
+                          :enc_by_name("code39")
+assert(c39, err)
+local e
 local symbol
-symbol, err = c39:from_uint(0123456789, {text_hpos="spaced",text_star=true})
-assert(not err, err)
+symbol, e = c39:from_uint(0123456789, {text_hpos="spaced",text_star=true})
+assert(not e, e)
 
 local canvas = barracuda:new_canvas()
 symbol:append_ga(canvas)
 
-local drv, err = barracuda:load_driver("native")
-assert(not err, err)
+local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }
 \box\mybox

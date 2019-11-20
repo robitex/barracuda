@@ -24,9 +24,7 @@ assert(not err, err)
 local canvas = barracuda:new_canvas()
 symbo:append_ga(canvas)
 
-local drv, err = barracuda:load_driver("native")
-assert(not err, err)
-
+local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }
 \vrule A\vrule\box\mybox \vrule A\vrule
@@ -56,8 +54,7 @@ local canvas = barracuda:new_canvas()
 s1:append_ga(canvas)
 s2:append_ga(canvas)
 
-local drv, err = barracuda:load_driver("native")
-assert(not err, err)
+local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }\box\mybox
 
@@ -71,15 +68,15 @@ local c128, err = barracuda:get_barcode_class()
 
 local s, err = c128:from_string("123456"); assert(s, err)
 local canvas = barracuda:new_canvas()
-local _, err = s:append_ga(canvas); assert(not err, err)
+s:append_ga(canvas)
 
 local ok, err = s:set_param("ydim", tex.sp "15mm")
-local _, err = s:append_ga(canvas, tex.sp "20mm"); assert(not err, err)
+s:append_ga(canvas, tex.sp "20mm")
 
 local ok, err = s:set_param("ydim", tex.sp "30mm")
-local _, err = s:append_ga(canvas, tex.sp "40mm"); assert(not err, err)
+s:append_ga(canvas, tex.sp "40mm")
 
-local drv, err = barracuda:load_driver("native"); assert(drv, err)
+local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }\box\mybox
 
@@ -104,11 +101,11 @@ local _, err = s:append_ga(canvas, tex.sp "30mm"); assert(not err, err)
 local ok, err = s:set_param("ay", 1)
 local _, err = s:append_ga(canvas, tex.sp "60mm"); assert(not err, err)
 
-local drv, err = barracuda:load_driver("native"); assert(drv, err)
+local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }\box\mybox
 
-Test 5: uint() costructor:
+Test 5: uint() costructor and save a file with PDF literal code:
 
 \directlua{
 local barcode = barracuda:get_barcode_class()
@@ -116,15 +113,13 @@ local c128, err = barcode:enc_by_name("code128"); assert(c128, err)
 local s, e = c128:from_uint(1234567890); assert(s, e)
 local canvas = barracuda:new_canvas()
 local _, errc = s:append_ga(canvas); assert(not errc, errc)
-local drv, errd = barracuda:load_driver("native"); assert(drv, errd)
+local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
+drv:save("native", canvas, "02-05-pdfliteral")
 }\box\mybox
-
-
-
 
 That's all folk!
 
 \bye
 
-
+function Driver:save(id_drv, ga, filename, ext) --> ok, err

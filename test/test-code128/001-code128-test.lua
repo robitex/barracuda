@@ -15,7 +15,7 @@ for k, tp in ipairs(info.param) do
     print(k, tp.name, tp.value)
 end
 
-local symb = c128:from_chars({"1", "2", "3"})
+local symb = c128:from_string("123")
 print("Symbol char list:")
 for _, c in ipairs(symb.code) do
     print(c)
@@ -23,12 +23,10 @@ end
 
 local canvas = barracuda:new_canvas()
 
-local _, err = symb:append_ga(canvas)
-assert(not err, err)
+symb:append_ga(canvas)
 
--- native driver loading
-local drv, err = barracuda:load_driver("native")
-assert(not err, err)
+-- driver library
+local drv = barracuda:load_driver()
 
 for _, code in ipairs(canvas._data) do print(code) end
 

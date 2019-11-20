@@ -56,11 +56,12 @@ Colors, linecap style etc\dots
 OpCode & Mnemonic key & Graphic property & Operands\\
 \midrule
  1 & pen\_thick & Line thick          &  <w: DIM>\\
- 2 & pen\_cap\_style & Line cap style &  <e: u8>\\
+ 2 & line\_cap\_style & Line cap style &  <e: u8>\\
+ 3 & line\_join\_style & Line join style &  <e: u8>\\
  8 & color & ... \\
 \midrule
- 30 &  start\_bbox\_group & Stop to check the bounding box & -\\
- 31 &  end\_bbox\_group   & Set a bounding box and restart to check &  <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>\\
+30 & start\_bbox\_group & Stop to check the bounding box & -\\
+31 & end\_bbox\_group   & Set a bounding box and restart to check &  <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>\\
 \bottomrule
 \end{tabular}
 
@@ -116,7 +117,7 @@ OpCode & Mnemonic key & Graphic object/Operands\\
  131 & text\_xspaced & A text with glyphs equally spaced on its vertical axis\\
      & & \ttfamily <x1: DIM> <xgap: DIM> <ay: FLOAT> <ypos: DIM> <c: CHARS>\\
 \midrule
- 132 & text\_xwidth & Equally spaced on vertical axis glyphs between two x coordinates\\
+ 132 & text\_xwidth & Glyphs equally spaced on vertical axis between two x coordinates\\
       & & \ttfamily <ay: FLOAT> <x1: DIM> <x2: DIM> <y: DIM> <c: CHARS>\\
 \midrule
      & under design assessment\\

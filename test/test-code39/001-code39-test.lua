@@ -24,7 +24,7 @@ for k, tp in ipairs(info.param) do
     print(k, tp.name, tp.value)
 end
 
-local symb = c39:from_chars({"1", "2", "3"})
+local symb = c39:from_string("123")
 
 print("print internal representation of chars")
 for _, c in ipairs(symb.code) do
@@ -36,8 +36,6 @@ local canvas = barracuda:new_canvas()
 symb:append_ga(canvas)
 
 -- native driver
-local _drv, err = barracuda:load_driver("native")
-assert(not err, err)
+local drv = barracuda:get_driver()
 
 for _, code in ipairs(canvas._data) do print(code) end
-

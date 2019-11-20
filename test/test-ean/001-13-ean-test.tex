@@ -21,9 +21,7 @@ assert(not err, err)
 local canvas = barracuda:new_canvas()
 symbo:append_ga(canvas)
 
-local drv, err = barracuda:load_driver("native")
-assert(not err, err)
-
+local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }
 \vrule A\vrule\box\mybox \vrule A\vrule
@@ -44,9 +42,7 @@ assert(not err, err)
 local canvas = barracuda:new_canvas()
 symbo:append_ga(canvas)
 
-local drv, err = barracuda:load_driver("native")
-assert(not err, err)
-
+local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }
 \vrule A\vrule\box\mybox \vrule A\vrule
@@ -63,8 +59,7 @@ local symbo, err = ean5:from_string("54495")
 assert(not err, err)
 local canvas = barracuda:new_canvas()
 symbo:append_ga(canvas)
-local drv, err = barracuda:load_driver("native")
-assert(not err, err)
+local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }
 \vrule A\vrule\box\mybox \vrule A\vrule
@@ -81,8 +76,7 @@ local symbo, err = ean2:from_string("53")
 assert(not err, err)
 local canvas = barracuda:new_canvas()
 symbo:append_ga(canvas)
-local drv, err = barracuda:load_driver("native")
-assert(not err, err)
+local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }
 \vrule A\vrule\box\mybox \vrule A\vrule
@@ -101,8 +95,7 @@ local symbo, err = ean:from_string(s.."12345")
 assert(not err, err)
 local canvas = barracuda:new_canvas()
 symbo:append_ga(canvas)
-local drv, err = barracuda:load_driver("native")
-assert(not err, err)
+local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }
 \vrule Test 5\vrule\box\mybox \vrule Test 5\vrule
@@ -121,8 +114,7 @@ local symbo, err = ean:from_string(s.."12")
 assert(not err, err)
 local canvas = barracuda:new_canvas()
 symbo:append_ga(canvas)
-local drv, err = barracuda:load_driver("native")
-assert(not err, err)
+local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }
 \vrule Test 6\vrule\box\mybox \vrule Test 6\vrule
@@ -141,8 +133,7 @@ local symbo, err = ean:from_string(s.."12345")
 assert(not err, err)
 local canvas = barracuda:new_canvas()
 symbo:append_ga(canvas)
-local drv, err = barracuda:load_driver("native")
-assert(not err, err)
+local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }
 \vrule Test 7\vrule\box\mybox \vrule Test 7\vrule
@@ -161,8 +152,7 @@ local symbo, err = ean:from_string(s.."88")
 assert(not err, err)
 local canvas = barracuda:new_canvas()
 symbo:append_ga(canvas)
-local drv, err = barracuda:load_driver("native")
-assert(not err, err)
+local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }
 \vrule Test 8\vrule\box\mybox \vrule Test 8\vrule
@@ -191,7 +181,7 @@ symbo:append_ga(canvas)
 local s2, err = ean:from_uint(8001120972163); assert(not err, err)
 s2:append_ga(canvas, tex.sp "45mm", 0)
 
-local drv, err = barracuda:load_driver("native"); assert(not err, err)
+local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }
 \vrule Test 9\vrule\box\mybox \vrule Test 9\vrule
@@ -217,7 +207,7 @@ s2:append_ga(canvas, tex.sp "40mm", 0)
 local s3, err = ean:from_uint(8000570000310); assert(not err, err)
 local ok, e = s3:set_param{height = tex.sp "10mm"}; assert(ok, e)
 s3:append_ga(canvas, tex.sp "90mm", 0)
-local drv, err = barracuda:load_driver("native"); assert(not err, err)
+local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }
 \vrule Test 10\vrule\box\mybox \vrule Test 10\vrule

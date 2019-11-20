@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Barracuda package (https://github.com/robitex/barracuda) -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg"
+  version="1.1"
+  width="50.000000mm" height="50.000000mm"
+  viewBox="0.000000 -50.000000 50.000000 50.000000"
+>
+  <path d="M2.500000 -50.000000V-0.000000"
+    style="stroke:#000000;stroke-width:5.000000"
+  />
+  <path d="M0.000000 -40.000000H50.000000"
+    style="stroke:#000000;stroke-width:5.000000"
+  />
+</svg>
+

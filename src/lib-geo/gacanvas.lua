@@ -26,13 +26,43 @@ end
 -- function gaCanvas:from_tcp_server() --> err
 -- end
 
--- line width: opcode <1>
+-- line width: opcode <1> <w: DIM>
 function gaCanvas:encode_linethick(w) --> err
     if type(w) ~= "number" then return "[ArgErr] 'w' number expected" end
     if w < 0 then return "[ArgErr] negative value for 'w'" end
     local data = self._data
     data[#data + 1] = 1 -- opcode for line thickness
     data[#data + 1] = w
+end
+
+-- line cap style: opcode <2> <cap: u8>
+-- 0 Butt cap
+-- 1 Round cap
+-- 2 Projecting square cap
+function gaCanvas:encode_linecap(cap) --> err
+    if type(cap) ~= "number" then return "[ArgErr] 'cap' arg number expected" end
+    if cap == 0 or cap == 1 or cap == 2 then
+        local data = self._data
+        data[#data + 1] = 2 -- opcode for line cap style
+        data[#data + 1] = cap
+    else
+        return "[ArgErr] invalid value for 'cap'"
+    end
+end
+
+-- line cap style: opcode <3> <join: u8>
+-- 0 Miter join
+-- 1 Round join
+-- 2 Bevel join
+function gaCanvas:encode_linejoin(join) --> err
+    if type(join) ~= "number" then return "[ArgErr] 'join' arg number expected" end
+    if join == 0 or join == 1 or join == 2 then
+        local data = self._data
+        data[#data + 1] = 3 -- opcode for line join style
+        data[#data + 1] = join
+    else
+        return "[ArgErr] invalid value for 'join'"
+    end
 end
 
 -- Stop checking the bounding box
