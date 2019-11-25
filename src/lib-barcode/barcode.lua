@@ -1,7 +1,7 @@
 
 -- Barcode abstract class
 -- Copyright (C) 2019 Roberto Giacomelli
--- Please see LICENSE.TXT
+-- Please see LICENSE.TXT for any legal information about present software
 
 local Barcode = {
     _VERSION     = "Barcode v0.0.5",
@@ -50,7 +50,7 @@ pardef.ay = {
     end,
 }
 
--- Barcode.bbox_to_quietzone -- under evaluation
+-- Barcode.bbox_to_quietzone -- under assessment
 
 -- Barcode methods
 
@@ -117,14 +117,17 @@ function Barcode:param_ord_iter()
 end
 
 -- encoder costructor
--- Symbology can be a family with many variants. This is represented
--- in the first argument with a <family>-<variant> syntax.
--- i.e. when bc_type is the string "ean-13", "ean" is the barcode
--- family and "13" is the variant.
--- For whose barcodes that do not have variants, bc_type is simple <encoder>
--- such as for "code128" encoder
--- id_enc is an optional identifier useful to retrive an encoder reference later
--- opt    is an optional table with the user-defined parameters
+-- Symbology can be a family with many variants. This is represented by the
+-- first argument 'bc_type' formatted as <family>-<variant>.
+--     in more details:
+--     <family id><dash char><variant id> if there are variants
+--     <encoder id> if not
+-- i.e. when 'bc_type' is the string "ean-13", "ean" is the barcode family and
+-- "13" is its variant name.
+-- For whose barcodes that do not have variants, 'bc_type' is simply the endoder id
+-- such as "code128".
+-- 'id_enc' is an optional identifier useful to retrive an encoder reference later
+-- 'opt'    is an optional table with the user-defined parameters setting up encoders
 --
 function Barcode:new_encoder(bc_type, id_enc, opt) --> object, err
     -- argument checking
@@ -245,7 +248,7 @@ function Barcode:enc_by_name(bc_type, name) --> <encoder object>, <err>
     end
 end
 
--- base constructors common to all encoders
+-- base constructors common to all the encoders
 -- for numeric only simbology
 function Barcode:_check_char(c) --> elem, err
     if type(c) ~= "string" or #c ~= 1 then
@@ -257,7 +260,6 @@ function Barcode:_check_char(c) --> elem, err
     end
     return n, nil
 end
-
 function Barcode:_check_digit(n) --> elem, err
     if type(n) ~= "number" then
         return nil, "[InternalErr] not a number"
@@ -311,7 +313,7 @@ function Barcode:from_string(symb, opt) --> object, err
     return o, nil
 end
 
---> positive integer --> Barcode object
+-- positive integer --> Barcode object
 function Barcode:from_uint(n, opt) --> object, err
     assert(self._check_digit, "[InternalErr] undefined _check_digit() method")
     if type(n) ~= "number" then return nil, "[ArgErr] 'n' is not a number" end

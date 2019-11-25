@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Barracuda package (https://github.com/robitex/barracuda) -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg"
+  version="1.1"
+  width="27.177857mm" height="10.873169mm"
+  viewBox="-2.539987 -7.999958 27.177857 10.873169"
+>
+  <g stroke="black">
+    <path d="M0.095249 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+    <path d="M0.666746 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+    <path d="M1.142994 -7.999958V-0.000000" style="stroke-width:0.380998"/>
+    <path d="M1.714491 -7.999958V-0.000000" style="stroke-width:0.380998"/>
+    <path d="M2.190738 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+  </g>
+  <g stroke="black">
+    <path d="M2.666986 -7.999958V-0.000000" style="stroke-width:0.380998"/>
+    <path d="M3.143233 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+    <path d="M3.524231 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+    <path d="M4.095728 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+    <path d="M4.571976 -7.999958V-0.000000" style="stroke-width:0.380998"/>
+  </g>
+  <g stroke="black">
+    <path d="M5.048223 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+    <path d="M5.524471 -7.999958V-0.000000" style="stroke-width:0.380998"/>
+    <path d="M6.000718 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+    <path d="M6.572215 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+    <path d="M7.048463 -7.999958V-0.000000" style="stroke-width:0.380998"/>
+  </g>
+  <g stroke="black">
+    <path d="M7.619960 -7.999958V-0.000000" style="stroke-width:0.380998"/>
+    <path d="M8.191457 -7.999958V-0.000000" style="stroke-width:0.380998"/>
+    <path d="M8.667704 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+    <path d="M9.239201 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+    <path d="M9.620199 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+  </g>
+  <g stroke="black">
+    <path d="M10.001197 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+    <path d="M10.382195 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+    <path d="M10.858443 -7.999958V-0.000000" style="stroke-width:0.380998"/>
+    <path d="M11.525189 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+    <path d="M12.001437 -7.999958V-0.000000" style="stroke-width:0.380998"/>
+  </g>
+  <g stroke="black">
+    <path d="M12.572934 -7.999958V-0.000000" style="stroke-width:0.380998"/>
+    <path d="M13.049181 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+    <path d="M13.525429 -7.999958V-0.000000" style="stroke-width:0.380998"/>
+    <path d="M14.192175 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+    <path d="M14.573173 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+  </g>
+  <g stroke="black">
+    <path d="M14.954171 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+    <path d="M15.430419 -7.999958V-0.000000" style="stroke-width:0.380998"/>
+    <path d="M16.001916 -7.999958V-0.000000" style="stroke-width:0.380998"/>
+    <path d="M16.668662 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+    <path d="M17.049660 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+  </g>
+  <g stroke="black">
+    <path d="M17.430658 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+    <path d="M17.811656 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+    <path d="M18.192654 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+    <path d="M18.859401 -7.999958V-0.000000" style="stroke-width:0.380998"/>
+    <path d="M19.430898 -7.999958V-0.000000" style="stroke-width:0.380998"/>
+  </g>
+  <g stroke="black">
+    <path d="M19.907145 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+    <path d="M20.478642 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+    <path d="M20.954890 -7.999958V-0.000000" style="stroke-width:0.380998"/>
+    <path d="M21.526387 -7.999958V-0.000000" style="stroke-width:0.380998"/>
+    <path d="M22.002634 -7.999958V-0.000000" style="stroke-width:0.190499"/>
+  </g>
+  <text x="0.000000" y="2.873212" font-family="Verdana" font-size="2.877000">
+  ABCDEFG  </text>
+</svg>
+

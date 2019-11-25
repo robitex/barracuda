@@ -26,14 +26,14 @@
 
 local Barracuda = {
     _VERSION     = "barracuda v0.0.9",
-    _NAME        = "Barracuda",
+    _NAME        = "barracuda",
     _DESCRIPTION = "Lua library for barcode printing",
     _URL         = "https://github.com/robitex/barracuda",
     _LICENSE     = "GNU GENERAL PUBLIC LICENSE, Version 2, June 1991",
 }
 
 -- essential sub-module loading
-Barracuda._libgeo   = require "lib-geo.libgeo"      -- basic vestor object
+Barracuda._libgeo   = require "lib-geo.libgeo"      -- basic vectorial objects
 Barracuda._gacanvas = require "lib-geo.gacanvas"    -- ga stream library
 Barracuda._barcode  = require "lib-barcode.barcode" -- barcode abstract class
 
@@ -56,6 +56,61 @@ end
 function Barracuda:new_canvas() --> driver
     local gacanvas = self._gacanvas
     return gacanvas:new()
+end
+
+-- high level barcode functions
+-- only default options
+-- panic on error
+
+-- save barcode as a graphic external file
+function Barracuda:save(bc_type, data, filename, id_drv)
+    local barcode = self:get_barcode_class()
+    local enc, err = barcode:new_encoder(bc_type)
+    assert(enc, err)
+    local arg_data = type(data)
+    local symb
+    if arg_data == "number" then
+        local err_data
+        symb, err_data = enc:from_uint(data)
+        asser(symb, err_data)
+    elseif arg_data == "string" then
+        local err_data
+        symb, err_data = enc:from_string(data)
+        assert(symb, err_data)
+    else
+        error("[argErr] unsupported 'data' type")
+    end
+    local canvas = self:new_canvas()
+    symb:append_ga(canvas)
+    local driver = self:get_driver()
+    id_drv = id_drv or "svg"
+    local ok, out_err = driver:save(id_drv, canvas, filename)
+    assert(ok, out_err)
+end
+
+-- only LuaTeX method
+function Barracuda:hbox(bc_type, data, box_name)
+    local barcode = self:get_barcode_class()
+    local enc, err = barcode:new_encoder(bc_type)
+    assert(enc, err)
+    local arg_data = type(data)
+    local symb
+    if arg_data == "number" then
+        local err_data
+        symb, err_data = enc:from_uint(data)
+        asser(symb, err_data)
+    elseif arg_data == "string" then
+        local err_data
+        symb, err_data = enc:from_string(data)
+        assert(symb, err_data)
+    else
+        error("[argErr] unsupported 'data' type")
+    end
+    local canvas = self:new_canvas()
+    symb:append_ga(canvas)
+    local driver = self:get_driver()
+    local ok, err_hbox = driver:ga_to_hbox(canvas, box_name)
+    assert(ok, err_hbox)
 end
 
 return Barracuda

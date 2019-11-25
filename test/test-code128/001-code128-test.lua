@@ -17,7 +17,7 @@ end
 
 local symb = c128:from_string("123")
 print("Symbol char list:")
-for _, c in ipairs(symb.code) do
+for _, c in ipairs(symb._code_data) do
     print(c)
 end
 
@@ -26,7 +26,7 @@ local canvas = barracuda:new_canvas()
 symb:append_ga(canvas)
 
 -- driver library
-local drv = barracuda:load_driver()
+local drv = barracuda:get_driver()
+drv:save("svg", canvas, "c128-123")
 
-for _, code in ipairs(canvas._data) do print(code) end
 

@@ -1,69 +1,80 @@
 Development Program Task Table
 
+Ipothetical developing tasks list:
+
 Task   x.x: TiKZ driver                                               20__-__-__
 Task   x.x: PGF driver                                                20__-__-__
 Task   x.x: debug driver, ga code pretty printing                     20__-__-__
 Task   x.x: make thing happen: font property for text                 20__-__-__
-Task   x.x: develop ConTeXt mkiv user module                          20__-__-__
 Task   x.x: develop LaTeX user package                                20__-__-__
 Task   x.x: coherent error management                                 20__-__-__
 Task   x.x: proportional options                                      20__-__-__
 Task   x.x: a number parameter can be a string? unit measure...       20__-__-__
+Task   x.x: [project] a command line program to print barcodes        20__-__-__
+Task   x.x: [project] every dev task ends with a repository commit    20__-__-__
+Task   x.x: [project] reformat todo file: no more date at line end    20__-__-__
+Task   x.x: [project] upload to tlcontrib                             20__-__-__
+Task   x.x: [manual] put ga-asm-spec together with the manual         20__-__-__
+Task   x.x: [manual] edit the section A more deep look for clearness  20__-__-__
 
-SCHEDULED TASK:
+Scheduled tasks:
 
-Task   9.x: time to get an usable manual even if minimal              20__-__-__
-Task   9.x: guard text in EAN simbology                             ☑ 2019-__-__
-Task   9.x: SVG support for text                                    ☑ 2019-__-__
+Task   9.x: make optional file name in all the Driver methods         2019-__-__
+Task   9.x: guard text in EAN simbology                               2019-__-__
 
-COMPLETED TASK:
+What we are working on:
 
 <Version 0.0.9> prelude to v0.1 version                               2019-__-__
+Task   9.7: SVG support for text                                      2019-11-25
+Task   9.6: time to get an usable manual even if minimal              2019-11-25
+Task   9.5: some new test files                                       2019-11-23
+Task   9.4: new barracuda methods save() and hbox()                   2019-11-23
+Task   9.3: SVG driver first run                                      2019-11-20
+Task 9.2.2: implement ga opcode for line-join style                   2019-11-10
+Task 9.2.1: implement ga opcode for line-cap style                    2019-11-10
+Task   9.1: make lib-parseopt a separated project                     2019-11-10
 
-Task   9.3: SVG driver first run                                    ☑ 2019-11-20
-Task 9.2.2: implement ga opcode for line-join style                 ☑ 2019-11-10
-Task 9.2.1: implement ga opcode for line-cap style                  ☑ 2019-11-10
-Task   9.1: lib-parseopt as a separated project                     ☑ 2019-11-10
+Completed tasks:
 
 <Version 0.0.8> move costructors to the barcode abstract class     🎉 2019-11-09
-Task   8.5: adopted new Barcode costructors in the EAN encoder      ☑ 2019-11-09
-Task   8.4: adopted new Barcode costructors in the ITF encoder      ☑ 2019-11-09
-Task   8.3: adopted new Barcode costructors in the Code128 encoder  ☑ 2019-11-09
-Task   8.2: adopted new Barcode costructors in the Code39 encoder   ☑ 2019-11-04
-Task   8.1: new costructor method in the barcode superclass         ☑ 2019-11-04
+Task   8.5: adopted new Barcode costructors in the EAN encoder        2019-11-09
+Task   8.4: adopted new Barcode costructors in the ITF encoder        2019-11-09
+Task   8.3: adopted new Barcode costructors in the Code128 encoder    2019-11-09
+Task   8.2: adopted new Barcode costructors in the Code39 encoder     2019-11-04
+Task   8.1: new costructor method in the barcode superclass           2019-11-04
 
 <Version 0.0.7> code refactoring for ga-canvas                     🎉 2019-11-02
-Task   7.5: recompile all the test files                            ☑ 2019-11-02
-Task   7.4: new functions canvas:encode_<obj>()                     ☑ 2019-11-02
-Task   7.3: text position options for Code39 became two indipendent ☑ 2019-11-02
-Task   7.2: added a new code39 test file (and bugs fixed)           ☑ 2019-11-02
-Task   7.1: added subdirectories in the test tree                   ☑ 2019-11-02
+Task   7.5: recompile all the test files                              2019-11-02
+Task   7.4: new functions canvas:encode_<obj>()                       2019-11-02
+Task   7.3: text position options for Code39 became two indipendent   2019-11-02
+Task   7.2: added a new code39 test file (and bugs fixed)             2019-11-02
+Task   7.1: added subdirectories in the test tree                     2019-11-02
 
 <Version 0.0.6> implement Interleaved 2 of 5 encoder               🎉 2019-07-02
-Task   6.4: test files                                              ☑ 2019-07-02
-Task   6.3: add bearer bars for itf encoder                         ☑ 2019-07-02
-Task   6.2: check digit capability for itf 2 of 5 encoder           ☑ 2019-07-02
-Task   6.1: implement basic Interleaved 2 of 5 encoder              ☑ 2019-06-29
+Task   6.4: test files                                                2019-07-02
+Task   6.3: add bearer bars for itf encoder                           2019-07-02
+Task   6.2: check digit capability for itf 2 of 5 encoder             2019-07-02
+Task   6.1: implement basic Interleaved 2 of 5 encoder                2019-06-29
 
 <Version 0.0.5> implement Code128 and EAN family encoders          🎉 2019-01-27
-Task   5.5: test file                                               ☑ 2019-01-27
-Task   5.4: implement EAN2 variant                                  ☑ 2019-01-26
-Task   5.3: implement EAN5 variant                                  ☑ 2019-01-26
-Task   5.2: new family encoder concept                              ☑ 2019-01-25
-Task   5.1: implement EAN13 encoder                                 ☑ 2019-01-12
-Task   4.4: refactoring param iterator                              ☑ 2018-12-30
-Task   4.3: test the local system of option set up for Code128      ☑ 2018-12-30
-Task   4.2: test the local system of option set up for Code39       ☑ 2018-12-30
-Task   4.1: test for ga-canvas                                      ☑ 2018-12-29
-Task   3.3: opt in Code 39 and Code 128 symbol constructors         ☑ 2018-12-24
+Task   5.5: test file                                                 2019-01-27
+Task   5.4: implement EAN2 variant                                    2019-01-26
+Task   5.3: implement EAN5 variant                                    2019-01-26
+Task   5.2: new family encoder concept                                2019-01-25
+Task   5.1: implement EAN13 encoder                                   2019-01-12
+Task   4.4: refactoring param iterator                                2018-12-30
+Task   4.3: test the local system of option set up for Code128        2018-12-30
+Task   4.2: test the local system of option set up for Code39         2018-12-30
+Task   4.1: test for ga-canvas                                        2018-12-29
+Task   3.3: opt in Code 39 and Code 128 symbol constructors           2018-12-24
 Task   3.2: focus on a new constructor in Barcode Class for
-            better encoder implementation                           ☑ 2018-12-21
-Task   3.1: import and refactoring previous Code128 encoder code    ☑ 2018-12-16
+            better encoder implementation                             2018-12-21
+Task   3.1: import and refactoring previous Code128 encoder code      2018-12-16
 
 <Version 0.0.2>                                                    🎉 2018-12-11
-Task   2.5: option text_gap for code39                              ☑ 2018-12-11
-Task   2.4: resolved the horizontal correction in spaced text       ☑ 2018-12-11
-Task   2.3: further text option for the Code39 encoder              ☑ 2018-12-06
+Task   2.5: option text_gap for code39                                2018-12-11
+Task   2.4: resolved the horizontal correction in spaced text         2018-12-11
+Task   2.3: further text option for the Code39 encoder                2018-12-06
 Task   2.2: include minimal text ability to the system
 Task   2.1: design and implement a basic framework
 

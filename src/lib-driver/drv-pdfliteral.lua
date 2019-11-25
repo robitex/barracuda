@@ -178,22 +178,24 @@ function PDFnative.append_130_char(st, bf, xt, c)
     st.head = head
     st.last = last
 end
-function PDFnative.append_130_dim(st, bf, xt) --> text bb: width, height, deep
+-- return bounding box of the text object without deep
+function PDFnative.append_130_stop(st, bf, xt, xpos, ypos, ax, ay)
     local head = assert(st.head)
     st.head = nil -- reset temporary reference
     st.last = nil
     local hbox = node.hpack(head)
-    st.hbox = hbox
     local w, h, d = node.dimensions(hbox)
-    return w, h, d
-end
-function PDFnative.append_130_stop(st, bf, xt, x, y, w, h, d)
-    local hbox = assert(st.hbox)
-    st.hbox = nil -- reset temporary reference
-    xt[#xt + 1] = {hbox, x, y - d, w, h}
+    local x1 = xpos - ax*w -- text position
+    local y1; if ay > 0 then
+        y1 = ypos - h*ay
+    else
+        y1 = ypos - d*ay
+    end
+    xt[#xt + 1] = {hbox, x1, y1 - d, w, h}
+    return x1, y1, x1 + w, y1 + h
 end
 
--- 131 <text_xspaced> & Text with glyphs equally spaced on its vertical axis
+-- 131 <text_xspaced>, Text with glyphs equally spaced on its vertical axis
 -- 131 <x1: DIM> <xgap: DIM> <ay: FLOAT> <ypos: DIM> <c: CHARS>
 function PDFnative.append_131_char(st, bf, xt, c, xgap)
     local head, last, prec_cw = st.head, st.last, st.cw
@@ -213,23 +215,22 @@ function PDFnative.append_131_char(st, bf, xt, c, xgap)
     st.head = head
     st.last = last
 end
-function PDFnative.append_131_dim(st, bf, xt) --> text bb: width, height, deep
+function PDFnative.append_131_stop(st, bf, xt, x1, xgap, ypos, ay) --> bb
     local head = assert(st.head)
     st.head = nil -- reset temporary reference
     st.last = nil
     st.cw = nil
     local hbox = node.hpack(head)
-    st.hbox = hbox
     local w, h, d = node.dimensions(hbox)
-    return w, h, d
-end
-function PDFnative.append_131_stop(st, bf, xt, x1, y, w, h, d) --> x dim
-    local hbox = assert(st.hbox)
-    local x = x1 - st.x_hbox
+    local bx1 = x1 - st.x_hbox
     st.x_hbox = nil -- reset temporary references
-    st.hbox = nil
-    xt[#xt + 1] = {hbox, x, y - d, w, h}
-    return x
+    local y1; if ay > 0 then
+        y1 = ypos - h*ay
+    else
+        y1 = ypos - d*ay
+    end
+    xt[#xt + 1] = {hbox, bx1, y1 - d, w, h}
+    return bx1, y1, bx1 + w, y1 + h
 end
 
 -- 132 <text_xwidth> Glyphs equally spaced on vertical axis between two x coordinates
@@ -250,16 +251,16 @@ function PDFnative.append_132_char(st, bf, xt, c)
     st.head = head
     st.last = last
 end
-function PDFnative.append_132_dim(st, bf, xt, x1, x2) --> text bb: width, height, deep
+function PDFnative.append_132_stop(st, bf, xt, x1, x2, ypos, ay) --> p1, p2
     local head, last = st.head, st.last
-    local w_1 = st.cw
-    local i = st.char_counter
     st.head = nil -- reset temporary registry
     st.last = nil
+    local w_1 = st.cw
     st.cw = nil
+    local i = st.char_counter
     st.char_counter = nil
     local w_n = last.width
-    local xgap = ( x2 - x1 - (w_1 + w_n)/2 )/(i - 1)
+    local xgap = (x2 - x1 - (w_1 + w_n)/2)/(i - 1)
     local c_curr = head
     for _ = 1, i - 1 do
         local g = c_curr.next
@@ -270,14 +271,14 @@ function PDFnative.append_132_dim(st, bf, xt, x1, x2) --> text bb: width, height
         c_curr = c_next
     end
     local hbox = node.hpack(head)
-    st.hbox = hbox
     local w, h, d = node.dimensions(hbox)
-    return w, h, d
-end
-function PDFnative.append_132_stop(st, bf, xt, x, y, w, h, d)
-    local hbox = assert(st.hbox)
-    st.hbox = nil
-    xt[#xt + 1] = {hbox, x, y - d, w, h}
+    local y; if ay > 0 then
+        y = ypos - h*ay
+    else
+        y = ypos - d*ay
+    end
+    xt[#xt + 1] = {hbox, x1, y - d, w, h}
+    return x1, y, x2, y + h
 end
 
 return PDFnative

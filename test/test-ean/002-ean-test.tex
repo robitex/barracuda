@@ -1,0 +1,12 @@
+% !TeX program = LuaTeX
+\nopagenumbers
+\newbox\mybox
+\directlua{
+	local barracuda = require "barracuda"
+	barracuda:hbox("ean-13", "8006194056290", "mybox")
+}
+\pagewidth=80mm
+\pageheight=60mm
+\box\mybox
+\bye
+

@@ -30,6 +30,10 @@ function SVG.init_buffer(st) --> buffer, text buffer
     }
     -- additions for SVG driver to 'state'
     st.ident_lvl = 1 -- identation level
+    st.char_buf = nil
+    st.h_char = 2.1 -- char height (mm)
+    st.w_char = st.h_char / 1.303 -- avg char width (mm)
+    st.d_char = st.h_char / 3.7 -- char deep (mm)
     return bf, {}
 end
 
@@ -113,10 +117,146 @@ function SVG.append_036_stop(st, bf, xt, nbar, y1, y2)
     bf[#bf + 1] = ident..'</g>\n' -- end group
 end
 
+-- Text
+-- 130 <text> Text with several glyphs
+-- 130 <ax: FLOAT> <ay: FLOAT> <xpos: DIM> <ypos: DIM> <c: CHARS>
+function SVG.append_130_char(st, bf, xt, c)
+    local ch = string.char(c)
+    if not st.char_buf then
+        st.char_buf = {ch}
+    else
+        local chars = st.char_buf
+        chars[#chars + 1] = ch
+    end
+end
+function SVG.append_130_stop(st, bf, xt, xpos, ypos, ax, ay) --> p1, p2
+    local mm, c = st.mm, st.char_buf
+    st.char_buf = nil
+    local txt = table.concat(c)
+    local w = st.w_char * #c -- approx dim (mm)
+    local h = st.h_char
+    local d = st.d_char
+    local anchor = ""
+    local x1 = xpos/mm
+    local bx1 = xpos
+    if ax == 0 then -- start (default)
+    elseif ax == 0.5 then -- middle
+        anchor = ' text-anchor="middle"'
+        bx1 = bx1 - w*mm/2
+    elseif ax == 1 then -- end
+        anchor = ' text-anchor="end"'
+        bx1 = bx1 - w*mm
+    else
+        x1 = x1 - ax*w
+        bx1 = x1*mm
+    end
+    local y1 = ypos/mm
+    if ay > 0 then
+        y1 = y1 - h*ay
+    else
+        y1 = y1 - d*ay
+    end
+    local fs = st.h_char * 1.37 -- mm
+    local lvl = st.ident_lvl
+    local ident = string.rep("  ", lvl)
+    bf[#bf + 1] = string.format(
+        '%s<text x="%0.6f" y="%0.6f" font-family="Verdana" font-size="%0.6f"%s>\n',
+        ident, x1, -y1, fs, anchor
+    )
+    bf[#bf + 1] = ident..txt
+    bf[#bf + 1] = ident..'</text>\n'
+    return bx1, y1*mm, bx1 + w*mm, (y1 + h)*mm
+end
 
+-- 131 <text_xspaced>, Text with glyphs equally spaced on its vertical axis
+-- 131 <x1: DIM> <xgap: DIM> <ay: FLOAT> <ypos: DIM> <c: CHARS>
+function SVG.append_131_char(st, bf, xt, c, xgap)
+    local ch = string.char(c)
+    if not st.char_buf then
+        st.char_buf = {ch}
+    else
+        local chars = st.char_buf
+        chars[#chars + 1] = ch
+    end
+end
+function SVG.append_131_stop(st, bf, xt, x1, xgap, ypos, ay) --> p1, p2
+    local chars = st.char_buf
+    st.char_buf = nil
+    local n = #chars
+    local mm = st.mm
+    local h = st.h_char -- mm height
+    local d = st.d_char -- mm deep
+    local hw = mm*st.w_char/2 -- sp half width
+    local y1 = ypos/mm
+    if ay > 0 then
+        y1 = y1 - h*ay
+    else
+        y1 = y1 - d*ay
+    end
+    local lvl = st.ident_lvl
+    local ident = string.rep("  ", lvl)
+    local fs = st.h_char * 1.37 -- mm font-size -> inter baselines distance
+    bf[#bf + 1] = string.format(
+        '%s<text y="%0.6f" font-family="Verdana" font-size="%0.6f" text-anchor="middle">\n',
+        ident, -y1, fs
+    )
+    local x = x1/mm
+    local xgap_mm = xgap/mm
+    for _, c in ipairs(chars) do
+        bf[#bf + 1] = string.format('%s<tspan x="%0.6f">%s</tspan>\n',
+            ident, x, c
+        )
+        x = x + xgap_mm
+    end
+    bf[#bf + 1] = ident..'</text>\n'
+    local x2 = x1 + (n - 1)*xgap -- sp
+    return x1 - hw, y1*mm, x2 + hw, (y1 + h)*mm -- text group bounding box
+end
 
-
-
+-- 132 <text_xwidth> Glyphs equally spaced on vertical axis between two x coordinates
+-- 132 <ay: FLOAT> <x1: DIM> <x2: DIM> <y: DIM> <c: CHARS>
+function SVG.append_132_char(st, bf, xt, c, xgap)
+    local ch = string.char(c)
+    if not st.char_buf then
+        st.char_buf = {ch}
+    else
+        local chars = st.char_buf
+        chars[#chars + 1] = ch
+    end
+end
+function SVG.append_132_stop(st, bf, xt, x1, x2, ypos, ay) --> p1, p2
+    local chars = st.char_buf
+    st.char_buf = nil
+    local n = #chars
+    local mm = st.mm
+    local h = st.h_char -- mm height (approx)
+    local d = st.d_char -- mm deep
+    local cw_mm = st.w_char -- mm char width (approx)
+    local cw_sp = mm*cw_mm -- sp
+    local xgap = (x2 - x1 - cw_sp)/(n - 1)
+    local y1 = ypos/mm
+    if ay > 0 then
+        y1 = y1 - h*ay -- mm
+    else
+        y1 = y1 - d*ay -- mm
+    end
+    local lvl = st.ident_lvl
+    local ident = string.rep("  ", lvl)
+    local fs = st.h_char * 1.37 -- mm font-size -> inter baselines distance
+    bf[#bf + 1] = string.format(
+        '%s<text y="%0.6f" font-family="Verdana" font-size="%0.6f" text-anchor="middle">\n',
+        ident, -y1, fs
+    )
+    local x = (x1 + cw_sp/2)/mm
+    local xgap_mm = xgap/mm
+    for _, c in ipairs(chars) do
+        bf[#bf + 1] = string.format('%s<tspan x="%0.6f">%s</tspan>\n',
+            ident, x, c
+        )
+        x = x + xgap_mm
+    end
+    bf[#bf + 1] = ident..'</text>\n'
+    return x1, y1*mm, x2, (y1 + h)*mm -- text group bounding box
+end
 
 return SVG
-

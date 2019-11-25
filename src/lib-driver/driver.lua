@@ -9,7 +9,7 @@
 local Driver = {
     _VERSION     = "Driver v0.0.1",
     _NAME        = "Driver",
-    _DESCRIPTION = "Driver for ga graphic stream",
+    _DESCRIPTION = "Driver for ga graphic assembler stream",
 }
 
 Driver.__index = Driver
@@ -42,16 +42,16 @@ end
 
 function Driver:_new_state() --> a new state
     return {
-        line_width = 65882.135, -- line width 1bp (in scaled point sp)
+        line_width = 65781.76, -- line width 1bp (in scaled point sp)
         line_cap = 0, -- line cap style
         line_join = 0, -- line join style
         gtext = false, -- text group off
         bb_on = true, -- bounding box checking activation
-        bb_x1 = nil, -- bounding box coordinates in sp
-        bb_y1 = nil, -- nil means no data
+        bb_x1 = nil, -- bounding box coordinates in sp (nil means no data)
+        bb_y1 = nil,
         bb_x2 = nil,
         bb_y2 = nil,
-        mm = 186467.9811, -- conversion factor sp -> mm (millimeter)
+        mm = 186467.98110236, -- conversion factor sp -> mm (millimeter)
         bp = 65781.76, -- conversion factor sp -> bp (big point)
     }
 end
@@ -319,26 +319,19 @@ Driver._opcode_v001 = {
             local c = ga[pc]; pc = pc + 1
             drv.append_130_char(st, bf, xt, c)
         end
-        local w, h, d = drv.append_130_dim(st, bf, xt)
-        local x = xpos - ax*w -- text x, y position
-        local y; if ay > 0 then
-            y = ypos - h*ay
-        else
-            y = ypos - d*ay
-        end
-        drv.append_130_stop(st, bf, xt, x, y, w, h, d)
+        local x1, y1, x2, y2 = drv.append_130_stop(st, bf, xt, xpos, ypos, ax, ay)
         -- bounding box checking
         if st.bb_on then
             if st.bb_x1 == nil then
-                st.bb_x1 = x
-                st.bb_x2 = x + w
-                st.bb_y1 = y
-                st.bb_y2 = y + h
+                st.bb_x1 = x1
+                st.bb_x2 = x2
+                st.bb_y1 = y1
+                st.bb_y2 = y2
             else
-                if     x < st.bb_x1 then st.bb_x1 = x end
-                if x + w > st.bb_x2 then st.bb_x2 = x + w end
-                if     y < st.bb_y1 then st.bb_y1 = y end
-                if y + h > st.bb_y2 then st.bb_y2 = y + h end
+                if x1 < st.bb_x1 then st.bb_x1 = x1 end
+                if x2 > st.bb_x2 then st.bb_x2 = x2 end
+                if y1 < st.bb_y1 then st.bb_y1 = y1 end
+                if y2 > st.bb_y2 then st.bb_y2 = y2 end
             end
         end
         return pc + 1
@@ -353,26 +346,19 @@ Driver._opcode_v001 = {
             local c = ga[pc]; pc = pc + 1
             drv.append_131_char(st, bf, xt, c, xgap)
         end
-        local w, h, d = drv.append_131_dim(st, bf, xt)
-        local y -- y hbox coordinate
-        if ay > 0 then
-            y = ypos - h*ay
-        else
-            y = ypos - d*ay
-        end
-        local x = drv.append_131_stop(st, bf, xt, x1, y, w, h, d)
+        local bx1, by1, bx2, by2 = drv.append_131_stop(st, bf, xt, x1, xgap, ypos, ay)
         -- bounding box checking
         if st.bb_on then -- eventually update bbox
             if st.bb_x1 == nil then
-                st.bb_x1 = x
-                st.bb_x2 = x + w
-                st.bb_y1 = y      -- no depth
-                st.bb_y2 = y + h
+                st.bb_x1 = bx1
+                st.bb_x2 = bx2
+                st.bb_y1 = by1 -- no depth
+                st.bb_y2 = by2
             else
-                if     x < st.bb_x1 then st.bb_x1 = x end
-                if x + w > st.bb_x2 then st.bb_x2 = x + w end
-                if     y < st.bb_y1 then st.bb_y1 = y end
-                if y + h > st.bb_y2 then st.bb_y2 = y + h end
+                if bx1 < st.bb_x1 then st.bb_x1 = bx1 end
+                if bx2 > st.bb_x2 then st.bb_x2 = bx2 end
+                if by1 < st.bb_y1 then st.bb_y1 = by1 end
+                if by2 > st.bb_y2 then st.bb_y2 = by2 end
             end
         end
         return pc + 1
@@ -384,32 +370,26 @@ Driver._opcode_v001 = {
         local x1 = ga[pc]; pc = pc + 1 -- left limit
         local x2 = ga[pc]; pc = pc + 1 -- right limit
         assert (x1 ~= x2, "[InternalErr] x coordinate are equal")
-        assert (x1 < x2, "[InternalErr] not ordered limits")
+        assert (x1 < x2, "[InternalErr] not ordered x1, x2 limits")
         local ypos = ga[pc]; pc = pc + 1 -- y coordinate of anchor point
         assert(ga[pc] ~= 0, "[InternalErr] empty chars sequence")
         while ga[pc] ~= 0 do
             local c = ga[pc]; pc = pc + 1
             drv.append_132_char(st, bf, xt, c)
         end
-        local w, h, d = drv.append_132_dim(st, bf, xt, x1, x2)
-        local y; if ay > 0 then
-            y = ypos - h*ay
-        else
-            y = ypos - d*ay
-        end
-        drv.append_132_stop(st, bf, xt, x1, y, w, h, d)
+        local bx1, by1, bx2, by2 = drv.append_132_stop(st, bf, xt, x1, x2, ypos, ay)
         -- bounding box checking
         if st.bb_on then -- eventually update bbox
             if st.bb_x1 == nil then
-                st.bb_x1 = x1
-                st.bb_x2 = x2
-                st.bb_y1 = y      -- no depth
-                st.bb_y2 = y + h
+                st.bb_x1 = bx1
+                st.bb_x2 = bx2
+                st.bb_y1 = by1 -- no depth
+                st.bb_y2 = by2
             else
-                if    x1 < st.bb_x1 then st.bb_x1 = x1 end
-                if    x2 > st.bb_x2 then st.bb_x2 = x2 end
-                if     y < st.bb_y1 then st.bb_y1 = y end
-                if y + h > st.bb_y2 then st.bb_y2 = y + h end
+                if bx1 < st.bb_x1 then st.bb_x1 = bx1 end
+                if bx2 > st.bb_x2 then st.bb_x2 = bx2 end
+                if by1 < st.bb_y1 then st.bb_y1 = by1 end
+                if by2 > st.bb_y2 then st.bb_y2 = by2 end
             end
         end
         return pc + 1

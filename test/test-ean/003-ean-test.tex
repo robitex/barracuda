@@ -1,0 +1,16 @@
+% !TeX program = LuaLaTeX
+\documentclass{standalone}
+\usepackage{fontspec}
+\setmainfont{ocrb10.otf}
+\newbox\mybox
+\directlua{
+	local barracuda = require "barracuda"
+	barracuda:hbox("ean-13", "8006194056290", "mybox")
+}
+
+\begin{document}
+\box\mybox
+\end{document}
+
+
+

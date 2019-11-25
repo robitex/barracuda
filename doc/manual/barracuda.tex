@@ -1,0 +1,271 @@
+% !TeX program = LuaLaTeX
+% Copyright (C) 2019 Roberto Giacomelli
+% Barracuda manual main source file
+
+\documentclass{article}
+\usepackage{fontspec}
+\usepackage{fancyvrb}
+\usepackage{barracuda-manual-tool}
+\usepackage{hyperref}
+
+\hypersetup{
+pdfinfo={
+    Title={Barracuda manual},
+	Subject={Barcode printing package},
+	Author={Roberto Giacomelli},
+	Keywords={Barcode EAN Code128 Lua}
+}}
+
+\setmainfont{Libertinus Serif}
+\setmonofont{IBM Plex Sans Condensed}
+\fvset{
+    fontsize=\small,
+    frame=single,
+    labelposition=topline,
+    framesep=6pt
+}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\brcd}{\code{barracuda}}
+
+\author{Roberto Giacomelli\\\small email: \url{giaconet.mailbox@gmail.com}}
+\title{\code{barracuda} manual\\[1ex]
+\small \url{https://github.com/robitex/barracuda}}
+\date{\small 2019-11-28\\Version v0.0.9}
+
+\begin{document}
+\maketitle
+
+\abstract{%
+Welcome to the \brcd{} software project devoted to barcodes
+printing.
+
+This manual shows you how to print barcodes in your \TeX{} documents or how to
+export such graphic content to an external file, using \brcd{}.
+
+\brcd{} is written in Lua programming language and is free software released
+under the GPL 2 License.%
+}
+
+
+\section{Introduction}
+
+Barcode symbols are usually a sequence of vertical lines representing encoded
+data that can be retrived with special laser scanner or more simpler with a
+smartphone running dedicated apps. Almost every store item has a label with a
+printed barcode for automatic identification purpose.
+
+So far, \brcd{} supported symbologies are as the following:
+\begin{itemize}
+	\item Code 39,
+	\item Code 128,
+	\item EAN family (EAN 8, EAN 13, and the add-ons EAN 2 and EAN 5),
+	\item ITF 2of5, interleaved Two of Five.
+\end{itemize}
+
+The name \brcd{} is an assonance with the name Barcode. I started the project
+back in 2016 for getting barcode in my \TeX{} generated PDF documents, studying
+the Lua\TeX{} technology.
+
+
+\subsection{Manual Content}
+
+The manual is divided into three parts. At section~\ref{secEnter} the first
+look gives the user a proof of concept to how to use and how works the package
+while the next parts present details like how to change the \emph{module} width
+of a EAN-13 barcode or how to implement a barcode symbology not already included
+in the package.
+
+The section referenced plan of the manual is (but some sections are not completed yet):
+\begin{description}
+\item[Part 1:] Get started
+\begin{itemize}
+	\item print your first barcode \( \to \) \ref{secEnter}
+	\item Installing \brcd{} on your system \( \to \) \ref{secInstall}
+	\item \brcd{} \LaTeX{} package \( \to \) \ref{secLaTeXPkg}
+\end{itemize}
+\item[Part 2:] Work with \brcd{}
+\begin{itemize}
+	\item Lua framework description \( \to \) \ref{secFramework}
+	\item Working example and use cases \( \to \) \ref{secExample}
+\end{itemize}
+\item[Part 3:] Reference and parameters
+\begin{itemize}
+	\item Barcode symbology reference \( \to \) \ref{secBcRef}
+	\item API reference \( \to \) \ref{secAPI}
+\end{itemize}
+\end{description}
+
+\subsection{Required knowledge and useful resources}
+
+The \brcd{} is a Lua package that can be executed by any Lua interpreter. To use
+it, it's necessary some knowledge of Lua programming language and a certain
+ability with the terminal of your computer system in order to accomplish command
+tasks or software installations.
+
+It's also possible to run \brcd{} directly from within a \TeX{} source file,
+compiled with a suitable typesetting engine like Lua\TeX{}. To do so a minimal
+\TeX{} system knowledge is required. As an example of this workflow you simply
+can look to this manual because itself is typesetted with LuaLa\TeX{}, running
+\brcd{} to include barcodes as a vector graphic object.
+
+Here is a collection of useful learning resources\dots
+
+%
+%
+%
+%
+
+
+\section{Get Started with Barracuda}
+\label{secEnter}
+
+The starting point to work with \brcd{} is always a plain text file with some
+code, late processed by a command line program with a Lua interpreter.
+
+As a practical example producing an EAN-13 barcode, in a text editor of your
+choice on a empty file called \code{first-run.lua}, type the following two lines
+of code:
+\medskip
+\begin{Verbatim}[label=\footnotesize\code{first-run.lua}]
+local barracuda = require "barracuda"
+barracuda:save("ean-13", "8006194056290", "my_barcode", "svg")
+\end{Verbatim}
+
+What you have done is to write a \emph{script}. If you have installed a Lua
+interpreter and \brcd{}, open a terminal and run the command:
+\begin{Verbatim}
+$ lua first-run.lua
+\end{Verbatim}
+
+You will see in the same directory of your script, appearing the new file
+\code{my\_barcode.svg} with the drawing:
+\begin{center}
+% insert image here
+\end{center}
+
+Coming back to the script \code{first-run.lua}, first of all, it's necessary to
+load the library with the standard statement \code{require()}. What that Lua
+function returns is an object---more precisely a table reference---where are
+stored every package features.
+
+We can now produce the EAN-13 barcode using the method \code{save()} of the
+\brcd{} object. The \code{save()} method takes in order the barcode symbology
+identifier, the data to be encoded as a string or also a whole number, the
+output file name and the optional output format.
+
+
+
+
+\subsection{Running Lua\TeX}
+
+Barracuda can also running inside Lua\TeX{} and the others Lua powered \TeX{}
+engine. The text source file is a bit difference respect to a Lua script: Lua
+code have to bring place as the argument of directlua primitive... we must use
+a box register of type horizontal...
+
+\begin{Verbatim}
+% !TeX program = LuaTeX
+\nopagenumbers
+\newbox\mybox
+\directlua{
+	local require "barracuda"
+	barracuda:hbox("ean-13", "8006194056290", "mybox")
+}\box\mybox
+\bye
+\end{Verbatim}
+
+The method \code{hbox()} works only with Lua\TeX{}.
+
+
+\subsection{A more deep look}
+
+Barracuda is designed to be modular and flexible. For example it is possible
+to draw different barcodes on the same canvas or tuning barcode parameters.
+
+The code becomes more structured.
+structure of the user code. In fact, to draw an EAN-13 barcode we must do at
+least the follow steps:
+\begin{enumerate}
+	\item get a reference to the Barcode class,
+	\item build an EAN-13 encoder,
+	\item build a EAN symbol passing data to a costructor,
+	\item get a reference to a canvas object,
+	\item draw barcode on canvas,
+	\item get a reference of driver object,
+	\item address canvas toward a driver.
+\end{enumerate}
+
+\begin{Verbatim}
+local barracuda = require "barracuda"
+local barcode = barracuda:get_barcode_class()
+
+local ean13, err_enc = barcode:new_encoder("ean-13")
+assert(ean13, err_enc)
+
+local symb, err_symb = ean13:from_string("8006194056290")
+assert(symb, err_symb)
+
+local canvas = barracuda:new_canvas()
+symb:append_ga(canvas)
+
+local driver = barracuda:get_driver()
+local ok, err_out = driver:save("svg", canvas, "my_barcode", "svg")
+assert(ok, err_out)
+\end{Verbatim}
+
+
+\section{Installing}
+\label{secInstall}
+
+The esier way to install on your system Barracuda, is via TeX Live tlcontrib,
+the home of among the others, experimental package.
+
+
+\section{Barracuda \LaTeX{} Package}
+\label{secLaTeXPkg}
+
+TODO
+
+
+\section{The Barracuda Framework}
+\label{secFramework}
+
+The \brcd{} package framework consists in indipendet modules: a barcode class
+hierarchy encoding a text into a barcode symbology; a geometrical library called
+\code{libgeo} representing several graphic object; an encoding library for the
+\code{ga} format (graphic assembler) several driver to "print" a ga stream
+into a file or a \TeX{} hbox register.
+
+To implement a barcode encoder you need to write a component called
+\emph{encoder} defining every parameters and producing the encoder class, while
+a driver must understand ga opcode stream and print the corresponding graphic
+object.
+
+Every barcode encoder come with a set of parameters, some of them can be
+reserved and can be setting up by the user only through the encoder.
+
+So, you can create many instances of the same encoder for a single barcode
+type, with its own parameter set.
+
+The basic idea is getting faster encoder, for which the user may set up
+paramenters at any level: barcode abstract class, encoder, down to a single
+symbol.
+
+Barcode class is completely indipendent from the ouput driver and viceversa.
+
+\section{Example and use cases}
+\label{secExample}
+
+TODO
+
+\section{Barcode Reference}
+\label{secBcRef}
+
+TODO
+
+\section{API reference}
+\label{secAPI}
+
+TODO
+
+\end{document}

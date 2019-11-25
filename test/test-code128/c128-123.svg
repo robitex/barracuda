@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Barracuda package (https://github.com/robitex/barracuda) -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg"
+  version="1.1"
+  width="18.479903mm" height="9.999947mm"
+  viewBox="-2.099989 -9.999947 18.479903 9.999947"
+>
+  <g stroke="black">
+    <path d="M0.209999 -9.999947V-0.000000" style="stroke-width:0.419998"/>
+    <path d="M0.734996 -9.999947V-0.000000" style="stroke-width:0.209999"/>
+    <path d="M1.364993 -9.999947V-0.000000" style="stroke-width:0.209999"/>
+  </g>
+  <g stroke="black">
+    <path d="M2.414987 -9.999947V-0.000000" style="stroke-width:0.209999"/>
+    <path d="M3.254983 -9.999947V-0.000000" style="stroke-width:0.629997"/>
+    <path d="M4.199978 -9.999947V-0.000000" style="stroke-width:0.419998"/>
+  </g>
+  <g stroke="black">
+    <path d="M4.829975 -9.999947V-0.000000" style="stroke-width:0.419998"/>
+    <path d="M5.774970 -9.999947V-0.000000" style="stroke-width:0.629997"/>
+    <path d="M6.614965 -9.999947V-0.000000" style="stroke-width:0.209999"/>
+  </g>
+  <g stroke="black">
+    <path d="M7.139962 -9.999947V-0.000000" style="stroke-width:0.419998"/>
+    <path d="M7.874959 -9.999947V-0.000000" style="stroke-width:0.209999"/>
+    <path d="M8.504955 -9.999947V-0.000000" style="stroke-width:0.629997"/>
+  </g>
+  <g stroke="black">
+    <path d="M9.344951 -9.999947V-0.000000" style="stroke-width:0.209999"/>
+    <path d="M10.289946 -9.999947V-0.000000" style="stroke-width:0.419998"/>
+    <path d="M11.024942 -9.999947V-0.000000" style="stroke-width:0.209999"/>
+  </g>
+  <g stroke="black">
+    <path d="M11.759938 -9.999947V-0.000000" style="stroke-width:0.419998"/>
+    <path d="M12.914932 -9.999947V-0.000000" style="stroke-width:0.629997"/>
+    <path d="M13.544929 -9.999947V-0.000000" style="stroke-width:0.209999"/>
+    <path d="M14.069926 -9.999947V-0.000000" style="stroke-width:0.419998"/>
+  </g>
+</svg>
+
