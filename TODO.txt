@@ -11,11 +11,8 @@ Task   x.x: coherent error management                                 20__-__-__
 Task   x.x: proportional options                                      20__-__-__
 Task   x.x: a number parameter can be a string? unit measure...       20__-__-__
 Task   x.x: [project] a command line program to print barcodes        20__-__-__
-Task   x.x: [project] every dev task ends with a repository commit    20__-__-__
-Task   x.x: [project] reformat todo file: no more date at line end    20__-__-__
 Task   x.x: [project] upload to tlcontrib                             20__-__-__
 Task   x.x: [manual] put ga-asm-spec together with the manual         20__-__-__
-Task   x.x: [manual] edit the section A more deep look for clearness  20__-__-__
 
 Scheduled tasks:
 
@@ -25,6 +22,15 @@ Task   9.x: guard text in EAN simbology                               2019-__-__
 What we are working on:
 
 <Version 0.0.9> prelude to v0.1 version                               2019-__-__
+
+Task   x.x: [manual] edit the section 'A more deep look' for clearness20__-__-__
+Task   x.x: [project] reformat todo file: no more date at line end    20__-__-__
+
+<maintenance commit>
+Task  9.10: [SVG] take dimensions as scaled point and then mm         2019-11-26
+Task   9.9: [project] every dev task ends with a repository commit    2019-11-26
+Task   9.8: [project] .gitignore .out file                            2019-11-25
+
 Task   9.7: SVG support for text                                      2019-11-25
 Task   9.6: time to get an usable manual even if minimal              2019-11-25
 Task   9.5: some new test files                                       2019-11-23
