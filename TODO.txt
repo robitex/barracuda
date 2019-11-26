@@ -2,43 +2,34 @@ Development Program Task Table
 
 Ipothetical developing tasks list:
 
-Task   x.x: TiKZ driver                                               20__-__-__
-Task   x.x: PGF driver                                                20__-__-__
-Task   x.x: debug driver, ga code pretty printing                     20__-__-__
-Task   x.x: make thing happen: font property for text                 20__-__-__
-Task   x.x: develop LaTeX user package                                20__-__-__
-Task   x.x: coherent error management                                 20__-__-__
-Task   x.x: proportional options                                      20__-__-__
-Task   x.x: a number parameter can be a string? unit measure...       20__-__-__
-Task   x.x: [project] a command line program to print barcodes        20__-__-__
-Task   x.x: [project] upload to tlcontrib                             20__-__-__
-Task   x.x: [manual] put ga-asm-spec together with the manual         20__-__-__
+__.__: 20__-__-__: [dev] TiKz driver
+__.__: 20__-__-__: [dev] debug driver, ga code pretty printing
+__.__: 20__-__-__: [dev] make thing happen: font property for text
+__.__: 20__-__-__: [dev] develop LaTeX user package
+__.__: 20__-__-__: [dev] coherent error management
+__.__: 20__-__-__: [dev] proportional options
+__.__: 20__-__-__: [dev] a number parameter can be a string? unit measure...
+__.__: 20__-__-__: [prj] a command line program to print barcodes
+__.__: 20__-__-__: [prj] upload to tlcontrib
+__.__: 20__-__-__: [man] put ga-asm-spec together with the manual
 
-Scheduled tasks:
+Scheduled tasks (What we are working on):
+<v0.0.9> 2019-__-__: prelude to version v0.1
 
-Task   9.x: make optional file name in all the Driver methods         2019-__-__
-Task   9.x: guard text in EAN simbology                               2019-__-__
-
-What we are working on:
-
-<Version 0.0.9> prelude to v0.1 version                               2019-__-__
-
-Task   x.x: [manual] edit the section 'A more deep look' for clearness20__-__-__
-Task   x.x: [project] reformat todo file: no more date at line end    20__-__-__
-
-<maintenance commit>
-Task  9.10: [SVG] take dimensions as scaled point and then mm         2019-11-26
-Task   9.9: [project] every dev task ends with a repository commit    2019-11-26
-Task   9.8: [project] .gitignore .out file                            2019-11-25
-
-Task   9.7: SVG support for text                                      2019-11-25
-Task   9.6: time to get an usable manual even if minimal              2019-11-25
-Task   9.5: some new test files                                       2019-11-23
-Task   9.4: new barracuda methods save() and hbox()                   2019-11-23
-Task   9.3: SVG driver first run                                      2019-11-20
-Task 9.2.2: implement ga opcode for line-join style                   2019-11-10
-Task 9.2.1: implement ga opcode for line-cap style                    2019-11-10
-Task   9.1: make lib-parseopt a separated project                     2019-11-10
+09.__: 2019-__-__: [dev] make optional file name in all the Driver methods
+09.__: 2019-__-__: [dev] guard text in EAN simbology
+09.__: 2019-__-__: [man] edit the section 'A more deep look' for clearness
+09.11: 2019-11-26: [prj] reformat todo file: no more date at line end
+09.10: 2019-11-26: [svg] take dimensions as scaled point and then mm
+09.09: 2019-11-26: [prj] every dev task ends with a repository commit
+09.08: 2019-11-25: [prj] .gitignore .out file
+09.07: 2019-11-25: [svg] support for text
+09.06: 2019-11-25: [man] time to get an usable manual even if minimal
+09.05: 2019-11-23: [chk] some new test files
+09.04: 2019-11-23: [dev] new barracuda methods save() and hbox()
+09.03: 2019-11-20: [svg] driver first run
+09.02: 2019-11-10: [dev] implement ga opcode for line-join style and line-cap style
+09.01: 2019-11-10: [prj] make lib-parseopt a separated project
 
 Completed tasks:
 

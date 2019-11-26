@@ -88,7 +88,7 @@ function Barracuda:save(bc_type, data, filename, id_drv)
     assert(ok, out_err)
 end
 
--- only LuaTeX method
+-- this is a only LuaTeX method
 function Barracuda:hbox(bc_type, data, box_name)
     local barcode = self:get_barcode_class()
     local enc, err = barcode:new_encoder(bc_type)
