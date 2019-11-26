@@ -12,13 +12,13 @@ __.__: 20__-__-__: [dev] a number parameter can be a string? unit measure...
 __.__: 20__-__-__: [prj] a command line program to print barcodes
 __.__: 20__-__-__: [prj] upload to tlcontrib
 __.__: 20__-__-__: [man] put ga-asm-spec together with the manual
+__.__: 2019-__-__: [dev] guard text in EAN simbology
+__.__: 2019-__-__: [dev] make optional file name in all the Driver methods
 
 Scheduled tasks (What we are working on):
 <v0.0.9> 2019-__-__: prelude to version v0.1
 
-09.__: 2019-__-__: [dev] make optional file name in all the Driver methods
-09.__: 2019-__-__: [dev] guard text in EAN simbology
-09.__: 2019-__-__: [man] edit the section 'A more deep look' for clearness
+09.12: 2019-11-26: [man] edit the section 'A more deep look' for clearness
 09.11: 2019-11-26: [prj] reformat todo file: no more date at line end
 09.10: 2019-11-26: [svg] take dimensions as scaled point and then mm
 09.09: 2019-11-26: [prj] every dev task ends with a repository commit
