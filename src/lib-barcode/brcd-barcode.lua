@@ -4,7 +4,7 @@
 -- Please see LICENSE.TXT for any legal information about present software
 
 local Barcode = {
-    _VERSION     = "Barcode v0.0.5",
+    _VERSION     = "Barcode v0.0.9",
     _NAME        = "Barcode",
     _DESCRIPTION = "Barcode abstract class",
 }
@@ -12,10 +12,10 @@ Barcode.__index = Barcode
 
 -- barcode_type/submodule name
 Barcode._available_enc = {-- keys must be lowercase
-    code39  = "lib-barcode.code39",
-    code128 = "lib-barcode.code128",
-    ean     = "lib-barcode.ean",
-    i2of5   = "lib-barcode.i2of5", -- Interleaved 2 of 5
+    code39  = "lib-barcode.brcd-code39",  -- Code 39
+    code128 = "lib-barcode.brcd-code128", -- Code128
+    ean     = "lib-barcode.brcd-ean",     -- EAN family (ISBN, EAN8, etc)
+    i2of5   = "lib-barcode.brcd-i2of5",   -- Interleaved 2 of 5
 }
 Barcode._builder_instances = {} -- encoder builder instances repository
 

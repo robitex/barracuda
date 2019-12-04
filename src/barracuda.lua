@@ -25,7 +25,7 @@
 -- modules.
 
 local Barracuda = {
-    _VERSION     = "barracuda v0.0.9",
+    _VERSION     = "barracuda v0.0.9.1",
     _NAME        = "barracuda",
     _DESCRIPTION = "Lua library for barcode printing",
     _URL         = "https://github.com/robitex/barracuda",
@@ -33,9 +33,9 @@ local Barracuda = {
 }
 
 -- essential sub-module loading
-Barracuda._libgeo   = require "lib-geo.libgeo"      -- basic vectorial objects
-Barracuda._gacanvas = require "lib-geo.gacanvas"    -- ga stream library
-Barracuda._barcode  = require "lib-barcode.barcode" -- barcode abstract class
+Barracuda._libgeo   = require "lib-geo.brcd-libgeo"      -- basic vectorial objects
+Barracuda._gacanvas = require "lib-geo.brcd-gacanvas"    -- ga stream library
+Barracuda._barcode  = require "lib-barcode.brcd-barcode" -- barcode abstract class
 
 local Barcode = Barracuda._barcode
 Barcode._libgeo = Barracuda._libgeo
@@ -48,7 +48,7 @@ end
 -- where we place output driver library
 function Barracuda:get_driver() --> Driver object, err
     if not self._lib_driver then
-        self._lib_driver = require "lib-driver.driver"
+        self._lib_driver = require "lib-driver.brcd-driver"
     end
     return self._lib_driver
 end

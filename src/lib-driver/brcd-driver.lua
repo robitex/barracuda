@@ -7,7 +7,7 @@
 -- All dimensions are in scaled point (sp)
 
 local Driver = {
-    _VERSION     = "Driver v0.0.1",
+    _VERSION     = "Driver v0.0.9",
     _NAME        = "Driver",
     _DESCRIPTION = "Driver for ga graphic assembler stream",
 }
@@ -17,9 +17,8 @@ Driver._drv_instance = {} -- driver instances repository
 
 -- driver_type/submodule name
 Driver._drv_available_drv = { -- lowercase keys please
-    native  = "lib-driver.drv-pdfliteral", -- only LuaTeX driver
-    svg  = "lib-driver.drv-svg",
-    -- tikz = "lib-driver.drv-tikz",
+    native  = "lib-driver.brcd-drv-pdfliteral", -- only LuaTeX driver
+    svg  = "lib-driver.brcd-drv-svg",
 }
 
 function Driver:_get_driver(id_drv) --> object, err

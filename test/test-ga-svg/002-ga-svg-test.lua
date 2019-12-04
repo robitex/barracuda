@@ -14,3 +14,5 @@ assert(not err, err)
 
 local canvas = barracuda:new_canvas()
 symbol:append_ga(canvas)
+
+driver:save("svg", canvas, "test-code39")

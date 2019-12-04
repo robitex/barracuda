@@ -1,0 +1,37 @@
+Installation
+============
+
+Installing `barracuda` for TeX Live
+-----------------------------------
+
+If you have TeX Live installed from CTAN or from DVD TeX Collection, before
+any modification to your system check if the package is already installed
+looking for `installed` key in the output of the command:
+
+ $ tlmgr show barracuda
+
+If `barracuda` is not present, run the command:
+
+ $ tlmgr install barracuda
+
+If you have installed TeX Live via Linux OS repository try your distribution's
+package management system.
+
+It's also possible a manual installation:
+
+ a. Grab the sources from CTAN or https://github.com/robitex/barracuda .
+ b. Unzip it at the root of one or your TDS trees.
+ c. You may need to update some filename database after this running `texhash`,
+    see your TeX distribution's manual for details.
+
+Any TeX Live documentation files can be easily opened on screen with the
+`texdoc` command line utility (this way is very handy).
+
+ $ texdoc pkgname
+
+Installing for Lua
+------------------
+
+Manually copy the `src` folder content to a suitable directory of your system
+that is reachable to a Lua interpreter. 
+

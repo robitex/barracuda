@@ -1,6 +1,6 @@
 Development Program Task Table
 
-Ipothetical developing tasks list:
+Hypothetical developing tasks list:
 
 __.__: 20__-__-__: [dev] TiKz driver
 __.__: 20__-__-__: [dev] debug driver, ga code pretty printing
@@ -10,14 +10,28 @@ __.__: 20__-__-__: [dev] coherent error management
 __.__: 20__-__-__: [dev] proportional options
 __.__: 20__-__-__: [dev] a number parameter can be a string? unit measure...
 __.__: 20__-__-__: [prj] a command line program to print barcodes
-__.__: 20__-__-__: [prj] upload to tlcontrib
 __.__: 20__-__-__: [man] put ga-asm-spec together with the manual
 __.__: 2019-__-__: [dev] guard text in EAN simbology
+__.__: 2019-__-__: [dev] ISBN support
+__.__: 2019-__-__: [dev] UPC support
 __.__: 2019-__-__: [dev] make optional file name in all the Driver methods
+__.__: 2019-__-__: [prj] use l3build for testing and CTAN files packaging
 
 Scheduled tasks (What we are working on):
-<v0.0.9> 2019-__-__: prelude to version v0.1
+[  ] <v0.1> 2019-__-__: Data Matrix 2D symbology
 
+__.__: 2019-__-__: [dmx] data matrix first run
+__.__: 2019-__-__: [dmx] ecc200 error correction code
+__.__: 2019-__-__: [svg] opcode for grids
+__.__: 2019-__-__: [pdf] opcode for grids
+__.__: 2019-__-__: [gas] ga-asm grid opcode
+__.__: 2019-__-__: [geo] grid vector object
+_1.__: 2019-__-__: [dev] init source file encoder for Data Matrix
+
+[🎉] <v0.0.9.1> 2019-12-04: prelude to version v0.1
+09.15: 2019-11-29: [prj] upload to CTAN version v0.0.9.1 (under CTAN rules)
+09.14: 2019-11-29: [prj] upload to CTAN version v0.0.9
+09.13: 2019-11-26: [man] say something about barracuda.sty
 09.12: 2019-11-26: [man] edit the section 'A more deep look' for clearness
 09.11: 2019-11-26: [prj] reformat todo file: no more date at line end
 09.10: 2019-11-26: [svg] take dimensions as scaled point and then mm

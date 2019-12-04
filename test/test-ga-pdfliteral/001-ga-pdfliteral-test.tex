@@ -28,7 +28,7 @@ the PDF output file.
 
 \newbox\mybox
 \directlua{
-    driver = require [[lib-driver.driver]] % global Lua variables
+    driver = require [[lib-driver.brcd-driver]] % global Lua variables
     pt = tex.sp [[1pt]] % 1pt = 65536sp
 }
 
@@ -368,7 +368,7 @@ In fact, all the previous tests are rebuild with the ga-canvas library.
 
 Test 1: a vbar 2pt width, 20pt height:
 \directlua{
-    gacanvas = require "lib-geo.gacanvas"
+    gacanvas = require "lib-geo.brcd-gacanvas"
     local ga = gacanvas:new()
     local vbar = {_yline = {0.0, 2*pt}}
     local err = ga:encode_Vbar(vbar, 0.0, 0.0, 20*pt) % x, w

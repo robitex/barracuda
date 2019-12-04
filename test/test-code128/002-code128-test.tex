@@ -70,10 +70,10 @@ local s, err = c128:from_string("123456"); assert(s, err)
 local canvas = barracuda:new_canvas()
 s:append_ga(canvas)
 
-local ok, err = s:set_param("ydim", tex.sp "15mm")
+local ok, err = s:set_param("ydim", tex.sp "30mm")
 s:append_ga(canvas, tex.sp "20mm")
 
-local ok, err = s:set_param("ydim", tex.sp "30mm")
+local ok, err = s:set_param("ydim", tex.sp "60mm")
 s:append_ga(canvas, tex.sp "40mm")
 
 local drv = barracuda:get_driver()

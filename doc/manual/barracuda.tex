@@ -7,8 +7,10 @@
 \usepackage{geometry}
 \usepackage{fancyvrb}
 \usepackage{graphicx}
-\usepackage{barracuda-manual-tool}
 \usepackage{hyperref}
+
+% special macro for manual typesetting
+\input{barracuda-manual-tool}
 
 \hypersetup{
 pdfinfo={
@@ -38,7 +40,7 @@ pdfinfo={
 \author{Roberto Giacomelli\\\small email: \url{giaconet.mailbox@gmail.com}}
 \title{\code{barracuda} manual\\[1ex]
 \small \url{https://github.com/robitex/barracuda}}
-\date{\small 2019-11-28\\Version v0.0.9}
+\date{\small 2019-12-04\\Version v0.0.9.1}
 
 \begin{document}
 \maketitle
@@ -198,14 +200,14 @@ The main workflow to draw a barcode object reveals more details on internal
 structure. In fact, to draw an EAN-13 barcode we must do at least the following
 steps:
 \begin{enumerate}
-	\item load the library,
-	\item get a reference to the \code{Barcode} class,
-	\item build an EAN encoder,
-	\item build an EAN symbol passing data to a costructor,
-	\item get a reference to a new canvas object,
-	\item draw barcode on canvas,
-	\item get a reference of driver object,
-	\item address canvas toward a driver.
+\item load the library,
+\item get a reference to the \code{Barcode} class,
+\item build an EAN encoder,
+\item build an EAN symbol passing data to a costructor,
+\item get a reference to a new canvas object,
+\item draw barcode on canvas,
+\item get a reference of driver object,
+\item address canvas toward a driver.
 \end{enumerate}
 
 Follow that step by step procedure the corresponding code is in the next
@@ -232,14 +234,56 @@ assert(ok, err_out)
 \section{Installing}
 \label{secInstall}
 
-The esier way to install on your system Barracuda, is via TeX Live tlcontrib,
-the home of among the others, experimental package.
+\subsection{Installing `barracuda` for TeX Live}
+
+If you have TeX Live installed from CTAN or from DVD TeX Collection, check
+before any modification to your system if the package is already installed
+looking for \emph{installed} key in the output of the command:
+\begin{Verbatim}
+$ tlmgr show barracuda
+\end{Verbatim}
+
+If `barracuda` is not present, run the command:
+\begin{Verbatim}
+$ tlmgr install barracuda
+\end{Verbatim}
+
+If you have installed TeX Live via Linux OS repository try your distribution's
+package management system.
+
+It's also possible a manual installation:
+\begin{enumerate}
+\item Grab the sources from CTAN or \url{https://github.com/robitex/barracuda}.
+\item Unzip it at the root of one or your TDS trees.
+\item You may need to update some filename database after this, see your \TeX{}
+distribution's manual for details.
+\end{enumerate}
+
+\subsection{Installing for Lua}
+
+Manually copy \code{src} folder content to a suitable directory of your system
+that is reachable to Lua interpreter.
 
 
 \section{Barracuda \LaTeX{} Package}
 \label{secLaTeXPkg}
 
-TODO
+The \LaTeX{} package delivered with \brcd{} is still under an early stage of
+development. The only macro available is \verb=\barracuda{encoder}{data}=.
+A simple example is the following source file for Lua\LaTeX{}:
+\begin{Verbatim}
+% !TeX program = LuaLaTeX
+\documentclass{article}
+\usepackage{barracuda}
+\begin{document}
+\leavevmode
+\barracuda{code39}{123ABC}\\
+\barracuda{code128}{123ABC}
+\end{document}
+\end{Verbatim}
+
+Every macro \verb=\barracuda= typesets a barcode symbol represented with the
+encoder defined in the first argument, the information defined by the second.
 
 
 \section{The Barracuda Framework}
