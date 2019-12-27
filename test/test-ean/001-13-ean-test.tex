@@ -9,8 +9,8 @@ EAN encoder test.
 Test 1: one simple barcode EAN13 with default parameter:
 
 \directlua{
-local barracuda = require "barracuda"
-local barcode = barracuda:get_barcode_class()
+barracuda = require "barracuda"
+local barcode = barracuda:barcode()
 
 local ean13, err = barcode:new_encoder("ean-13")
 assert(not err, err)
@@ -30,8 +30,7 @@ drv:ga_to_hbox(canvas, "mybox")
 Test 2: one simple EAN8 barcode with default parameter:
 
 \directlua{
-local barracuda = require "barracuda"
-local barcode = barracuda:get_barcode_class()
+local barcode = barracuda:barcode()
 
 local ean8, err = barcode:new_encoder("ean-8")
 assert(not err, err)
@@ -51,8 +50,7 @@ drv:ga_to_hbox(canvas, "mybox")
 Test 3: one simple EAN5 barcode with default parameter:
 
 \directlua{
-local barracuda = require "barracuda"
-local barcode = barracuda:get_barcode_class()
+local barcode = barracuda:barcode()
 local ean5, err = barcode:new_encoder("ean-5")
 assert(not err, err)
 local symbo, err = ean5:from_string("54495")
@@ -68,8 +66,7 @@ drv:ga_to_hbox(canvas, "mybox")
 Test 4: one simple EAN2 barcode with default parameter:
 
 \directlua{
-local barracuda = require "barracuda"
-local barcode = barracuda:get_barcode_class()
+local barcode = barracuda:barcode()
 local ean2, err = barcode:new_encoder("ean-2")
 assert(not err, err)
 local symbo, err = ean2:from_string("53")
@@ -85,8 +82,7 @@ drv:ga_to_hbox(canvas, "mybox")
 Test 5: EAN13 + EAN5 barcode with default parameter:
 
 \directlua{
-local barracuda = require "barracuda"
-local barcode = barracuda:get_barcode_class()
+local barcode = barracuda:barcode()
 local ean, err = barcode:new_encoder("ean-13+5"); assert(not err, err)
 local n = 123456789012
 local c = ean:checksum(n)
@@ -104,8 +100,7 @@ drv:ga_to_hbox(canvas, "mybox")
 Test 6: EAN13 + EAN2 barcode with default parameter:
 
 \directlua{
-local barracuda = require "barracuda"
-local barcode = barracuda:get_barcode_class()
+local barcode = barracuda:barcode()
 local ean, err = barcode:new_encoder("ean-13+2"); assert(not err, err)
 local n = 123456789012
 local c = ean:checksum(n)
@@ -123,8 +118,7 @@ drv:ga_to_hbox(canvas, "mybox")
 Test 7: EAN8 + EAN5 barcode with default parameter:
 
 \directlua{
-local barracuda = require "barracuda"
-local barcode = barracuda:get_barcode_class()
+local barcode = barracuda:barcode()
 local ean, err = barcode:new_encoder("ean-8+5"); assert(not err, err)
 local n = 1234567
 local c = ean:checksum(n)
@@ -142,8 +136,7 @@ drv:ga_to_hbox(canvas, "mybox")
 Test 8: EAN8 + EAN2 barcode with default parameter:
 
 \directlua{
-local barracuda = require "barracuda"
-local barcode = barracuda:get_barcode_class()
+local barcode = barracuda:barcode()
 local ean, err = barcode:new_encoder("ean-8+2"); assert(not err, err)
 local n = 7865431
 local c = ean:checksum(n)
@@ -167,8 +160,7 @@ to the object symbol.
 \smallskip
 
 \directlua{
-local barracuda = require "barracuda"
-local barcode = barracuda:get_barcode_class()
+local barcode = barracuda:barcode()
 local ean, err = barcode:enc_by_name("ean-13"); assert(not err, err)
 local n = 818571884348
 local c = ean:checksum(n)
@@ -194,8 +186,7 @@ The parameter height is setting up in the encoder so it will be global.
 \smallskip
 
 \directlua{
-local barracuda = require "barracuda"
-local barcode = barracuda:get_barcode_class()
+local barcode = barracuda:barcode()
 local ean, err = barcode:enc_by_name("ean-13"); assert(not err, err)
 local ok, err  = ean:set_param("height", tex.sp "5mm"); assert(ok, err)
 local n = 758458535897; local c = ean:checksum(n); local s = n .. c

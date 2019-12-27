@@ -4,11 +4,11 @@
 \newbox\mybox
 \nopagenumbers
 
-Test 3: the same Code 39 symbol drawing multiple time on the same canvas
+Test 1: the same Code 39 symbol drawing multiple time on the same canvas
 
 \directlua{
 local barracuda = require "barracuda"
-local c39, err = barracuda:get_barcode_class()
+local c39, err = barracuda:barcode()
                           :new_encoder("code39")
 assert(not err, err)
 local err
@@ -46,8 +46,7 @@ symbol:append_ga(canvas, tex.sp "9.0cm", tex.sp "-2.0cm")
 
 local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
-}
-\box\mybox
+}\box\mybox
 \bye
 
 

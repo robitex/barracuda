@@ -19,6 +19,17 @@ local EAN = {
     _DESCRIPTION = "EAN barcode encoder",
 }
 
+EAN._id_variant = {
+    ["13"]   = true, -- EAN13
+    ["8"]    = true, -- EAN8
+    ["5"]    = true, -- EAN5 add-on
+    ["2"]    = true, -- EAN2 add-on
+    ["13+5"] = true, -- EAN13 with EAN5 add-on
+    ["13+2"] = true, -- EAN13 with EAN2 add-on
+    ["8+5"]  = true, -- EAN8 with EAN5 add-on
+    ["8+2"]  = true, -- EAN8 with EAN2 add-on
+}
+
 EAN._codeset_seq = {-- 1 -> A, 2 -> B, 3 -> C
 [0]={1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3},
     {1, 1, 2, 1, 2, 2, 3, 3, 3, 3, 3, 3},
@@ -319,17 +330,12 @@ EAN._config_variant = {
 
 -- config function
 -- create all the possible VBar object
-function EAN:config(variant) --> ok, err
-    if not type(variant) == "string" then
-        return false, "[ArgErr] incorrect type for 'variant', string expected"
-    end
+function EAN:config() --> ok, err
+    local variant = self._variant
     local fnconfig = self._config_variant[variant]
-    if not fnconfig then
-        return false, "[Err] EAN variant '".. variant .."' not found"
-    end
-    local Vbar = self._libgeo.Vbar -- Vbar class
+    local VbarClass = self._libgeo.Vbar -- Vbar class
     local mod = self.mod
-    fnconfig(self, Vbar, mod)
+    fnconfig(self, VbarClass, mod)
     return true, nil
 end
 

@@ -25,7 +25,7 @@
 -- modules.
 
 local Barracuda = {
-    _VERSION     = "barracuda v0.0.9.1",
+    _VERSION     = "barracuda v0.0.9.2",
     _NAME        = "barracuda",
     _DESCRIPTION = "Lua library for barcode printing",
     _URL         = "https://github.com/robitex/barracuda",
@@ -41,12 +41,12 @@ local Barcode = Barracuda._barcode
 Barcode._libgeo = Barracuda._libgeo
 
 -- encoder builder
-function Barracuda:get_barcode_class() --> Barcode class object
+function Barracuda:barcode() --> Barcode class object
     return self._barcode
 end
 
--- where we place output driver library
-function Barracuda:get_driver() --> Driver object, err
+-- where we place the output driver library
+function Barracuda:get_driver() --> Driver object
     if not self._lib_driver then
         self._lib_driver = require "lib-driver.brcd-driver"
     end
@@ -63,54 +63,83 @@ end
 -- panic on error
 
 -- save barcode as a graphic external file
-function Barracuda:save(bc_type, data, filename, id_drv)
-    local barcode = self:get_barcode_class()
-    local enc, err = barcode:new_encoder(bc_type)
-    assert(enc, err)
-    local arg_data = type(data)
+-- 'treename' mandatory encoder identifier <family>-<variant>:<name>
+-- 'data' mandatory the object string or integer being encoded
+-- 'filename' mandatory output filename
+-- 'id_drv' optional driver identifier, defualt 'svg'
+-- 'opt' optional table for symbol parameters
+function Barracuda:save(treename, data, filename, id_drv, opt)
+    local barcode = self._barcode
+    local enc_archive = barcode._encoder_instances
+    local enc = enc_archive[treename]
+    if not enc then
+        local err
+        enc, err = barcode:new_encoder(treename)
+        assert(enc, err)
+    end
+    -- make symbol
     local symb
+    local arg_data = type(data)
     if arg_data == "number" then
         local err_data
         symb, err_data = enc:from_uint(data)
-        asser(symb, err_data)
+        assert(symb, err_data)
     elseif arg_data == "string" then
         local err_data
         symb, err_data = enc:from_string(data)
         assert(symb, err_data)
     else
-        error("[argErr] unsupported 'data' type")
+        error("[ArgErr] unsupported type for 'data'")
+    end
+    if opt then
+        local ok, err = symb:set_param(opt)
+        assert(ok, err)
     end
     local canvas = self:new_canvas()
     symb:append_ga(canvas)
     local driver = self:get_driver()
     id_drv = id_drv or "svg"
-    local ok, out_err = driver:save(id_drv, canvas, filename)
-    assert(ok, out_err)
+    local ok, err = driver:save(id_drv, canvas, filename)
+    assert(ok, err)
 end
 
 -- this is a only LuaTeX method
-function Barracuda:hbox(bc_type, data, box_name)
-    local barcode = self:get_barcode_class()
-    local enc, err = barcode:new_encoder(bc_type)
-    assert(enc, err)
-    local arg_data = type(data)
+-- 'treename' mandatory encoder identifier <family>-<variant>:<name>
+-- 'data' mandatory the object string or integer being encoded
+-- 'box_name' mandatory TeX hbox name
+-- 'opt' optional table for symbol parameters
+function Barracuda:hbox(treename, data, box_name, opt)
+    local barcode = self._barcode
+    local enc_archive = barcode._encoder_instances
+    local enc = enc_archive[treename]
+    if not enc then
+        local err
+        enc, err = barcode:new_encoder(treename)
+        assert(enc, err)
+    end
+    -- make symbol
     local symb
+    local arg_data = type(data)
     if arg_data == "number" then
         local err_data
         symb, err_data = enc:from_uint(data)
-        asser(symb, err_data)
+        assert(symb, err_data)
     elseif arg_data == "string" then
         local err_data
         symb, err_data = enc:from_string(data)
         assert(symb, err_data)
     else
-        error("[argErr] unsupported 'data' type")
+        error("[ArgErr] unsupported type for 'data'")
+    end
+    if opt then
+        local ok, err = symb:set_param(opt)
+        assert(ok, err)
     end
     local canvas = self:new_canvas()
     symb:append_ga(canvas)
     local driver = self:get_driver()
-    local ok, err_hbox = driver:ga_to_hbox(canvas, box_name)
-    assert(ok, err_hbox)
+    local ok, err = driver:ga_to_hbox(canvas, box_name)
+    assert(ok, err)
 end
 
 return Barracuda

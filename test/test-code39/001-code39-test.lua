@@ -7,7 +7,7 @@ for k, v in pairs(barracuda) do
     print(k,v)
 end
 
-local barcode = barracuda:get_barcode_class()
+local barcode = barracuda:barcode()
 
 local c39, err = barcode:new_encoder("code39")
 assert(not err, err)
@@ -27,7 +27,7 @@ end
 local symb = c39:from_string("123")
 
 print("print internal representation of chars")
-for _, c in ipairs(symb.code) do
+for _, c in ipairs(symb._code_data) do
     print(c)
 end
 print()

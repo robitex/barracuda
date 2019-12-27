@@ -1,7 +1,7 @@
--- Copyright (C) 2018 Roberto Giacomelli
+-- Copyright (C) 2019 Roberto Giacomelli
 
 local barracuda = require "barracuda"
-local barcode = barracuda:get_barcode_class()
+local barcode = barracuda:barcode()
 local c128, err = barcode:new_encoder("code128")
 assert(not err, err)
 

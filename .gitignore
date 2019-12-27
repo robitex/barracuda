@@ -1,5 +1,5 @@
 
-# exclude auxiliary TeX file resulting from to compile documents
+# exclude auxiliary TeX file resulting while compiling documents
 *.aux
 *.log
 *.synctex.gz

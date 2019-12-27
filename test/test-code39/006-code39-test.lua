@@ -2,7 +2,7 @@
 local cm = 1864679.8110236 -- sp
 
 local barracuda = require "barracuda"
-local c39, err = barracuda:get_barcode_class()
+local c39, err = barracuda:barcode()
                           :new_encoder("code39")
 assert(not err, err)
 local err

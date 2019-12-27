@@ -1,21 +1,18 @@
 %
 \NeedsTeXFormat{LaTeX2e}[2009/06/27]
-\ProvidesPackage{barracuda}[2018/12/30 v0.1 a barcode typesetting package]%
-
+\ProvidesPackage{barracuda}[2019/12/28 v0.0.9.1 a barcode typesetting package]%
 \newbox\barracudabox
-\newcommand\barracuda[2]{\directlua{
+\newcommand\barracuda[3][_brcdempty_=true]{\directlua{
     local barracuda = require "barracuda"
-    local e = [[#1]]
-    local s = [[#2]]
-    local enc, err = barracuda:get_barcode_class():new_encoder(e)
-    assert(enc, err)
-    local symb, err = enc:from_string(s); assert(symb, err)
-    local canvas = barracuda:new_canvas()
-    symb:append_ga(canvas)
-    local drv = barracuda:get_driver()
-    drv:ga_to_hbox(canvas, "barracudabox")
+    local enc_name = [[#2]]
+    local data = [[#3]]
+    local opt = {#1};
+    if opt._brcdempty_ == true then
+        barracuda:hbox(enc_name, data, "barracudabox")
+    else
+        barracuda:hbox(enc_name, data, "barracudabox", opt)
+    end
 }%
 \box\barracudabox
 }
-
 \endinput

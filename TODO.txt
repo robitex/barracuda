@@ -2,32 +2,43 @@ Development Program Task Table
 
 Hypothetical developing tasks list:
 
-__.__: 20__-__-__: [dev] TiKz driver
-__.__: 20__-__-__: [dev] debug driver, ga code pretty printing
-__.__: 20__-__-__: [dev] make thing happen: font property for text
-__.__: 20__-__-__: [dev] develop LaTeX user package
-__.__: 20__-__-__: [dev] coherent error management
-__.__: 20__-__-__: [dev] proportional options
-__.__: 20__-__-__: [dev] a number parameter can be a string? unit measure...
-__.__: 20__-__-__: [prj] a command line program to print barcodes
-__.__: 20__-__-__: [man] put ga-asm-spec together with the manual
-__.__: 2019-__-__: [dev] guard text in EAN simbology
-__.__: 2019-__-__: [dev] ISBN support
-__.__: 2019-__-__: [dev] UPC support
-__.__: 2019-__-__: [dev] make optional file name in all the Driver methods
-__.__: 2019-__-__: [prj] use l3build for testing and CTAN files packaging
+20__-__-__: [dev] TiKz driver
+20__-__-__: [dev] debug driver, ga stream pretty printing
+20__-__-__: [dev] make thing happen: font property for text
+20__-__-__: [dev] develop LaTeX user package
+20__-__-__: [dev] coherent error management
+20__-__-__: [dev] proportional options
+20__-__-__: [dev] a number parameter can be a string? unit measure...
+20__-__-__: [prj] a command line program to print barcodes
+20__-__-__: [man] put ga-asm-spec together with the manual
+2019-__-__: [dev] guard text in EAN simbology
+2019-__-__: [dev] ISBN support
+2019-__-__: [dev] UPC support
+2019-__-__: [dev] make optional file name in all the Driver methods
+2019-__-__: [prj] test l3build for testing and CTAN files packaging
+20__-__-__: [dev] load barcode user parameters from file
 
-Scheduled tasks (What we are working on):
-[  ] <v0.1> 2019-__-__: Data Matrix 2D symbology
+Scheduled tasks:
+================
+2019-__-__: [new version] <v0.1> Data Matrix 2D symbology
+2019-__-__: [dmx] data matrix first run
+2019-__-__: [dmx] ecc200 error correction code
+2019-__-__: [svg] opcode for grids
+2019-__-__: [pdf] opcode for grids
+2019-__-__: [gas] ga-asm grid opcode
+2019-__-__: [geo] grid vector object
+2019-__-__: [dev] init source file encoder for Data Matrix
 
-__.__: 2019-__-__: [dmx] data matrix first run
-__.__: 2019-__-__: [dmx] ecc200 error correction code
-__.__: 2019-__-__: [svg] opcode for grids
-__.__: 2019-__-__: [pdf] opcode for grids
-__.__: 2019-__-__: [gas] ga-asm grid opcode
-__.__: 2019-__-__: [geo] grid vector object
-_1.__: 2019-__-__: [dev] init source file encoder for Data Matrix
+Staged before CTAN upload:
+==========================
+2019-12-27: [api][break change] rename the `get_barcode_class()` method
+          : in the more simple `barcode()`
+          : [api][break change] new encoder naming convention
+          : reuse or create a new encoder object in barracuda:hbox() and
+          : barracuda:save() methods
 
+Completed tasks:
+================
 [🎉] <v0.0.9.1> 2019-12-04: prelude to version v0.1
 09.15: 2019-11-29: [prj] upload to CTAN version v0.0.9.1 (under CTAN rules)
 09.14: 2019-11-29: [prj] upload to CTAN version v0.0.9
@@ -44,8 +55,6 @@ _1.__: 2019-__-__: [dev] init source file encoder for Data Matrix
 09.03: 2019-11-20: [svg] driver first run
 09.02: 2019-11-10: [dev] implement ga opcode for line-join style and line-cap style
 09.01: 2019-11-10: [prj] make lib-parseopt a separated project
-
-Completed tasks:
 
 <Version 0.0.8> move costructors to the barcode abstract class     🎉 2019-11-09
 Task   8.5: adopted new Barcode costructors in the EAN encoder        2019-11-09

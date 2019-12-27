@@ -18,6 +18,7 @@ Barcode._available_enc = {-- keys must be lowercase
     i2of5   = "lib-barcode.brcd-i2of5",   -- Interleaved 2 of 5
 }
 Barcode._builder_instances = {} -- encoder builder instances repository
+Barcode._encoder_instances = {} -- encoder instances repository
 
 -- common parameters to all the barcode objects
 Barcode._super_par_def = {}
@@ -53,6 +54,56 @@ pardef.ay = {
 -- Barcode.bbox_to_quietzone -- under assessment
 
 -- Barcode methods
+
+-- extract id from an encoder 'tree name'
+local function ck_enc_name(treename) --> fam, var, name, err
+    if not type(treename) == "string" then
+        return nil, nil, nil, "[ArgErr] 'treename' must be a string"
+    end
+    if treename:find(" ") then
+        return nil, nil, nil,
+            "[ArgErr] spaces are not allowed in an encoder identifier"
+    end
+    local fam, var, name
+    -- fam extraction
+    local idash = treename:find("-")
+    local icolon = treename:find(":")
+    if idash then
+        fam = treename:sub(1, idash - 1)
+    else
+        if icolon then
+            fam = treename:sub(1, icolon - 1)
+        else
+            fam = treename
+        end
+    end
+    if fam == "" then
+        return nil, nil, nil, "[ArgErr] empty encoder id"
+    end
+    if idash then
+        if icolon then
+            var = treename:sub(idash + 1, icolon - 1)
+        else
+            var = treename:sub(idash + 1)
+        end
+        if var == "" then
+            return nil, nil, nil, "[ArgErr] empty 'variant' encoder id"
+        end
+    end
+    if icolon then
+        name = treename:sub(icolon + 1)
+        if name == "" then
+            return nil, nil, nil, "[ArgErr] empty 'name' after colon"
+        end
+        if name:find("-") then
+            return nil, nil, nil, "[ArgErr] the name mustn't contain a dash"
+        end
+        if name:find(":") then
+            return nil, nil, nil, "[ArgErr] the name mustn't contain a colon"
+        end
+    end
+    return fam, var, name
+end
 
 -- stateless iterator troughtout the ordered parameters collection
 local function p_iter(state, i)
@@ -118,56 +169,61 @@ end
 
 -- encoder costructor
 -- Symbology can be a family with many variants. This is represented by the
--- first argument 'bc_type' formatted as <family>-<variant>.
---     in more details:
---     <family id><dash char><variant id> if there are variants
---     <encoder id> if not
--- i.e. when 'bc_type' is the string "ean-13", "ean" is the barcode family and
+-- first argument 'tree_name' formatted as <family>-<variant>:<id>.
+-- i.e. when 'tree_name' is the string "ean-13", "ean" is the barcode family and
 -- "13" is its variant name.
--- For whose barcodes that do not have variants, 'bc_type' is simply the endoder id
--- such as "code128".
--- 'id_enc' is an optional identifier useful to retrive an encoder reference later
--- 'opt'    is an optional table with the user-defined parameters setting up encoders
---
-function Barcode:new_encoder(bc_type, id_enc, opt) --> object, err
+-- For whose barcodes that do not have variants, 'treename' is simply the
+-- encoder id such as in the case of "code128".
+-- <id> is an optional identifier useful if there are more than one encoders of
+-- the same type
+-- 'opt' is an optional table with the user-defined parameters setting up
+-- encoders
+function Barcode:new_encoder(treename, opt) --> object, err
     -- argument checking
-    if type(bc_type) ~= "string" then
-        return nil, "[ArgErr] 'bc_type' is not a string"
-    end
-    local pdash = string.find(bc_type, "-")
-    local family, variant
-    if pdash then
-        family  = string.sub(bc_type, 1, pdash - 1)
-        variant = string.sub(bc_type, pdash + 1)
-    else
-        family = bc_type
+    local family, variant, enc_name, err = ck_enc_name(treename)
+    if err then
+        return err
     end
     local av_enc = self._available_enc
-    if not av_enc[family] then -- is the barcode type a real module?
+    local mod_path = av_enc[family]
+    -- check family identifier
+    if not mod_path then
         return nil, "[Err] barcode type '"..family.."' not found"
     end
-    if id_enc == nil then
-        id_enc = (variant or "") .. "_noname"
-    elseif type(id_enc) ~= "string" then
-        return nil, "[ArgErr] provided 'id_enc' is not a string"
+    -- retrive/load the builder
+    local builder
+    local tenc = self._builder_instances
+    if tenc[family] then -- is the encoder builder already loaded?
+        builder = tenc[family]
+    else -- loading the encoder builder
+        builder = require(mod_path)
+        tenc[family] = builder
+    end
+    -- check the variant identifier
+    local av_var = builder._id_variant
+    if av_var then
+        if variant then
+            if not av_var[variant] then
+                local fmt = "[Err] family '%s' does not have '%s' variant"
+                return nil, string.format(fmt, family, variant)
+            end
+        else
+            return nil, "[Err] mandatory variant identifier in treename"
+        end
+    else
+        if variant then
+            return nil, "[Err] family '"..family.."' doesn't admit variant"
+        end
+    end
+    -- check unique encoder identifier
+    local enc_archive = self._encoder_instances
+    if enc_archive[treename] then
+        return nil, "[Err] duplicated encoder name"
     end
     if type(opt) == "table" or opt == nil then
         opt = opt or {}
     else
-        return nil, "[ArgErr] provided 'opt' is wrong"
-    end
-    local tenc = self._builder_instances
-    local builder;
-    if tenc[family] then -- is the encoder builder already loaded?
-        builder = tenc[family]
-    else -- loading the encoder builder
-        local mod_path = av_enc[family]
-        builder = require(mod_path)
-        tenc[family] = assert(builder, "[InternalErr] module not found!")
-        builder._enc_instances = {}
-    end
-    if builder._enc_instances[id_enc] then
-        return nil, "[Err] 'id_enc' already present"
+        return nil, "[ArgErr] provided 'opt' is not a table"
     end
     local enc = {} -- the new encoder
     enc.__index = enc
@@ -180,19 +236,19 @@ function Barcode:new_encoder(bc_type, id_enc, opt) --> object, err
             return self[k]
         end
     })
-    builder._enc_instances[id_enc] = enc
-    -- param defition
+    enc_archive[treename] = enc
+    -- parameters definition
     for _, tpar in enc:param_ord_iter() do
         local pname   = tpar.pname
         local pdef    = tpar.pdef
         local isSuper = tpar.isSuper
         local val = opt[pname] -- param = val
         if val ~= nil then
-            local ok, err = pdef:fncheck(val, enc)
+            local ok, perr = pdef:fncheck(val, enc)
             if ok then
                 enc[pname] = val
-            else -- error!
-                return nil, err
+            else -- parameter error!
+                return nil, perr
             end
         else
             -- load the default value of <pname>
@@ -207,48 +263,29 @@ function Barcode:new_encoder(bc_type, id_enc, opt) --> object, err
         end
     end
     if enc.config then -- this must be called after the parameter definition
-        enc:config(variant)
+        enc:config()
     end
     return enc, nil
 end
 
--- retrive encoder object already created
--- 'name' is optional in case you didn't assign one to the encoder
-function Barcode:enc_by_name(bc_type, name) --> <encoder object>, <err>
-    if type(bc_type) ~= "string" then
-        return nil, "[ArgErr] 'bc_type' must be a string"
+-- retrive an encoder object already created
+-- 'trename' is the special identifier of the encoder
+function Barcode:enc_by_name(treename) --> <encoder object>, <err>
+    -- argument checking
+    local family, variant, enc_name, err = ck_enc_name(treename)
+    if err then
+        return nil, err
     end
-    local pdash = string.find(bc_type, "-")
-    local family, variant
-    if pdash then
-        family  = string.sub(bc_type, 1, pdash - 1)
-        variant = string.sub(bc_type, pdash + 1)
-    else
-        family = bc_type
-    end
-    local av_enc = self._available_enc
-    if not av_enc[family] then -- is the barcode type a real module?
-        return nil, "[Err] barcode type '"..family.."' not found"
-    end
-    local builder = self._builder_instances[family]
-    if builder == nil then
-        return nil, "[Err] enc builder '"..family.."' not loaded, use 'new_encoder()' method"
-    end
-    if name == nil then
-        name = (variant or "") .. "_noname"
-    elseif type(name) ~= "string" then
-        return nil, "[ArgErr] 'name' must be a string"
-    end
-    local repo = builder._enc_instances
-    local enc = repo[name]
-    if enc == nil then
-        return nil, "[Err] encoder '"..name.."' not found"
-    else
+    local enc = self._encoder_instances[treename]
+    if enc then
         return enc, nil
+    else
+        return nil, "[Err] encoder '"..treename.."' not found"
     end
 end
 
--- base constructors common to all the encoders
+-- base methods common to all the encoders
+
 -- for numeric only simbology
 function Barcode:_check_char(c) --> elem, err
     if type(c) ~= "string" or #c ~= 1 then
@@ -260,6 +297,7 @@ function Barcode:_check_char(c) --> elem, err
     end
     return n, nil
 end
+--
 function Barcode:_check_digit(n) --> elem, err
     if type(n) ~= "number" then
         return nil, "[InternalErr] not a number"

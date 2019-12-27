@@ -8,20 +8,20 @@ This package does not have dependences.
 
 ![a SVG formatted Code39 symbol](/test/test-ga-svg/test-code39.svg)
 
-Internal modules is structured to ensure good performance and to allow a
+Internal modules are structured to ensure good performance and to allow a
 complete user control over barcode symbol parameters :thumbsup: .
 
 Although development is in beta stage, `barracuda` has a good level of
 stability.
 
-## Current version information
+## Current version
 
 Version: v0.0.9.1
 Date: 2019-12-04
 
 ## Barcode symbologies list
 
-So far, are supported
+So far, are supported:
 
 - Code 39
 - Code 128
@@ -92,4 +92,3 @@ Please, for more legal details refer to LICENSE.txt file or visit the web page
 https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
 Copyright (C) 2019 Roberto Giacomelli
-
