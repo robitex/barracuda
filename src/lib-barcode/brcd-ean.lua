@@ -14,7 +14,7 @@
 -- "8+2"  EAN8 with EAN2 add-on
 
 local EAN = {
-    _VERSION     = "ean v0.0.5",
+    _VERSION     = "ean v0.0.6",
     _NAME        = "ean",
     _DESCRIPTION = "EAN barcode encoder",
 }
@@ -28,6 +28,9 @@ EAN._id_variant = {
     ["13+2"] = true, -- EAN13 with EAN2 add-on
     ["8+5"]  = true, -- EAN8 with EAN5 add-on
     ["8+2"]  = true, -- EAN8 with EAN2 add-on
+    ["isbn"] = true, -- ISBN 13 digits
+    ["isbn+2"] = true, -- ISBN 13 digits with an EAN2 add-on
+    ["isbn+5"] = true, -- ISBN 13 digits with an EAN2 add-on
 }
 
 EAN._codeset_seq = {-- 1 -> A, 2 -> B, 3 -> C
@@ -69,7 +72,7 @@ EAN._is_first_bar = {false, false, true}
 EAN._start = {111, true}
 EAN._stop  = {11111, false}
 
--- family parameters
+-- family common parameters
 
 EAN._par_def = {}; local pardef = EAN._par_def
 
@@ -200,12 +203,13 @@ EAN._par_def_variant = {
     ["13+2"] = {}, -- EAN13 with EAN2 add-on
     ["8+5"]  = {}, -- EAN8 with EAN5 add-on
     ["8+2"]  = {}, -- EAN8 with EAN2 add-on
+    ["isbn"] = {}, -- ISBN 13 digits
+    ["isbn+2"] = {}, -- ISBN 13 digits with an EAN2 add-on
+    ["isbn+5"] = {}, -- ISBN 13 digits with an EAN2 add-on
 }
 
--- ean13_pardef.text_ISBN parameter -- TODO:
-
--- EAN 13/8 + add-on parameters
-local addon_xgap_factor = {-- distance between symbol
+-- EAN ISBN/13/8 + add-on parameters
+local addon_xgap_factor = {-- distance between main and add-on symbol
     default    = 10,
     unit       = "absolute-number",
     isReserved = false,
@@ -222,6 +226,68 @@ EAN._par_def_variant["13+5"].addon_xgap_factor = addon_xgap_factor
 EAN._par_def_variant["13+2"].addon_xgap_factor = addon_xgap_factor
 EAN._par_def_variant["8+5"].addon_xgap_factor = addon_xgap_factor
 EAN._par_def_variant["8+2"].addon_xgap_factor = addon_xgap_factor
+EAN._par_def_variant["isbn+5"].addon_xgap_factor = addon_xgap_factor
+EAN._par_def_variant["isbn+2"].addon_xgap_factor = addon_xgap_factor
+
+-- text_ISBN parameter
+-- enable/disable a text ISBN label upon the barcode symbol
+local isbn_text_enabled = { -- boolean type
+    default    = true,
+    isReserved = false,
+    order      = 2,
+    fncheck    = function (self, flag, _) --> boolean, err
+        if type(flag) == "boolean" then
+            return true, nil
+        else
+            return false, "[TypeErr] not a boolean value for text_isbn_enabled"
+        end
+    end,
+}
+EAN._par_def_variant["isbn+5"].text_isbn_enabled = isbn_text_enabled
+EAN._par_def_variant["isbn+2"].text_isbn_enabled = isbn_text_enabled
+EAN._par_def_variant["isbn"].text_isbn_enabled = { -- boolean type
+    default    = true,
+    isReserved = false,
+    order      = 1,
+    fncheck    = function (self, flag, _) --> boolean, err
+        if type(flag) == "boolean" then
+            return true, nil
+        else
+            return false, "[TypeErr] not a boolean value for text_isbn_enabled"
+        end
+    end,
+}
+
+-- ISBN text vertical distance
+local text_isbn_ygap_factor = {
+    default    = 2.0,
+    unit       = "absolute-number",
+    isReserved = false,
+    order      = 3,
+    fncheck    = function (self, t, _) --> boolean, err
+        if t >= 0 then
+            return true, nil
+        else
+            return false, "[OutOfRange] non positive value for text_isbn_ygap_factor"
+        end
+    end,
+}
+
+EAN._par_def_variant["isbn+5"].text_isbn_ygap_factor = text_isbn_ygap_factor
+EAN._par_def_variant["isbn+2"].text_isbn_ygap_factor = text_isbn_ygap_factor
+EAN._par_def_variant["isbn"].text_isbn_ygap_factor = {
+    default    = 2.0,
+    unit       = "absolute-number",
+    isReserved = false,
+    order      = 2,
+    fncheck    = function (self, t, _) --> boolean, err
+        if t >= 0 then
+            return true, nil
+        else
+            return false, "[OutOfRange] non positive value for text_isbn_ygap_factor"
+        end
+    end,
+}
 
 -- configuration functions
 
@@ -240,7 +306,7 @@ local function config_full(ean, Vbar, mod, n1, n2)
     ean._is_last_checksum = true
 end
 
-EAN._config_variant = {
+local config_variant = {
     ["13"] = function (ean13, Vbar, mod)
         ean13._main_len = 13
         ean13._is_last_checksum = true
@@ -328,7 +394,51 @@ EAN._config_variant = {
     end,
 }
 
--- config function
+config_variant["isbn"] = config_variant["13"]
+config_variant["isbn+2"] = config_variant["13+2"]
+config_variant["isbn+5"] = config_variant["13+5"]
+EAN._config_variant = config_variant
+
+local function isbn_check_char(isbn, c, parse_state) --> elem, err
+    if type(c) ~= "string" or #c ~= 1 then
+        return nil, "[InternalErr] invalid char"
+    end
+    parse_state.isbncode = parse_state.isbncode or {}
+    local code = parse_state.isbncode
+    if parse_state.isspace == nil then parse_state.isspace = false end
+    if parse_state.isdash == nil then parse_state.isdash = false end
+    parse_state.i = parse_state.i or 0
+    if c == "-" then
+        if parse_state.isdash then
+            return nil, "[ArgErr] two consecutive dash char found"
+        end
+        parse_state.isdash = true
+        return nil, nil
+    elseif c == " " then
+        parse_state.isspace = true
+        return nil, nil
+    else
+        local n = string.byte(c) - 48
+        if n < 0 or n > 9 then
+            return nil, "[ArgErr] found a not digit or a not grouping char"
+        end
+        if parse_state.isdash then -- close a group
+            code[#code + 1] = "-"
+            parse_state.isdash = false
+            parse_state.isspace = false
+        elseif parse_state.isspace then
+            code[#code + 1] = " "
+            parse_state.isspace = false
+        end
+        if parse_state.i < 13 then
+            code[#code + 1] = c
+            parse_state.i = parse_state.i + 1
+        end
+        return n, nil
+    end
+end
+
+-- config function called at the moment of encoder construction
 -- create all the possible VBar object
 function EAN:config() --> ok, err
     local variant = self._variant
@@ -336,6 +446,9 @@ function EAN:config() --> ok, err
     local VbarClass = self._libgeo.Vbar -- Vbar class
     local mod = self.mod
     fnconfig(self, VbarClass, mod)
+    if variant == "isbn" or variant == "isbn+5" or variant == "isbn+2" then
+        self._check_char = isbn_check_char
+    end
     return true, nil
 end
 
@@ -436,15 +549,9 @@ function EAN:checksum(n) --> n, err
     end
 end
 
-function EAN:get_code() --> string
-    local var = self._variant
-    local code = self.code13 -- TODO:
-    return table.concat(code)
-end
-
 -- internal methods for Barcode costructors
 
-function EAN:_finalize() --> ok, err
+function EAN:_finalize(parse_state) --> ok, err
     local l1 = self._main_len
     local l2 = self._addon_len
     local ok_len = l1 + (l2 or 0)
@@ -458,6 +565,21 @@ function EAN:_finalize() --> ok, err
         if ck ~= data[l1] then
             return false, "[Err] wrong checksum digit"
         end
+    end
+    local var = self._variant
+    if var == "isbn" or var == "isbn+5" or var == "isbn+2" then
+        -- check group number
+        local code = parse_state.isbncode
+        local g = 0
+        for _, c in ipairs(code) do
+            if c == "-" or c == " " then
+                g = g + 1
+            end
+        end
+        if g > 4 then
+            return false, "[ArgErr] to many group in ISBN code"
+        end
+        self._isbncode = code
     end
     return true, nil
 end
@@ -532,6 +654,19 @@ fn_append_ga_variant["13"] = function (ean, canvas, tx, ty, ax, ay)
         local x3_2 = x0 + (92-mx)*mod
         err = canvas:encode_Text_xwidth(txt_3, x3_1, x3_2, y_bl, 1)
         assert(not err, err)
+        if ean.text_isbn_enabled then
+            local isbn = assert(ean._isbncode, "[InternalErr] ISBN text not found")
+            local descr = {"I", "S", "B", "N", " ",}
+            for _, d in ipairs(isbn) do
+                descr[#descr + 1] = d
+            end
+            local isbn_txt = Text:from_chars(descr)
+            local x_isbn = x0 + 47.5 * mod
+            local y_isbn = y1 + ean.text_isbn_ygap_factor * mod
+            local err
+            err = canvas:encode_Text(isbn_txt, x_isbn, y_isbn, 0.5, 0)
+            assert(not err, err)
+        end
     end
 end
 
@@ -781,6 +916,10 @@ fn_append_ga_variant["8+2"] = function (ean, canvas, tx, ty, ax, ay)
     fn_1(ean, canvas, x0, y0, 0, 0)
     fn_2(ean, canvas, x1, y0, 1, 0, 0.85 * h)
 end
+
+fn_append_ga_variant["isbn"] = fn_append_ga_variant["13"]
+fn_append_ga_variant["isbn+5"] = fn_append_ga_variant["13+5"]
+fn_append_ga_variant["isbn+2"] = fn_append_ga_variant["13+2"]
 
 -- Drawing into the provided channel geometrical data
 -- tx, ty is the optional translation vector

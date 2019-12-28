@@ -138,7 +138,7 @@ function Barcode:param_ord_iter()
         local p2_variant = assert(self._par_def_variant[var])
         for pname, pdef in pairs(p2_variant) do
             if state[pname] then
-                error("[InternalErr] overriding paramenter '"..pname.."'")
+                error("[InternalErr] overriding parameter '"..pname.."'")
             end
             state[pdef.order + fam_len] = {
                 pname   = pname,
@@ -154,7 +154,7 @@ function Barcode:param_ord_iter()
     local super_len = 0
     for pname, pdef in pairs(p1) do
         if state[pname] then
-            error("[InternalError] overriding paramenter name '"..pname.."'")
+            error("[InternalError] overriding parameter name '"..pname.."'")
         end
         state[fam_len + var_len + pdef.order] = {
             pname = pname,
@@ -319,11 +319,12 @@ function Barcode:from_string(symb, opt) --> object, err
     end
     local chars = {}
     local len = 0
+    local parse_state = {}
     for c in string.gmatch(symb, ".") do
-        local elem, err = self:_check_char(c)
+        local elem, err = self:_check_char(c, parse_state)
         if err then
             return nil, err
-        else
+        elseif elem then
             chars[#chars+1] = elem
             len = len + 1
         end
@@ -345,7 +346,7 @@ function Barcode:from_string(symb, opt) --> object, err
         end
     end
     if o._finalize then
-        local ok, e = o:_finalize()
+        local ok, e = o:_finalize(parse_state)
         if not ok then return nil, e end
     end
     return o, nil
@@ -354,8 +355,12 @@ end
 -- positive integer --> Barcode object
 function Barcode:from_uint(n, opt) --> object, err
     assert(self._check_digit, "[InternalErr] undefined _check_digit() method")
-    if type(n) ~= "number" then return nil, "[ArgErr] 'n' is not a number" end
-    if n < 0 then return nil, "[ArgErr] 'n' must be a positive integer" end
+    if type(n) ~= "number" then
+        return nil, "[ArgErr] 'n' is not a number"
+    end
+    if n < 0 then
+        return nil, "[ArgErr] 'n' must be a positive integer"
+    end
     if n - math.floor(n) ~= 0 then
         return nil, "[ArgErr] 'n' is not an integer"
     end
@@ -363,23 +368,28 @@ function Barcode:from_uint(n, opt) --> object, err
         return nil, "[ArgErr] 'opt' is not a table"
     end
     local digits = {}
+    local parse_state = {}
     local i = 0
     if n == 0 then
-        local elem, err = self:_check_digit(0)
+        local elem, err = self:_check_digit(0, parse_state)
         if err then
             return nil, err
         end
-        digits[1] = elem
-        i = 1
+        if elem then
+            digits[1] = elem
+            i = 1
+        end
     else
         while n > 0 do
             local d = n % 10
-            i = i + 1
-            local elem, err = self:_check_digit(d)
+            local elem, err = self:_check_digit(d, parse_state)
             if err then
                 return nil, err
             end
-            digits[i] = elem
+            if elem then
+                i = i + 1
+                digits[i] = elem
+            end
             n = (n - d) / 10
         end
         for k = 1, i/2  do -- reverse the array
@@ -406,7 +416,7 @@ function Barcode:from_uint(n, opt) --> object, err
         end
     end
     if o._finalize then
-        local ok, e = o:_finalize()
+        local ok, e = o:_finalize(parse_state)
         if not ok then return nil, e end
     end
     return o, nil
@@ -508,6 +518,15 @@ function Barcode:info() --> table
         }
     end
     return info
+end
+
+-- return the code being represented as a string
+-- or nil if the method is called from Barcode abstract class
+function Barcode:get_code() --> string|nil
+    local code = self._code_data
+    if code then
+        return table.concat(code)
+    end
 end
 
 -- make accessible by name parameter values

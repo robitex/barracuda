@@ -1,0 +1,21 @@
+% !TeX program = LuaTeX
+
+% ISBN test
+
+\nopagenumbers
+\newbox\mybox
+\directlua{
+	local barracuda = require "barracuda"
+	barracuda:hbox("ean-isbn", "978-88-8154-348-9", "mybox")
+}\box\mybox
+\vskip10pt
+\directlua{
+	local barracuda = require "barracuda"
+	barracuda:hbox("ean-isbn", "978 88 8154 348 9", "mybox")
+}\box\mybox
+\vskip10pt
+\directlua{
+	local barracuda = require "barracuda"
+	barracuda:hbox("ean-isbn+5", "978 88 8154 348 9".."80026", "mybox")
+}\box\mybox
+\bye

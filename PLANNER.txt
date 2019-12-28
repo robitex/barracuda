@@ -12,7 +12,6 @@ Hypothetical developing tasks list:
 20__-__-__: [prj] a command line program to print barcodes
 20__-__-__: [man] put ga-asm-spec together with the manual
 2019-__-__: [dev] guard text in EAN simbology
-2019-__-__: [dev] ISBN support
 2019-__-__: [dev] UPC support
 2019-__-__: [dev] make optional file name in all the Driver methods
 2019-__-__: [prj] test l3build for testing and CTAN files packaging
@@ -20,7 +19,7 @@ Hypothetical developing tasks list:
 
 Scheduled tasks:
 ================
-2019-__-__: [new version] <v0.1> Data Matrix 2D symbology
+2019-__-__: [new version] <vx.x.x.x> Data Matrix 2D symbology
 2019-__-__: [dmx] data matrix first run
 2019-__-__: [dmx] ecc200 error correction code
 2019-__-__: [svg] opcode for grids
@@ -31,9 +30,17 @@ Scheduled tasks:
 
 Staged before CTAN upload:
 ==========================
-2019-12-27: [api][break change] rename the `get_barcode_class()` method
+
+20__-__-__: [project][build] make a Lua script to easily create the CTAN upload
+          : compressed files
+2019-__-__: [dev][ean family] ISSN support
+2019-__-__: [dev][ean family] complete ISBN support
+2019-__-__: [dev] a new data structure for encoder parameter ordering
+2019-12-29: [dev][ean family] inital ISBN support
+2019-12-28: [api][barcode] new Barcode method `:get_code()`
+2019-12-27: [api][breaking change] rename the `get_barcode_class()` method
           : in the more simple `barcode()`
-          : [api][break change] new encoder naming convention
+          : [api][breaking change] new encoder naming convention
           : reuse or create a new encoder object in barracuda:hbox() and
           : barracuda:save() methods
 

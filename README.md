@@ -21,7 +21,7 @@ Date: 2019-12-04
 
 ## Barcode symbologies list
 
-So far, are supported:
+So far, the barcode symbologies included in the package are:
 
 - Code 39
 - Code 128
@@ -66,7 +66,7 @@ If you have installed TeX Live with the `full` schema, `barracuda` is just
 available and no further action is required. Please, take into account that
 only the tagged version (in the `git` sense) of the package will be sent to
 CTAN. This means that intermediate development version between consecutive
-releases can be found only at https://github.com/robitex/barracuda .
+releases can be found only at <https://github.com/robitex/barracuda> .
 
 TeX Live distribution or Lua interpreter executable are available for a very
 large number of Operating Systems so it is also for `barracuda`.
@@ -77,18 +77,18 @@ Step by step istruction can be found in the INSTALL.txt file.
 
 Contributes are welcome in any form and for any topics. You can contact me
 directly via email at giaconet.mailbox@gmail.com or via a pull request on the
-repository https://github.com/robitex/barracuda or writing a public message
-via the web page https://github.com/robitex/barracuda/issues for todos, bugs,
+repository <https://github.com/robitex/barracuda> or writing a public message
+via the web page <https://github.com/robitex/barracuda/issues> for todos, bugs,
 feature requests, and more (press the bottom `New issue`).
 
-Anyway, as a starting point take a look of TODO.txt file for the next
-scheduled development tasks.
+Anyway, as a starting point take a look of PLANNER.txt file for the development
+program.
 
 ## License
 
 `barracuda` project is released under the
 [GNU GPL v2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html).
 Please, for more legal details refer to LICENSE.txt file or visit the web page
-https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+<https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>
 
 Copyright (C) 2019 Roberto Giacomelli
