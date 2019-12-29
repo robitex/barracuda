@@ -21,9 +21,12 @@ Barcode._builder_instances = {} -- encoder builder instances repository
 Barcode._encoder_instances = {} -- encoder instances repository
 
 -- common parameters to all the barcode objects
+Barcode._super_par_order = {
+    "ax",
+    "ay",
+}
 Barcode._super_par_def = {}
 local pardef = Barcode._super_par_def
-
 -- set an Anchor point (ax, ay) relatively to the barcode bounding box
 -- without considering any text object
 -- ax = 0, ay = 0 is the lower left corner of the symbol
@@ -33,7 +36,6 @@ pardef.ax = {
     default = 0.0,
     unit = "sp", -- scaled point
     isReserved = false,
-    order = 1,
     fncheck = function (self, ax, _) --> boolean, err
         if ax >= 0.0 and ax <= 1.0 then return true, nil end
         return false, "[OutOfRange] 'ax' out of [0, 1] interval"
@@ -44,7 +46,6 @@ pardef.ay = {
     default = 0.0,
     unit = "sp", -- scaled point
     isReserved = false,
-    order = 2,
     fncheck = function (self, ay, _) --> boolean, err
         if ay >= 0.0 and ay <= 1.0 then return true, nil end
         return false, "[OutOfRange] 'ay' out of [0, 1] interval"
@@ -121,42 +122,68 @@ function Barcode:param_ord_iter()
     local p2_family  = self._par_def -- base family parameters
     local fam_len = 0
     if p2_family then
+        local p2_key = self._par_order -- order list of parameter name
+        assert(p2_key, "[InternalErr] parameter list not found")
+        -- key indexing
+        local ordkey = {}
+        for ord, key in ipairs(p2_key) do
+            ordkey[key] = ord
+        end
         for pname, pdef in pairs(p2_family) do
-            state[pdef.order] = {
+            local ord = assert(ordkey[pname],
+                "[InternalErr] empty place in parameter list"
+            )
+            state[ord] = {
                 pname   = pname,
                 pdef    = pdef,
                 isSuper = false,
             }
             fam_len = fam_len + 1
         end
+        assert(fam_len == #p2_key)
         assert(fam_len == #state)
     end
     -- append the variant parameters
     local var_len = 0
     local var = self._variant
     if var then -- specific variant parameters
-        local p2_variant = assert(self._par_def_variant[var])
-        for pname, pdef in pairs(p2_variant) do
-            if state[pname] then
-                error("[InternalErr] overriding parameter '"..pname.."'")
+        local p2_variant = self._par_def_variant[var]
+        if p2_variant then
+            local p2_varkey = self._par_variant_order[var] -- order list of parameter
+            assert(p2_varkey, "[InternalErr] variant parameter list not found")
+            -- key indexing
+            local varkey = {}
+            for ord, key in ipairs(p2_varkey) do
+                varkey[key] = ord
             end
-            state[pdef.order + fam_len] = {
-                pname   = pname,
-                pdef    = pdef,
-                isSuper = false,
-            }
-            var_len = var_len + 1
+            for pname, pdef in pairs(p2_variant) do
+                local ord = assert(varkey[pname],
+                    "[InternalErr] empty place in variant parameter list"
+                )
+                state[fam_len + ord] = {
+                    pname   = pname,
+                    pdef    = pdef,
+                    isSuper = false,
+                }
+                var_len = var_len + 1
+            end
+            assert(fam_len + var_len == #state)
+            assert(var_len == #p2_varkey)
         end
-        assert(fam_len + var_len == #state)
     end
     -- append the super class parameter to the iterator state
     local p1 = self._super_par_def
     local super_len = 0
+    local p1_ord = self._super_par_order
+    local superkey = {}
+    for ord, key in ipairs(p1_ord) do
+        superkey[key] = ord
+    end
     for pname, pdef in pairs(p1) do
-        if state[pname] then
-            error("[InternalError] overriding parameter name '"..pname.."'")
-        end
-        state[fam_len + var_len + pdef.order] = {
+        local ord = assert(superkey[pname],
+            "[InternalErr] empty place in Barcode parameter list"
+        )
+        state[fam_len + var_len + ord] = {
             pname = pname,
             pdef  = pdef,
             isSuper = true,
@@ -164,6 +191,7 @@ function Barcode:param_ord_iter()
         super_len = super_len + 1
     end
     assert(super_len + fam_len + var_len == #state)
+    assert(super_len == #p1_ord)
     return p_iter, state, 0
 end
 

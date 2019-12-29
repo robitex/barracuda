@@ -30,6 +30,18 @@ Code39._symb_def = {-- symbol definition
 Code39._star_def  = 112121121 -- '*' start/stop character
 
 -- parameters definition
+Code39._par_order = {
+    "module",
+    "ratio",
+    "quietzone",
+    "interspace",
+    "height",
+    "text_enabled",
+    "text_vpos",
+    "text_hpos",
+    "text_gap",
+    "text_star",
+}
 Code39._par_def = {}
 local pardef = Code39._par_def
 
@@ -45,7 +57,6 @@ pardef.module = {
     default    = 7.5 * 0.0254 * 186467, -- 7.5 mils (sp) unit misure,
     unit       = "sp", -- scaled point
     isReserved = true,
-    order      = 1, -- the one first to be modified
     fncheck    = function (self, mod, _) --> boolean, err
         if mod >= self.default then return true, nil end
         return false, "[OutOfRange] too small value for module"
@@ -62,7 +73,6 @@ pardef.ratio = {
     default    = 2.0, -- the minimum
     unit       = "absolute-number",
     isReserved = true,
-    order      = 2,
     fncheck    = function (self, ratio, tparcheck) --> boolean, err
         local mils = 0.0254 * 186467
         local mod = tparcheck.module
@@ -85,7 +95,6 @@ pardef.quietzone = {
     default    = 2.54 * 186467, -- 0.1 inches equal to 100*mils
     unit       = "sp", -- scaled point
     isReserved = false,
-    order      = 3,
     fncheck    = function (self, qz, tparcheck) --> boolean, err
         local mils = 0.0254 * 186467
         local mod = tparcheck.module
@@ -109,7 +118,6 @@ pardef.interspace = { -- Intercharacter gap
     default    = 7.5 * 0.0254 * 186467, -- 1 module, for quality printer
     unit       = "sp", -- scaled point
     isReserved = false,
-    order      = 4,
     fncheck    = function (self, igw, tparcheck) --> boolean, err
         local mod = tparcheck.module
         if igw >= mod then return true, nil end
@@ -128,7 +136,6 @@ pardef.height = {
     default    = 8 * 186467, -- 8 mm -- TODO: better assessment for symbol length
     unit       = "sp", -- scaled point
     isReserved = false,
-    order      = 5,
     fncheck = function (self, h, _) --> boolean, err
         local mils = 0.0254 * 186467
         if h >= 250*mils then return true, nil end
@@ -141,7 +148,6 @@ pardef.text_enabled = { -- boolean type
     -- enable/disable a text label upon the barcode symbol
     default    = true,
     isReserved = false,
-    order      = 6,
     fncheck    = function (self, flag, _) --> boolean, err
         if type(flag) == "boolean" then
             return true, nil
@@ -155,7 +161,6 @@ pardef.text_enabled = { -- boolean type
 pardef.text_vpos = { -- enumeration
     default    = "bottom",
     isReserved = false,
-    order      = 7,
     policy_enum = {
         top    = true, -- place text at the top of symbol
         bottom = true, -- place text under the symbol
@@ -175,7 +180,6 @@ pardef.text_vpos = { -- enumeration
 pardef.text_hpos = { -- enumeration
     default    = "left",
     isReserved = false,
-    order      = 8,
     policy_enum = {
         left = true,
         center = true,
@@ -197,7 +201,6 @@ pardef.text_hpos = { -- enumeration
 pardef.text_gap = {
     default    = 2.2 * 65536, -- 2.2 pt
     isReserved = false,
-    order      = 9,
     unit       = "em", --> TODO: please put this under further analisys asap
     fncheck    = function(self, g, _) --> boolean, err
         if type(g) == "number" then
@@ -216,7 +219,6 @@ pardef.text_gap = {
 pardef.text_star = {
     default    = false,
     isReserved = false,
-    order      = 10,
     fncheck    = function(self, flag, _) --> boolean, err
         if type(flag) == "boolean" then
             return true, nil

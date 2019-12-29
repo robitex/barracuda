@@ -26,6 +26,17 @@ ITF._pattern = { -- true -> narrow, false -> Wide
 }
 
 -- define parameters
+ITF._par_order = {
+    "module",
+    "ratio",
+    "height",
+    "quietzone",
+    "check_digit_policy",
+    "check_digit_method",
+    "bearer_bars_enabled",
+    "bearer_bars_thickness",
+    "bearer_bars_layout",
+}
 ITF._par_def = {}
 local pardef = ITF._par_def
 
@@ -37,7 +48,6 @@ pardef.module = {
     default    = 7.5 * 0.0254 * 186467, -- 7.5 mils (sp) unit misure,
     unit       = "sp", -- scaled point
     isReserved = true,
-    order      = 1, -- the one first to be modified
     fncheck    = function (self, mod, _) --> boolean, err
         if mod >= self.default then return true, nil end
         return false, "[OutOfRange] too small lenght for X-dim"
@@ -53,7 +63,6 @@ pardef.ratio = {
     default    = 3.0,
     unit       = "absolute-number",
     isReserved = true,
-    order      = 2,
     fncheck    = function (_, ratio, tpardef) --> boolean, err
         local mils = 0.0254 * 186467
         local mod = tpardef.module
@@ -73,7 +82,6 @@ pardef.height = {
     default    = 15 * 186467, -- 15mm -- TODO: better assessment for symbol length
     unit       = "sp", -- scaled point
     isReserved = false,
-    order      = 3,
     fncheck = function (_self, h, _opt) --> boolean, err
         local mils = 0.0254 * 186467
         if h >= 250*mils then
@@ -89,7 +97,6 @@ pardef.quietzone = {
     default    = 250 * 0.0254 * 186467, -- 0.25 inch (250 mils)
     unit       = "sp", -- scaled point
     isReserved = false,
-    order      = 4,
     fncheck    = function (self, qz, _opt) --> boolean, err
         local mils = 0.0254 * 186467
         local mod = self.module
@@ -110,7 +117,6 @@ pardef.check_digit_policy = { -- enumeration
         verify = true, -- check the last digit of the symbol as check digit
         none   = true, -- do nothing
     },
-    order      = 5,
     fncheck    = function (self, e, _) --> boolean, err
         if type(e) ~= "string" then return false, "[TypeError] not a string" end
         local keys = self.policy_enum
@@ -126,7 +132,6 @@ pardef.check_digit_method = { -- enumeration
     -- determine the algorithm for the check digit calculation
     default       = "mod_10",
     isReserved    = false,
-    order         = 6,
     method_enum = {
         mod_10 = true, -- MOD 10 check digits method
     },
@@ -145,7 +150,6 @@ pardef.bearer_bars_enabled = { -- boolean type
     -- enable/disable Bearer bars around the barcode symbol
     default    = false,
     isReserved = false,
-    order      = 7,
     fncheck    = function (_, flag, _) --> boolean, err
         if type(flag) == "boolean" then
             return true, nil
@@ -159,7 +163,6 @@ pardef.bearer_bars_thickness = { -- dimension
     default    = 37.5 * 0.0254 * 186467, -- 5 modules
     unit       = "sp", -- scaled point
     isReserved = false,
-    order      = 8,
     fncheck = function (_self, thick, tpardef) --> boolean, err
         local module = tpardef.module
         if thick >= 2*module then
@@ -173,7 +176,6 @@ pardef.bearer_bars_layout = { -- enumeration
     -- determine the algorithm for the check digit calculation
     default       = "hbar",
     isReserved    = false,
-    order         = 9,
     method_enum = {
         frame = true, -- a rectangle around the symbol
         hbar = true, -- top and bottom horizontal bars

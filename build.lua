@@ -4,15 +4,11 @@
 
 local lfs = require "lfs"
 
-
 local function filecopy (source, dest)
-
 end
 
 local function build(t)
-
 end
-
 
 local function run_doc()
 end
@@ -22,13 +18,8 @@ end
 local function write_filelist()
 end
 
-
-
-
-
 local map = {
-    {
-        version = "v0.0.9.2",
+    ["v0.0.9.2"] = {
         date = "2019-12-28",
         rundoc = {
             {"lualatex", "doc/manual/barracuda.tex", 2},

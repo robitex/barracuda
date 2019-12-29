@@ -35,7 +35,7 @@ Staged before CTAN upload:
           : compressed files
 2019-__-__: [dev][ean family] ISSN support
 2019-__-__: [dev][ean family] complete ISBN support
-2019-__-__: [dev] a new data structure for encoder parameter ordering
+2019-12-29: [dev] a new data structure for encoder parameter ordering
 2019-12-29: [dev][ean family] inital ISBN support
 2019-12-28: [api][barcode] new Barcode method `:get_code()`
 2019-12-27: [api][breaking change] rename the `get_barcode_class()` method

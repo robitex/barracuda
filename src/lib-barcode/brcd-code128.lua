@@ -41,6 +41,11 @@ Code128._switch = { -- codes for switching from a codeset to another one
 }
 
 -- parameters definition
+Code128._par_order = {
+    "xdim",
+    "ydim",
+    "quietzone_factor",
+}
 Code128._par_def = {}
 local pardef = Code128._par_def
 
@@ -49,7 +54,6 @@ pardef.xdim = {
     default    = 0.21 * 186467, -- X dimension
     unit       = "sp", -- scaled point
     isReserved = true,
-    order      = 1, -- the one first to be modified
     fncheck    = function (self, x, _) --> boolean, err
         if x >= self.default then
             return true, nil
@@ -63,7 +67,6 @@ pardef.ydim = {
     default    = 10 * 186467, -- Y dimension
     unit       = "sp",
     isReserved = false,
-    order      = 2,
     fncheck    = function (self, y, tpar) --> boolean, err
         local xdim = tpar.xdim
         if y >= 10*xdim then
@@ -78,7 +81,6 @@ pardef.quietzone_factor = {
     default    = 10,
     unit       = "absolute-number",
     isReserved = false,
-    order      = 3,
     fncheck    = function (self, z, _) --> boolean, err
         if z >= 10 then
             return true, nil

@@ -73,15 +73,24 @@ EAN._start = {111, true}
 EAN._stop  = {11111, false}
 
 -- family common parameters
-
-EAN._par_def = {}; local pardef = EAN._par_def
+EAN._par_order = {
+    "mod",
+    "height",
+    "quietzone_left_factor",
+    "quietzone_right_factor",
+    "bars_depth_factor",
+    "text_enabled",
+    "text_ygap_factor",
+    "text_xgap_factor",
+}
+EAN._par_def = {}
+local pardef = EAN._par_def
 
 -- standard module is 0.33 mm but it can vary from 0.264 to 0.66mm
 pardef.mod = {
     default    = 0.33 * 186467, -- (mm to sp) X dimension (original value 0.33)
     unit       = "sp", -- scaled point
     isReserved = true,
-    order      = 1, -- the one first to be modified
     fncheck    = function (self, x, _) --> boolean, err
         local mm = 186467
         local min, max = 0.264 * mm, 0.660 * mm
@@ -98,7 +107,6 @@ pardef.height = {
     default    = 22.85 * 186467, -- 22.85 mm
     unit       = "sp",
     isReserved = false,
-    order      = 2,
     fncheck    = function (self, h, _) --> boolean, err
         if h > 0 then
             return true, nil
@@ -112,7 +120,6 @@ pardef.quietzone_left_factor = {
     default    = 11,
     unit       = "absolute-number",
     isReserved = false,
-    order      = 3,
     fncheck    = function (self, qzf, _) --> boolean, err
         if qzf > 0 then
             return true, nil
@@ -126,7 +133,6 @@ pardef.quietzone_right_factor = {
     default    = 7,
     unit       = "absolute-number",
     isReserved = false,
-    order      = 4,
     fncheck    = function (self, qzf, _) --> boolean, err
         if qzf > 0 then
             return true, nil
@@ -140,7 +146,6 @@ pardef.bars_depth_factor = {
     default    = 5,
     unit       = "absolute-number",
     isReserved = false,
-    order      = 5,
     fncheck    = function (self, b, _) --> boolean, err
         if b >= 0 then
             return true, nil
@@ -154,7 +159,6 @@ pardef.bars_depth_factor = {
 pardef.text_enabled = { -- boolean type
     default    = true,
     isReserved = false,
-    order      = 6,
     fncheck    = function (self, flag, _) --> boolean, err
         if type(flag) == "boolean" then
             return true, nil
@@ -168,7 +172,6 @@ pardef.text_ygap_factor = {
     default    = 1.0,
     unit       = "absolute-number",
     isReserved = false,
-    order      = 7,
     fncheck    = function (self, t, _) --> boolean, err
         if t >= 0 then
             return true, nil
@@ -182,7 +185,6 @@ pardef.text_xgap_factor = {
     default    = 0.75,
     unit       = "absolute-number",
     isReserved = false,
-    order      = 8,
     fncheck    = function (self, t, _) --> boolean, err
         if t >= 0 then
             return true, nil
@@ -193,7 +195,30 @@ pardef.text_xgap_factor = {
 }
 
 -- variant parameters
-
+EAN._par_variant_order = {
+    ["13"]   = {}, -- EAN13
+    ["8"]    = {}, -- EAN8
+    ["5"]    = {}, -- add-on EAN5
+    ["2"]    = {}, -- add-on EAN2
+    ["isbn"] = { -- ISBN 13 digits
+        "text_isbn_enabled",
+        "text_isbn_ygap_factor",
+    },
+    ["13+5"] = {"addon_xgap_factor",}, -- EAN13 with EAN5 add-on
+    ["13+2"] = {"addon_xgap_factor",}, -- EAN13 with EAN2 add-on
+    ["8+5"]  = {"addon_xgap_factor",}, -- EAN8 with EAN5 add-on
+    ["8+2"]  = {"addon_xgap_factor",}, -- EAN8 with EAN2 add-on
+    ["isbn+2"] = { -- ISBN 13 digits with an EAN2 add-on
+        "text_isbn_enabled",
+        "text_isbn_ygap_factor",
+        "addon_xgap_factor",
+    },
+    ["isbn+5"] = { -- ISBN 13 digits with an EAN2 add-on
+        "text_isbn_enabled",
+        "text_isbn_ygap_factor",
+        "addon_xgap_factor",
+    },
+}
 EAN._par_def_variant = {
     ["13"]   = {}, -- EAN13
     ["8"]    = {}, -- EAN8
@@ -207,13 +232,13 @@ EAN._par_def_variant = {
     ["isbn+2"] = {}, -- ISBN 13 digits with an EAN2 add-on
     ["isbn+5"] = {}, -- ISBN 13 digits with an EAN2 add-on
 }
+local par_def_var = EAN._par_def_variant
 
 -- EAN ISBN/13/8 + add-on parameters
 local addon_xgap_factor = {-- distance between main and add-on symbol
     default    = 10,
     unit       = "absolute-number",
     isReserved = false,
-    order      = 1,
     fncheck    = function (self, t, _) --> boolean, err
         if t >= 7 then
             return true, nil
@@ -222,19 +247,18 @@ local addon_xgap_factor = {-- distance between main and add-on symbol
         end
     end,
 }
-EAN._par_def_variant["13+5"].addon_xgap_factor = addon_xgap_factor
-EAN._par_def_variant["13+2"].addon_xgap_factor = addon_xgap_factor
-EAN._par_def_variant["8+5"].addon_xgap_factor = addon_xgap_factor
-EAN._par_def_variant["8+2"].addon_xgap_factor = addon_xgap_factor
-EAN._par_def_variant["isbn+5"].addon_xgap_factor = addon_xgap_factor
-EAN._par_def_variant["isbn+2"].addon_xgap_factor = addon_xgap_factor
+par_def_var["13+5"].addon_xgap_factor = addon_xgap_factor
+par_def_var["13+2"].addon_xgap_factor = addon_xgap_factor
+par_def_var["8+5"].addon_xgap_factor = addon_xgap_factor
+par_def_var["8+2"].addon_xgap_factor = addon_xgap_factor
+par_def_var["isbn+5"].addon_xgap_factor = addon_xgap_factor
+par_def_var["isbn+2"].addon_xgap_factor = addon_xgap_factor
 
 -- text_ISBN parameter
 -- enable/disable a text ISBN label upon the barcode symbol
-local isbn_text_enabled = { -- boolean type
+local text_isbn_enabled = { -- boolean type
     default    = true,
     isReserved = false,
-    order      = 2,
     fncheck    = function (self, flag, _) --> boolean, err
         if type(flag) == "boolean" then
             return true, nil
@@ -243,27 +267,15 @@ local isbn_text_enabled = { -- boolean type
         end
     end,
 }
-EAN._par_def_variant["isbn+5"].text_isbn_enabled = isbn_text_enabled
-EAN._par_def_variant["isbn+2"].text_isbn_enabled = isbn_text_enabled
-EAN._par_def_variant["isbn"].text_isbn_enabled = { -- boolean type
-    default    = true,
-    isReserved = false,
-    order      = 1,
-    fncheck    = function (self, flag, _) --> boolean, err
-        if type(flag) == "boolean" then
-            return true, nil
-        else
-            return false, "[TypeErr] not a boolean value for text_isbn_enabled"
-        end
-    end,
-}
+par_def_var["isbn+5"].text_isbn_enabled = text_isbn_enabled
+par_def_var["isbn+2"].text_isbn_enabled = text_isbn_enabled
+par_def_var["isbn"].text_isbn_enabled = text_isbn_enabled
 
 -- ISBN text vertical distance
 local text_isbn_ygap_factor = {
     default    = 2.0,
     unit       = "absolute-number",
     isReserved = false,
-    order      = 3,
     fncheck    = function (self, t, _) --> boolean, err
         if t >= 0 then
             return true, nil
@@ -273,21 +285,9 @@ local text_isbn_ygap_factor = {
     end,
 }
 
-EAN._par_def_variant["isbn+5"].text_isbn_ygap_factor = text_isbn_ygap_factor
-EAN._par_def_variant["isbn+2"].text_isbn_ygap_factor = text_isbn_ygap_factor
-EAN._par_def_variant["isbn"].text_isbn_ygap_factor = {
-    default    = 2.0,
-    unit       = "absolute-number",
-    isReserved = false,
-    order      = 2,
-    fncheck    = function (self, t, _) --> boolean, err
-        if t >= 0 then
-            return true, nil
-        else
-            return false, "[OutOfRange] non positive value for text_isbn_ygap_factor"
-        end
-    end,
-}
+par_def_var["isbn+5"].text_isbn_ygap_factor = text_isbn_ygap_factor
+par_def_var["isbn+2"].text_isbn_ygap_factor = text_isbn_ygap_factor
+par_def_var["isbn"].text_isbn_ygap_factor = text_isbn_ygap_factor
 
 -- configuration functions
 
