@@ -26,7 +26,7 @@ So far, the barcode symbologies included in the package are:
 - Code 39
 - Code 128
 - Interleaved 2 of 5
-- EAN family (EAN8, EAN13, and the add-ons EAN5 and EAN2)
+- EAN family (ISBN, EAN8, EAN13, and the add-ons EAN5 and EAN2)
 
 Other 1D encoding symbology will be added to the project, then it will be the
 turn of 2D barcode types like Datamatrix, QRCode or PDF417.

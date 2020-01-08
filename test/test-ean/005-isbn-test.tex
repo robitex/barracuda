@@ -1,21 +1,45 @@
 % !TeX program = LuaTeX
-
-% ISBN test
-
 \nopagenumbers
+% load package and store it in a global Lua variable
+\directlua{barracuda = require "barracuda"}
 \newbox\mybox
-\directlua{
-	local barracuda = require "barracuda"
-	barracuda:hbox("ean-isbn", "978-88-8154-348-9", "mybox")
-}\box\mybox
+
+ISBN test:
 \vskip10pt
-\directlua{
-	local barracuda = require "barracuda"
-	barracuda:hbox("ean-isbn", "978 88 8154 348 9", "mybox")
-}\box\mybox
+
+\leavevmode
+\directlua{barracuda:hbox("ean-isbn", "978-88-8154-348-9", "mybox")}
+\box\mybox
+\directlua{barracuda:hbox("ean-isbn", "978 88 8154 348 9", "mybox")}
+\box\mybox
+
 \vskip10pt
-\directlua{
-	local barracuda = require "barracuda"
-	barracuda:hbox("ean-isbn+5", "978 88 8154 348 9".."80026", "mybox")
-}\box\mybox
+\directlua{barracuda:hbox("ean-isbn+5", "978 88 8154 348 9-80026", "mybox")}%
+\box\mybox
+
+\vskip10pt
+ISBN 10 test, the 10-digits code is automatically converted in an ISBN 13 code:
+\vskip10pt
+\directlua{barracuda:hbox("ean-isbn", "1-78474-140-X", "mybox")}%
+\box\mybox
+
+\vskip10pt
+\directlua{barracuda:hbox("ean-isbn+5", "1-78474-140-X 12345", "mybox")}%
+\box\mybox
+
+\vskip10pt
+\directlua{barracuda:hbox("ean-isbn+2", "1-78474-140-X 99", "mybox")}%
+\box\mybox
+
+\vskip5pt
+ISBN Test: the value 'auto' for 'text\_isbn\_enabled' option means that
+the text above the symbol isn't printed if in the provided code does not
+have group chars or the length is not 10:
+\vskip5pt
+\leavevmode
+\directlua{barracuda:hbox("ean-isbn", "9788881543489", "mybox")}
+\box\mybox
+\directlua{barracuda:hbox("ean-isbn", "978-8881543489", "mybox")}
+\box\mybox
+
 \bye

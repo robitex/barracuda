@@ -11,41 +11,42 @@ Hypothetical developing tasks list:
 20__-__-__: [dev] a number parameter can be a string? unit measure...
 20__-__-__: [prj] a command line program to print barcodes
 20__-__-__: [man] put ga-asm-spec together with the manual
-2019-__-__: [dev] guard text in EAN simbology
-2019-__-__: [dev] UPC support
-2019-__-__: [dev] make optional file name in all the Driver methods
-2019-__-__: [prj] test l3build for testing and CTAN files packaging
-20__-__-__: [dev] load barcode user parameters from file
+2020-__-__: [dev] guard text in EAN simbology
+2020-__-__: [dev] UPC support
+2020-__-__: [dev] make optional file name in all the Driver methods
+2020-__-__: [prj] test l3build for testing and CTAN files packaging
+20__-__-__: [dev] load barcode parameters from an external file
 
 Scheduled tasks:
 ================
-2019-__-__: [new version] <vx.x.x.x> Data Matrix 2D symbology
-2019-__-__: [dmx] data matrix first run
-2019-__-__: [dmx] ecc200 error correction code
-2019-__-__: [svg] opcode for grids
-2019-__-__: [pdf] opcode for grids
-2019-__-__: [gas] ga-asm grid opcode
-2019-__-__: [geo] grid vector object
-2019-__-__: [dev] init source file encoder for Data Matrix
+2020-__-__: [new version] <vx.x.x.x> Data Matrix 2D symbology
+2020-__-__: [dmx] data matrix first run
+2020-__-__: [dmx] ecc200 error correction code
+2020-__-__: [svg] opcode for grids
+2020-__-__: [pdf] opcode for grids
+2020-__-__: [gas] ga-asm grid opcode
+2020-__-__: [geo] grid vector object
+2020-__-__: [dev] init source file encoder for Data Matrix
+2020-__-__: [dev][ean family] ISSN support
 
 Staged before CTAN upload:
 ==========================
 
-20__-__-__: [project][build] make a Lua script to easily create the CTAN upload
+2020-__-__: [project][build] make a Lua script to easily create the CTAN upload
           : compressed files
-2019-__-__: [dev][ean family] ISSN support
-2019-__-__: [dev][ean family] complete ISBN support
+
+2020-01-08: [dev][ean family] complete the ISBN support
 2019-12-29: [dev] a new data structure for encoder parameter ordering
 2019-12-29: [dev][ean family] inital ISBN support
 2019-12-28: [api][barcode] new Barcode method `:get_code()`
 2019-12-27: [api][breaking change] rename the `get_barcode_class()` method
-          : in the more simple `barcode()`
+          : to the more simple `barcode()`
           : [api][breaking change] new encoder naming convention
           : reuse or create a new encoder object in barracuda:hbox() and
           : barracuda:save() methods
 
-Completed tasks:
-================
+Completed tasks and previuos version:
+=====================================
 [🎉] <v0.0.9.1> 2019-12-04: prelude to version v0.1
 09.15: 2019-11-29: [prj] upload to CTAN version v0.0.9.1 (under CTAN rules)
 09.14: 2019-11-29: [prj] upload to CTAN version v0.0.9

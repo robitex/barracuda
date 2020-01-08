@@ -72,7 +72,7 @@ EAN._is_first_bar = {false, false, true}
 EAN._start = {111, true}
 EAN._stop  = {11111, false}
 
--- family common parameters
+-- common family parameters
 EAN._par_order = {
     "mod",
     "height",
@@ -256,14 +256,16 @@ par_def_var["isbn+2"].addon_xgap_factor = addon_xgap_factor
 
 -- text_ISBN parameter
 -- enable/disable a text ISBN label upon the barcode symbol
+-- if it is "auto" the isbn text appears or not and depends by input code
 local text_isbn_enabled = { -- boolean type
-    default    = true,
+    default    = "auto",
     isReserved = false,
     fncheck    = function (self, flag, _) --> boolean, err
-        if type(flag) == "boolean" then
+        if type(flag) == "boolean" or 
+            (type(flag) == "string" and flag == "auto") then
             return true, nil
         else
-            return false, "[TypeErr] not a boolean value for text_isbn_enabled"
+            return false, "[TypeErr] not a boolean or 'auto' for text_isbn_enabled"
         end
     end,
 }
@@ -399,64 +401,19 @@ config_variant["isbn+2"] = config_variant["13+2"]
 config_variant["isbn+5"] = config_variant["13+5"]
 EAN._config_variant = config_variant
 
-local function isbn_check_char(isbn, c, parse_state) --> elem, err
-    if type(c) ~= "string" or #c ~= 1 then
-        return nil, "[InternalErr] invalid char"
-    end
-    parse_state.isbncode = parse_state.isbncode or {}
-    local code = parse_state.isbncode
-    if parse_state.isspace == nil then parse_state.isspace = false end
-    if parse_state.isdash == nil then parse_state.isdash = false end
-    parse_state.i = parse_state.i or 0
-    if c == "-" then
-        if parse_state.isdash then
-            return nil, "[ArgErr] two consecutive dash char found"
-        end
-        parse_state.isdash = true
-        return nil, nil
-    elseif c == " " then
-        parse_state.isspace = true
-        return nil, nil
-    else
-        local n = string.byte(c) - 48
-        if n < 0 or n > 9 then
-            return nil, "[ArgErr] found a not digit or a not grouping char"
-        end
-        if parse_state.isdash then -- close a group
-            code[#code + 1] = "-"
-            parse_state.isdash = false
-            parse_state.isspace = false
-        elseif parse_state.isspace then
-            code[#code + 1] = " "
-            parse_state.isspace = false
-        end
-        if parse_state.i < 13 then
-            code[#code + 1] = c
-            parse_state.i = parse_state.i + 1
-        end
-        return n, nil
-    end
-end
-
--- config function called at the moment of encoder construction
--- create all the possible VBar object
-function EAN:config() --> ok, err
-    local variant = self._variant
-    local fnconfig = self._config_variant[variant]
-    local VbarClass = self._libgeo.Vbar -- Vbar class
-    local mod = self.mod
-    fnconfig(self, VbarClass, mod)
-    if variant == "isbn" or variant == "isbn+5" or variant == "isbn+2" then
-        self._check_char = isbn_check_char
-    end
-    return true, nil
-end
-
 -- utility function
+-- return the ISBN 10 digits checksum
+local function isbn_checksum(isbn)
+    local sum = 0
+    for w = 1,9 do
+        sum = sum + w * isbn[w]
+    end
+    return sum % 11
+end
 
 -- the checksum of EAN8 or EAN13 code
 -- 'data' is an array of digits
-local function checksum_8_13(data, stop_index)
+local function checksum_8_13(data, stop_index) --> checksum
     local s1 = 0; for i = 2, stop_index, 2 do
         s1 = s1 + data[i]
     end
@@ -486,6 +443,166 @@ local function checksum_5_2(data, i, len) --> checksum digit or nil
         local ck = 10 * data[i] + data[i + 1]
         return ck % 4
     end
+end
+
+-- group char for readibility '-' or ' '
+-- char won't be inserted in the top isbn code
+local function isbn_check_char(isbn, c, parse_state) --> elem, err
+    if type(c) ~= "string" or #c ~= 1 then
+        return nil, "[InternalErr] invalid char"
+    end
+    if parse_state.isbncode == nil then parse_state.isbncode = {} end
+    local code = parse_state.isbncode
+    if parse_state.isspace == nil then parse_state.isspace = false end
+    if parse_state.isdash == nil then parse_state.isdash = false end
+    if parse_state.isbn_len == nil then parse_state.isbn_len = 0 end
+    local isbn_len = parse_state.isbn_len
+    if c == "-" then
+        if isbn_len == 0 then
+            return nil, "[ArgErr] an initial dash is not allowed"
+        end
+        if parse_state.isdash then
+            return nil, "[ArgErr] two consecutive dash char found"
+        end
+        parse_state.isdash = true
+        return nil, nil
+    elseif c == " " then
+        if isbn_len == 0 then
+            return nil, "[ArgErr] an initial space is not allowed"
+        end
+        parse_state.isspace = true
+        return nil, nil
+    elseif c == "X" then -- ISBN-10 checksum for 10
+        code[#code + 1] = c
+        isbn_len = isbn_len + 1
+        parse_state.isbn_len = isbn_len
+        if isbn_len ~= 10 then
+            return nil, "[ArgErr] found a 'X' in a wrong position"
+        end
+        return 10, nil
+    else -- c is at this point eventually a digit
+        local n = string.byte(c) - 48
+        if n < 0 or n > 9 then
+            return nil, "[ArgErr] found a not digit or a not grouping char"
+        end
+        if parse_state.isdash then -- close a group
+            code[#code + 1] = "-"
+            parse_state.isdash = false
+            parse_state.isspace = false
+        elseif parse_state.isspace then
+            code[#code + 1] = " "
+            parse_state.isspace = false
+        end
+        code[#code + 1] = c
+        isbn_len = isbn_len + 1
+        parse_state.isbn_len = isbn_len
+        return n, nil
+    end
+end
+
+-- overriding function called every time an input ISBN code has been completely
+-- parsed
+local function isbn_finalize(enc, parse_state) --> ok, err
+    local var = enc._variant
+    local code_len = enc._code_len
+    local isbn_len = parse_state.isbn_len
+    local l1, l2
+    if var == "isbn" then
+        if isbn_len == 10 then
+            l1 = 10
+        elseif isbn_len == 13 then
+            l1 = 13
+        else
+            return false, "[ArgErr] unsuitable ISBN code length"
+        end
+        assert(l1 == code_len)
+    elseif var == "isbn+5" then
+        assert(enc._addon_len == 5)
+        if isbn_len == 15 then
+            l1, l2 = 10, 5
+        elseif isbn_len == 18 then
+            l1, l2 = 13, 5
+        else
+            return false, "[ArgErr] unsuitable ISBN+5 code length"
+        end
+        assert(l1 + l2 == code_len)
+    elseif var == "isbn+2" then
+        assert(enc._addon_len == 2)
+        if isbn_len == 12 then
+            l1, l2 = 10, 2
+        elseif isbn_len == 15 then
+            l1, l2 = 13, 2
+        else
+            return false, "[ArgErr] unsuitable ISBN+2 code length"
+        end
+        assert(l1 + l2 == code_len)
+    else
+        error("[InternalErr] unexpected ISBN variant code")
+    end
+    local code_data = enc._code_data
+    local isbn_auto = false
+    if l1 == 10 then -- isbn 10 to 13 conversion
+        local ck = isbn_checksum(code_data)
+        if ck ~= code_data[10] then
+            return false, "[ArgErr] unmatched ISBN 10 checksum"
+        end
+        for i = l1 + (l2 or 0), 1, -1 do -- code_data sliding
+            code_data[i + 3] = code_data[i]
+        end
+        code_data[1] = 9
+        code_data[2] = 7
+        code_data[3] = 8
+        code_data[13] = checksum_8_13(code_data, 12)
+        isbn_auto = true
+    else
+        local ck = checksum_8_13(code_data, 12)
+        if code_data[13] ~= ck then
+            return false, "[ArgErr] unmatched ISBN 13 checksum"
+        end
+    end
+    local isbncode = parse_state.isbncode
+    if l2 then -- nils the add-on digits
+        local i = #isbncode
+        while l2 > 0 do
+            local c = isbncode[i]
+            isbncode[i] = nil
+            i = i - 1
+            if not (c == " " or c == "-") then
+                l2 = l2 - 1
+            end
+        end
+        local c = isbncode[i]
+        if c == " " or c == "-" then isbncode[i] = nil end
+    end
+    -- check group number
+    local g = 0
+    for _, c in ipairs(isbncode) do
+        if c == "-" or c == " " then
+            g = g + 1
+        end
+    end
+    if g > 4 then
+        return false, "[ArgErr] too many groups found in the ISBN code"
+    end
+    if g > 0 then isbn_auto = true end
+    enc._isbncode = isbncode
+    enc._isbntxt_on = isbn_auto
+    return true, nil
+end
+
+-- config function called at the moment of encoder construction
+-- create all the possible VBar object
+function EAN:config() --> ok, err
+    local variant = self._variant
+    local fnconfig = self._config_variant[variant]
+    local VbarClass = self._libgeo.Vbar -- Vbar class
+    local mod = self.mod
+    fnconfig(self, VbarClass, mod)
+    if variant == "isbn" or variant == "isbn+5" or variant == "isbn+2" then
+        self._check_char = isbn_check_char
+        self._finalize = isbn_finalize
+    end
+    return true, nil
 end
 
 -- public methods
@@ -551,13 +668,14 @@ end
 
 -- internal methods for Barcode costructors
 
-function EAN:_finalize(parse_state) --> ok, err
+-- function called every time an input EAN code has been completely parsed
+function EAN:_finalize() --> ok, err
     local l1 = self._main_len
     local l2 = self._addon_len
     local ok_len = l1 + (l2 or 0)
     local symb_len = self._code_len
     if symb_len ~= ok_len then
-        return false, "[ArgErr] not a "..ok_len.."-digits long array"
+        return false, "[ArgErr] not a "..ok_len.."-digit long array"
     end
     if self._is_last_checksum then -- is the last digit ok?
         local data = self._code_data
@@ -565,21 +683,6 @@ function EAN:_finalize(parse_state) --> ok, err
         if ck ~= data[l1] then
             return false, "[Err] wrong checksum digit"
         end
-    end
-    local var = self._variant
-    if var == "isbn" or var == "isbn+5" or var == "isbn+2" then
-        -- check group number
-        local code = parse_state.isbncode
-        local g = 0
-        for _, c in ipairs(code) do
-            if c == "-" or c == " " then
-                g = g + 1
-            end
-        end
-        if g > 4 then
-            return false, "[ArgErr] to many group in ISBN code"
-        end
-        self._isbncode = code
     end
     return true, nil
 end
@@ -654,7 +757,17 @@ fn_append_ga_variant["13"] = function (ean, canvas, tx, ty, ax, ay)
         local x3_2 = x0 + (92-mx)*mod
         err = canvas:encode_Text_xwidth(txt_3, x3_1, x3_2, y_bl, 1)
         assert(not err, err)
+        local istxt = false
         if ean.text_isbn_enabled then
+            if ean.text_isbn_enabled == "auto" then
+                if ean._isbntxt_on == true then
+                    istxt = true
+                end
+            else
+                istxt = true
+            end
+        end
+        if istxt then
             local isbn = assert(ean._isbncode, "[InternalErr] ISBN text not found")
             local descr = {"I", "S", "B", "N", " ",}
             for _, d in ipairs(isbn) do

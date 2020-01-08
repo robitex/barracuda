@@ -121,16 +121,20 @@ function Barcode:param_ord_iter()
     -- append family parameter
     local p2_family  = self._par_def -- base family parameters
     local fam_len = 0
+    local ordkey = {}
     if p2_family then
         local p2_key = self._par_order -- order list of parameter name
         assert(p2_key, "[InternalErr] parameter list not found")
         -- key indexing
-        local ordkey = {}
         for ord, key in ipairs(p2_key) do
+            if ordkey[key] then
+                error("[InternalErr] duplicate parameter key")
+            end
             ordkey[key] = ord
         end
         for pname, pdef in pairs(p2_family) do
-            local ord = assert(ordkey[pname],
+            local ord = assert(
+                ordkey[pname],
                 "[InternalErr] empty place in parameter list"
             )
             state[ord] = {
@@ -149,15 +153,18 @@ function Barcode:param_ord_iter()
     if var then -- specific variant parameters
         local p2_variant = self._par_def_variant[var]
         if p2_variant then
-            local p2_varkey = self._par_variant_order[var] -- order list of parameter
+            local p2_varkey = self._par_variant_order[var] -- parameters' list
             assert(p2_varkey, "[InternalErr] variant parameter list not found")
             -- key indexing
-            local varkey = {}
             for ord, key in ipairs(p2_varkey) do
-                varkey[key] = ord
+                if ordkey[key] then
+                    error("[InternalErr] duplicate parameter key")
+                end
+                ordkey[key] = ord
             end
             for pname, pdef in pairs(p2_variant) do
-                local ord = assert(varkey[pname],
+                local ord = assert(
+                    ordkey[pname],
                     "[InternalErr] empty place in variant parameter list"
                 )
                 state[fam_len + ord] = {
@@ -175,12 +182,14 @@ function Barcode:param_ord_iter()
     local p1 = self._super_par_def
     local super_len = 0
     local p1_ord = self._super_par_order
-    local superkey = {}
     for ord, key in ipairs(p1_ord) do
-        superkey[key] = ord
+        if ordkey[key] then
+            error("[InternalErr] duplicate parameter key")
+        end
+        ordkey[key] = ord
     end
     for pname, pdef in pairs(p1) do
-        local ord = assert(superkey[pname],
+        local ord = assert(ordkey[pname],
             "[InternalErr] empty place in Barcode parameter list"
         )
         state[fam_len + var_len + ord] = {
