@@ -1,5 +1,5 @@
 -- Code39 barcode encoder implementation
--- Copyright (C) 2019 Roberto Giacomelli
+-- Copyright (C) 2020 Roberto Giacomelli
 --
 -- All dimensions must be in scaled point (sp)
 -- every fields that starts with an undercore sign are intended as private
@@ -229,7 +229,7 @@ pardef.text_star = {
 }
 
 -- configuration function
-function Code39:config() --> ok, err
+function Code39:_config() --> ok, err
     -- build Vbar object for the start/stop symbol
     local mod, ratio = self.module, self.ratio
     local n_star = self._star_def

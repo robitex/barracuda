@@ -1,7 +1,7 @@
 --
 -- ga Intermediate Graphic Language for barcode drawing
 -- SVG library
--- Copyright (C) 2019 Roberto Giacomelli
+-- Copyright (C) 2020 Roberto Giacomelli
 --
 -- All dimension in the ga stream are scaled point (sp)
 -- 1 pt = 65536 sp

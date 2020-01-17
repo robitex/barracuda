@@ -1,5 +1,5 @@
 -- Code128 barcode generator module
--- Copyright (C) 2019 Roberto Giacomelli
+-- Copyright (C) 2020 Roberto Giacomelli
 --
 -- All dimension must be in scaled point (sp)
 -- every fields that starts with an undercore sign are intended as private
@@ -91,7 +91,7 @@ pardef.quietzone_factor = {
 }
 
 -- create vbar objects
-function Code128:config() --> ok, err
+function Code128:_config() --> ok, err
     -- build Vbar object for the start/stop symbol
     local mod = self.xdim
     local sc = self._codeset.stopChar -- build the stop char

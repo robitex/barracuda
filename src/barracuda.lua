@@ -2,7 +2,7 @@
 --
 -- Encode a message into a barcode symbol, in Lua or within a LuaTeX source file
 --
--- Copyright (C) 2019 Roberto Giacomelli
+-- Copyright (C) 2020 Roberto Giacomelli
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -19,14 +19,15 @@
 -- Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 -- Basic Conventions:
--- fields that start with an undercore are private
+-- fields that start with an undercore must be considered as private
 -- class name follows the snake case naming convention
 -- the 'barracuda' table is the only global object to access every package
 -- modules.
 
 local Barracuda = {
-    _VERSION     = "barracuda v0.0.9.2",
     _NAME        = "barracuda",
+    _VERSION     = "barracuda v0.0.10",
+    _DATE        = "2020-01-15",
     _DESCRIPTION = "Lua library for barcode printing",
     _URL         = "https://github.com/robitex/barracuda",
     _LICENSE     = "GNU GENERAL PUBLIC LICENSE, Version 2, June 1991",
@@ -40,9 +41,16 @@ Barracuda._barcode  = require "lib-barcode.brcd-barcode" -- barcode abstract cla
 local Barcode = Barracuda._barcode
 Barcode._libgeo = Barracuda._libgeo
 
--- encoder builder
+-- return a reference of Barcode abstract class
 function Barracuda:barcode() --> Barcode class object
     return self._barcode
+end
+
+-- encoder costructor (a bridge to Barcode class method)
+function Barracuda:new_encoder(treename, opt) --> object, err
+    local barcode = self._barcode
+    local enc, err = barcode:new_encoder(treename, opt) --> object, err
+    return enc, err
 end
 
 -- where we place the output driver library

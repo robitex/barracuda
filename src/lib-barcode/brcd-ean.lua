@@ -1,6 +1,6 @@
 -- EAN family barcode generator
 --
--- Copyright (C) 2019 Roberto Giacomelli
+-- Copyright (C) 2020 Roberto Giacomelli
 -- see LICENSE.txt file
 --
 -- variant identifiers of the EAN family barcodes:
@@ -592,8 +592,11 @@ end
 
 -- config function called at the moment of encoder construction
 -- create all the possible VBar object
-function EAN:config() --> ok, err
+function EAN:_config() --> ok, err
     local variant = self._variant
+    if not variant then
+        return false, "[Err] variant is mandatory for EAN family"
+    end
     local fnconfig = self._config_variant[variant]
     local VbarClass = self._libgeo.Vbar -- Vbar class
     local mod = self.mod
@@ -617,14 +620,14 @@ function EAN:checksum(n) --> n, err
             return nil, "[ArgErr] number must be a positive integer"
         end
         if n - math.floor(n) > 0 then
-            return nil, "[ArgErr] 'n' is not an integer"
+            return nil, "[ArgErr] 'n' argument is not an integer"
         end
         arr = {}
         local i = 0
         while n > 0 do
             i = i + 1
             arr[i] = n % 10
-            n = (n - arr[i]) / 10
+            n = math.floor((n - arr[i]) / 10)
         end
         -- array reversing
         local len = #arr + 1

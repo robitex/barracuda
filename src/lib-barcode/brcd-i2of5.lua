@@ -1,12 +1,16 @@
 -- Interleaved 2 of 5 (ITF) barcode generator
 --
--- Copyright (C) 2019 Roberto Giacomelli
+-- Copyright (C) 2020 Roberto Giacomelli
 -- see LICENSE.txt file
 
 local ITF = { -- main container
-    _VERSION     = "ITF v0.0.1",
-    _NAME        = "ITF",
+    _VERSION     = "i2of5 v0.0.1",
+    _NAME        = "i2of5",
     _DESCRIPTION = "Interleaved 2 of 5 barcode encoder",
+}
+
+ITF._id_variant = {
+    ITF14 = true, -- ITF 14 GS1 specification
 }
 
 ITF._start = 111 -- nnnn
@@ -252,7 +256,7 @@ end
 
 
 -- configuration function
-function ITF:config() --> ok, err
+function ITF:_config() --> ok, err
     -- init Vbar objects
     local narrow = self.module
     local wide = narrow * self.ratio

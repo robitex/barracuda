@@ -1,5 +1,5 @@
 % !TeX program = LuaTeX
-% Copyright (C) 2019 Roberto Giacomelli
+% Copyright (C) 2020 Roberto Giacomelli
 
 \newbox\mybox
 \nopagenumbers
@@ -85,9 +85,8 @@ Test 5: EAN13 + EAN5 barcode with default parameter:
 local barcode = barracuda:barcode()
 local ean, err = barcode:new_encoder("ean-13+5"); assert(not err, err)
 local n = 123456789012
-local c = ean:checksum(n)
-local s = n .. c
-local symbo, err = ean:from_string(s.."12345")
+local c = assert(ean:checksum(n))
+local symbo, err = ean:from_string(n..c.."12345")
 assert(not err, err)
 local canvas = barracuda:new_canvas()
 symbo:append_ga(canvas)
@@ -204,7 +203,7 @@ drv:ga_to_hbox(canvas, "mybox")
 \vrule Test 10\vrule\box\mybox \vrule Test 10\vrule
 
 \medskip
-That's all folk!
+That's all folks!
 
 \bye
 

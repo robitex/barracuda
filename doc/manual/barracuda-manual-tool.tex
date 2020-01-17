@@ -1,7 +1,39 @@
+% an auxiliary package for the manual
+\directlua{
+    barracuda = require "barracuda"
+    local v = barracuda._VERSION
+    local p = v:find(" ")
+    brcd_data = {
+        version = v:sub(p+1),
+        date = barracuda._DATE
+    }
+}
 
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\brcd}{\code{barracuda}}
 
+\newbox\barracudabox
+\newcommand\barracuda[3][_brcd_empty_=true]{\directlua{
+    local enc_name = [[#2]]
+    local data = [[#3]]
+    local opt = {#1};
+    if opt._brcd_empty_ == true then
+        barracuda:hbox(enc_name, data, "barracudabox")
+    else
+        barracuda:hbox(enc_name, data, "barracudabox", opt)
+    end
+}%
+\leavevmode\box\barracudabox
+}
 
-
+\newcommand{\brcdkey}[1]{\directlua{
+    local key = [===[#1]===]
+    if brcd_data[key] then
+        tex.sprint(brcd_data[key])
+    else
+        error("Key '"..key.."' not found")
+    end
+}}
 
 
 

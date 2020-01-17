@@ -91,4 +91,4 @@ program.
 Please, for more legal details refer to LICENSE.txt file or visit the web page
 <https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>
 
-Copyright (C) 2019 Roberto Giacomelli
+Copyright (C) 2020 Roberto Giacomelli

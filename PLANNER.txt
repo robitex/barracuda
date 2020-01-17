@@ -10,7 +10,7 @@ Hypothetical developing tasks list:
 20__-__-__: [dev] proportional options
 20__-__-__: [dev] a number parameter can be a string? unit measure...
 20__-__-__: [prj] a command line program to print barcodes
-20__-__-__: [man] put ga-asm-spec together with the manual
+20__-__-__: [doc] put ga-asm-spec together with the manual
 2020-__-__: [dev] guard text in EAN simbology
 2020-__-__: [dev] UPC support
 2020-__-__: [dev] make optional file name in all the Driver methods
@@ -29,12 +29,16 @@ Scheduled tasks:
 2020-__-__: [dev] init source file encoder for Data Matrix
 2020-__-__: [dev][ean family] ISSN support
 
-Staged before CTAN upload:
-==========================
+Tasks completed before CTAN upload:
+===================================
 
 2020-__-__: [project][build] make a Lua script to easily create the CTAN upload
           : compressed files
+2020-__-__: [dev] parameter preset
 
+2020-01-18: [dev][breaking change] rename config() private method to _config(),
+          : encoders can now decide if variant argument is mandatory or not,
+          : update to year 2020 copyright notes
 2020-01-08: [dev][ean family] complete the ISBN support
 2019-12-29: [dev] a new data structure for encoder parameter ordering
 2019-12-29: [dev][ean family] inital ISBN support
@@ -45,7 +49,7 @@ Staged before CTAN upload:
           : reuse or create a new encoder object in barracuda:hbox() and
           : barracuda:save() methods
 
-Completed tasks and previuos version:
+Completed tasks and previous version:
 =====================================
 [🎉] <v0.0.9.1> 2019-12-04: prelude to version v0.1
 09.15: 2019-11-29: [prj] upload to CTAN version v0.0.9.1 (under CTAN rules)

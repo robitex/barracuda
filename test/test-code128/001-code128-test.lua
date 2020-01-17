@@ -1,4 +1,4 @@
--- Copyright (C) 2019 Roberto Giacomelli
+-- Copyright (C) 2020 Roberto Giacomelli
 
 local barracuda = require "barracuda"
 local barcode = barracuda:barcode()

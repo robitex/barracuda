@@ -5,6 +5,7 @@
 *.synctex.gz
 *.synctex(busy)
 *.out
+*.toc
 
 # exclude VSC configuration dir
 .vscode/

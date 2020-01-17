@@ -1,7 +1,7 @@
 --
 -- ga graphic assembler or
 -- Intermediate Graphic Language for barcode drawing
--- Copyright (C) 2019 Roberto Giacomelli
+-- Copyright (C) 2020 Roberto Giacomelli
 --
 -- All dimensions are in scaled point (sp)
 -- ga LuaTeX Driver (native implementation node+pdfliteral)

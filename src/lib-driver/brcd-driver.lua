@@ -1,6 +1,6 @@
 --
 -- ga Intermediate Graphic Language for barcode drawing
--- Copyright (C) 2019 Roberto Giacomelli
+-- Copyright (C) 2020 Roberto Giacomelli
 --
 -- Basic driver interface
 -- drawing elementary vector shape

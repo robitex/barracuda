@@ -1,6 +1,6 @@
 
--- Barcode abstract class
--- Copyright (C) 2019 Roberto Giacomelli
+-- Barcode Abstract Class
+-- Copyright (C) 2020 Roberto Giacomelli
 -- Please see LICENSE.TXT for any legal information about present software
 
 local Barcode = {
@@ -57,16 +57,16 @@ pardef.ay = {
 -- Barcode methods
 
 -- extract id from an encoder 'tree name'
-local function ck_enc_name(treename) --> fam, var, name, err
+local function parse_treename(treename) --> fam, var, name, err
     if not type(treename) == "string" then
-        return nil, nil, nil, "[ArgErr] 'treename' must be a string"
+        return nil, nil, nil, "[ArgErr] 'treename' arg must be a string"
     end
     if treename:find(" ") then
         return nil, nil, nil,
             "[ArgErr] spaces are not allowed in an encoder identifier"
     end
     local fam, var, name
-    -- fam extraction
+    -- family name extraction
     local idash = treename:find("-")
     local icolon = treename:find(":")
     if idash then
@@ -103,7 +103,7 @@ local function ck_enc_name(treename) --> fam, var, name, err
             return nil, nil, nil, "[ArgErr] the name mustn't contain a colon"
         end
     end
-    return fam, var, name
+    return fam, var, name, nil
 end
 
 -- stateless iterator troughtout the ordered parameters collection
@@ -217,7 +217,7 @@ end
 -- encoders
 function Barcode:new_encoder(treename, opt) --> object, err
     -- argument checking
-    local family, variant, enc_name, err = ck_enc_name(treename)
+    local family, variant, enc_name, err = parse_treename(treename)
     if err then
         return err
     end
@@ -225,32 +225,22 @@ function Barcode:new_encoder(treename, opt) --> object, err
     local mod_path = av_enc[family]
     -- check family identifier
     if not mod_path then
-        return nil, "[Err] barcode type '"..family.."' not found"
+        return nil, "[ArgErr] barcode family '"..family.."' not found"
     end
     -- retrive/load the builder
     local builder
     local tenc = self._builder_instances
     if tenc[family] then -- is the encoder builder already loaded?
         builder = tenc[family]
-    else -- loading the encoder builder
+    else -- load the encoder builder
         builder = require(mod_path)
         tenc[family] = builder
     end
     -- check the variant identifier
     local av_var = builder._id_variant
-    if av_var then
-        if variant then
-            if not av_var[variant] then
-                local fmt = "[Err] family '%s' does not have '%s' variant"
-                return nil, string.format(fmt, family, variant)
-            end
-        else
-            return nil, "[Err] mandatory variant identifier in treename"
-        end
-    else
-        if variant then
-            return nil, "[Err] family '"..family.."' doesn't admit variant"
-        end
+    if av_var and variant and (not av_var[variant]) then
+        local fmt = "[ArgErr] family '%s' does not have '%s' variant"
+        return nil, string.format(fmt, family, variant)
     end
     -- check unique encoder identifier
     local enc_archive = self._encoder_instances
@@ -299,8 +289,8 @@ function Barcode:new_encoder(treename, opt) --> object, err
             end
         end
     end
-    if enc.config then -- this must be called after the parameter definition
-        enc:config()
+    if enc._config then -- this must be called after the parameter definition
+        enc:_config()
     end
     return enc, nil
 end
@@ -309,7 +299,7 @@ end
 -- 'trename' is the special identifier of the encoder
 function Barcode:enc_by_name(treename) --> <encoder object>, <err>
     -- argument checking
-    local family, variant, enc_name, err = ck_enc_name(treename)
+    local family, variant, enc_name, err = parse_treename(treename)
     if err then
         return nil, err
     end
