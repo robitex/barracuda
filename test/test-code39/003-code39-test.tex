@@ -8,13 +8,11 @@ Test 1: the same Code 39 symbol drawing multiple time on the same canvas
 
 \directlua{
 local barracuda = require "barracuda"
-local c39, err = barracuda:barcode()
-                          :new_encoder("code39")
-assert(not err, err)
-local err
-local symbol
-symbol, err = c39:from_string("ABCDEF12QJ31+")
-assert(not err, err)
+local c39 = assert(
+    barracuda:barcode()
+        :new_encoder("code39")
+)
+local symbol = assert(c39:from_string("ABCDEF12QJ31+"))
 
 local ok, err = c39:set_param("text_vpos", "top")
 assert(ok, err)

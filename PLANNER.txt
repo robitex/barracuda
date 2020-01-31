@@ -28,14 +28,16 @@ Scheduled tasks:
 2020-__-__: [geo] grid vector object
 2020-__-__: [dev] init source file encoder for Data Matrix
 2020-__-__: [dev][ean family] ISSN support
+2020-__-__: [dev] parameter preset
 
 Tasks completed before CTAN upload:
 ===================================
 
 2020-__-__: [project][build] make a Lua script to easily create the CTAN upload
           : compressed files
-2020-__-__: [dev] parameter preset
+2020-__-__: [dev] new ITF14 variant
 
+2020-01-31: [dev] add filter option on Barcode:param_ord_iter()
 2020-01-18: [dev][breaking change] rename config() private method to _config(),
           : encoders can now decide if variant argument is mandatory or not,
           : update to year 2020 copyright notes

@@ -195,6 +195,15 @@ pardef.bearer_bars_layout = { -- enumeration
     end,
 }
 
+-- variant parameters
+ITF14._par_variant_order = {
+    ITF14 = {}, -- ITF14 GS1 parameter order
+}
+
+ITF14._par_def_variant = {
+    ITF14 = {}, -- ITF14 GS1 variant parameters
+}
+
 -- auxiliary functions
 
 -- separate a non negative integer in its digits {d_n-1, ..., d_1, d_0}
