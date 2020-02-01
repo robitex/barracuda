@@ -106,15 +106,6 @@ local function parse_treename(treename) --> fam, var, name, err
     return fam, var, name, nil
 end
 
--- stateless iterator troughtout the ordered parameters collection
-local function p_iter(state, i)
-    i = i + 1
-    local t = state[i]
-    if t then
-        return i, t
-    end
-end
-
 -- main iterator on parameter definitions
 -- optional argument 'filter' eventually excludes some parameters
 -- "*all" -> encoder and Barcode parameters
@@ -135,89 +126,82 @@ function Barcode:param_ord_iter(filter)
     end
     local state = {}
     local ordkey = {}
-    local fam_len, var_len, super_len = 0, 0, 0
     if is_iter_enc then
-        -- append family parameter
+        local var = self._variant
         local p2_family  = self._par_def -- base family parameters
-        if p2_family then
-            local p2_key = self._par_order -- order list of parameter name
-            assert(p2_key, "[InternalErr] parameter list not found")
-            -- key indexing
-            for ord, key in ipairs(p2_key) do
-                if ordkey[key] then
-                    error("[InternalErr] duplicate parameter key")
+        local p2_family_var
+        if var then
+            local pvar = "_par_def_"..var
+            p2_family_var = self[pvar] -- variant specific family parameters
+        end
+        local p2_idlist = self._par_order
+        if p2_idlist then -- family parameters
+            for i, pid in ipairs(p2_idlist) do
+                if ordkey[pid] then
+                    error("[Ops] duplicated entry in parameter ordered list")
                 end
-                ordkey[key] = ord
-            end
-            for pname, pdef in pairs(p2_family) do
-                local ord = assert(
-                    ordkey[pname],
-                    "[InternalErr] empty place in parameter list"
-                )
-                state[ord] = {
-                    pname   = pname,
+                ordkey[pid] = true
+                local pdef -- parameter definition
+                if var and p2_family_var then
+                    pdef = p2_family_var[pid]
+                end
+                pdef = pdef or p2_family[pid]
+                assert(pdef, "[Ops] parameter definition for option '"..pid.."' not found")
+                state[i] = {
+                    pname   = pid,
                     pdef    = pdef,
                     isSuper = false,
                 }
-                fam_len = fam_len + 1
             end
-            assert(fam_len == #p2_key)
-            assert(fam_len == #state)
         end
-        -- append the variant parameters
-        local var = self._variant
-        if var then -- specific variant parameters
+        -- append variant parameters
+        if var then
             local p2_variant = self._par_def_variant[var]
             if p2_variant then
-                local p2_varkey = self._par_variant_order[var] -- parameters' list
-                assert(p2_varkey, "[InternalErr] variant parameter list not found")
-                -- key indexing
-                for ord, key in ipairs(p2_varkey) do
-                    if ordkey[key] then
-                        error("[InternalErr] duplicate parameter key")
+                local p2_idlist_var = self._par_variant_order[var] -- parameters' list
+                if p2_idlist_var then
+                    for _, pid in ipairs(p2_idlist_var) do
+                        if ordkey[pid] then
+                            error("[Ops] duplicated entry in variant parameter ordered list")
+                        end
+                        ordkey[pid] = true
+                        local pdef = p2_variant[pid] -- parameter definition
+                        assert(pdef, "[Ops] parameter definition for option '"..pid.."' not found")
+                        state[#state + 1] = {
+                            pname   = pid,
+                            pdef    = pdef,
+                            isSuper = false,
+                        }
                     end
-                    ordkey[key] = ord
                 end
-                for pname, pdef in pairs(p2_variant) do
-                    local ord = assert(
-                        ordkey[pname],
-                        "[InternalErr] empty place in variant parameter list"
-                    )
-                    state[fam_len + ord] = {
-                        pname   = pname,
-                        pdef    = pdef,
-                        isSuper = false,
-                    }
-                    var_len = var_len + 1
-                end
-                assert(fam_len + var_len == #state)
-                assert(var_len == #p2_varkey)
             end
         end
     end
     if is_iter_super then
         -- append the super class parameter to the iterator state
-        local p1 = self._super_par_def
-        local p1_ord = self._super_par_order
-        for ord, key in ipairs(p1_ord) do
-            if ordkey[key] then
-                error("[InternalErr] duplicate parameter key")
+        local p1_idlist_super = self._super_par_order
+        local p1_super = self._super_par_def
+        for _, pid in ipairs(p1_idlist_super) do
+            if ordkey[pid] then
+                error("[Ops] duplicated entry in superclass parameter ordered list")
             end
-            ordkey[key] = ord
-        end
-        for pname, pdef in pairs(p1) do
-            local ord = assert(ordkey[pname],
-                "[InternalErr] empty place in Barcode parameter list"
-            )
-            state[fam_len + var_len + ord] = {
-                pname = pname,
-                pdef  = pdef,
+            ordkey[pid] = true
+            local pdef = p1_super[pid] -- parameter definition
+            assert(pdef, "[Ops] parameter definition for option '"..pid.."' not found")
+            state[#state + 1] = {
+                pname   = pid,
+                pdef    = pdef,
                 isSuper = true,
             }
-            super_len = super_len + 1
         end
-        assert(super_len == #p1_ord)
-        assert(super_len + fam_len + var_len == #state)
+    end
+    -- stateless iterator troughtout the ordered parameters collection
+    local p_iter = function (state, i)
+        i = i + 1
+        local t = state[i]
+        if t then
+            return i, t
+        end
     end
     return p_iter, state, 0
 end
@@ -611,11 +595,10 @@ function Barcode:set_param(arg1, arg2) --> boolean, err
     else
         return false, "[ArgErr] param name must be a string"
     end
-    -- preparing to the checking process
+    -- preparing the check process
     local cktab  = {}
     local ckparam = {}
-    -- checking process
-    for _, tpar in self:param_ord_iter() do
+    for _, tpar in self:param_ord_iter() do -- checking process
         local pname = tpar.pname
         local pdef  = tpar.pdef
         local val = targ[pname] -- par = val

@@ -5,28 +5,69 @@
 local barracuda = require "barracuda"
 local c39 = assert(barracuda:barcode():new_encoder("code39"))
 print()
-print([[no filter:]])
+print([[Code39: no filter argument:]])
 for _, tpar in c39:param_ord_iter() do
-    print(tpar.pname)
+    local pid = tpar.pname
+    print(pid, [[ = ]], c39[pid])
 end
 
 print()
-print([[filter == '*all':]])
+print([[Code39: filter == '*all':]])
 for _, tpar in c39:param_ord_iter([[*all]]) do
-print(tpar.pname)
+    local pid = tpar.pname
+    print(pid, [[ = ]], c39[pid])
 end
 
 print()
-print([[filter == '*super':]])
+print([[Code39: filter == '*super':]])
 for _, tpar in c39:param_ord_iter([[*super]]) do
-print(tpar.pname)
+    local pid = tpar.pname
+    print(pid, [[ = ]], c39[pid])
 end
 
 print()
-print([[filter == '*enc':]])
+print([[Code39: filter == '*enc':]])
 for _, tpar in c39:param_ord_iter([[*enc]]) do
-print(tpar.pname)
+    local pid = tpar.pname
+    print(pid, [[ = ]], c39[pid])
 end
 
+print()
+local isbn = assert(barracuda:barcode():new_encoder("ean-isbn"))
+
+print([[ISBN: No filter argument:]])
+for _, tpar in isbn:param_ord_iter() do
+    local pid = tpar.pname
+    print(pid, [[ = ]], isbn[pid])
+end
+
+print()
+print([[ISBN: filter == '*all':]])
+for _, tpar in isbn:param_ord_iter([[*all]]) do
+    local pid = tpar.pname
+    print(pid, [[ = ]], isbn[pid])
+end
+
+print()
+print([[ISBN: filter == '*super':]])
+for _, tpar in isbn:param_ord_iter([[*super]]) do
+    local pid = tpar.pname
+    print(pid, [[ = ]], isbn[pid])
+end
+
+print()
+print([[ISBN: filter == '*enc':]])
+for _, tpar in isbn:param_ord_iter([[*enc]]) do
+    local pid = tpar.pname
+    print(pid, [[ = ]], isbn[pid])
+end
+
+local c128 = assert(barracuda:barcode():new_encoder([[code128]]))
+print()
+print([[Code128: filter == '*enc':]])
+for _, tpar in c128:param_ord_iter([[*enc]]) do
+    local pid = tpar.pname
+    print(pid, [[ = ]], c128[pid])
+end
 }
 \bye

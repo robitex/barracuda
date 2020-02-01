@@ -177,7 +177,7 @@ pardef.bearer_bars_thickness = { -- dimension
 }
 
 pardef.bearer_bars_layout = { -- enumeration
-    -- determine the algorithm for the check digit calculation
+    -- horizontal/frame bearer bars
     default       = "hbar",
     isReserved    = false,
     method_enum = {
@@ -195,17 +195,159 @@ pardef.bearer_bars_layout = { -- enumeration
     end,
 }
 
--- variant parameters
-ITF14._par_variant_order = {
-    ITF14 = {}, -- ITF14 GS1 parameter order
+-- ITF14 variant parameters as family parameters alternative
+ITF._par_def_ITF14 = {}
+local itf14_pdef = ITF._par_def_ITF14
+
+-- module main parameter
+itf14_pdef.module = {
+    -- Narrow element X-dimension is the width of the smallest element.
+    -- The module width (width of narrow element) should be at least 7.5 mils
+    -- that is exactly 0.1905mm (1 mil is 1/1000 inch).
+    default    = 7.5 * 0.0254 * 186467, -- 7.5 mils (sp) unit misure,
+    unit       = "sp", -- scaled point
+    isReserved = true,
+    fncheck    = function (self, mod, _) --> boolean, err
+        if mod >= self.default then return true, nil end
+        return false, "[OutOfRange] too small lenght for X-dim"
+    end,
 }
 
-ITF14._par_def_variant = {
-    ITF14 = {}, -- ITF14 GS1 variant parameters
+itf14_pdef.ratio = {
+    -- The "wide" element is a multiple of the "narrow" element that can
+    -- range between 2.0 and 3.0. Preferred value is 3.0.
+    -- The multiple for the wide element should be between 2.0 and 3.0 if the
+    -- narrow element is greater than 20 mils. If the narrow element is less
+    -- than 20 mils (0.508mm), the ratio must exceed 2.2.
+    default    = 3.0,
+    unit       = "absolute-number",
+    isReserved = true,
+    fncheck    = function (_, ratio, tpardef) --> boolean, err
+        local mils = 0.0254 * 186467
+        local mod = tpardef.module
+        local minr; if mod < 20*mils then minr = 2.2 else minr = 2.0 end
+        if ratio < minr then
+            return false, "[OutOfRange] too small ratio (the min is "..minr..")"
+        end
+        if ratio > 3.0 then
+            return false, "[OutOfRange] too big ratio (the max is 3.0)"
+        end
+        return true, nil
+    end,
 }
 
-local ITF14_param = {
-    --TODO:
+itf14_pdef.height = {
+    -- The height should be at least 0.15 times the barcode's length or 0.25 inch.
+    default    = 15 * 186467, -- 15mm -- TODO: better assessment for symbol length
+    unit       = "sp", -- scaled point
+    isReserved = false,
+    fncheck = function (_self, h, _opt) --> boolean, err
+        local mils = 0.0254 * 186467
+        if h >= 250*mils then
+            return true, nil
+        end
+        return false, "[OutOfRange] height too small"
+    end,
+}
+
+itf14_pdef.quietzone = {
+    -- Quiet zones must be at least 10 times the module width or 0.25 inches,
+    -- whichever is larger
+    default    = 250 * 0.0254 * 186467, -- 0.25 inch (250 mils)
+    unit       = "sp", -- scaled point
+    isReserved = false,
+    fncheck    = function (self, qz, _opt) --> boolean, err
+        local mils = 0.0254 * 186467
+        local mod = self.module
+        local min = math.max(10*mod, 250*mils)
+        if qz >= min then
+            return true, nil
+        else
+            return false, "[OutOfRange] quietzone too small"
+        end
+    end,
+}
+
+itf14_pdef.check_digit_policy = { -- enumeration
+    default    = "none",
+    isReserved = false,
+    policy_enum = {
+        add    = true, -- add a check digit to the symbol
+        verify = true, -- check the last digit of the symbol as check digit
+        none   = true, -- do nothing
+    },
+    fncheck    = function (self, e, _) --> boolean, err
+        if type(e) ~= "string" then return false, "[TypeError] not a string" end
+        local keys = self.policy_enum
+        if keys[e] == true then
+            return true, nil
+        else
+            return false, "[Err] enum value not found"
+        end
+    end,
+}
+
+itf14_pdef.check_digit_method = { -- enumeration
+    -- determine the algorithm for the check digit calculation
+    default       = "mod_10",
+    isReserved    = false,
+    method_enum = {
+        mod_10 = true, -- MOD 10 check digits method
+    },
+    fncheck       = function (self, e, _) --> boolean, err
+        if type(e) ~= "string" then return false, "[TypeError] not a string" end
+        local keys = self.method_enum
+        if keys[e] == true then
+            return true, nil
+        else
+            return false, "[Err] enum value not found"
+        end
+    end,
+}
+
+itf14_pdef.bearer_bars_enabled = { -- boolean type
+    -- enable/disable Bearer bars around the barcode symbol
+    default    = false,
+    isReserved = false,
+    fncheck    = function (_, flag, _) --> boolean, err
+        if type(flag) == "boolean" then
+            return true, nil
+        else
+            return false, "[TypeErr] not a boolean value"
+        end
+    end,
+}
+
+itf14_pdef.bearer_bars_thickness = { -- dimension
+    default    = 37.5 * 0.0254 * 186467, -- 5 modules
+    unit       = "sp", -- scaled point
+    isReserved = false,
+    fncheck = function (_self, thick, tpardef) --> boolean, err
+        local module = tpardef.module
+        if thick >= 2*module then
+            return true, nil
+        end
+        return false, "[OutOfRange] thickness too small"
+    end,
+}
+
+itf14_pdef.bearer_bars_layout = { -- enumeration
+    -- horizontal/frame bearer bars
+    default       = "hbar",
+    isReserved    = false,
+    method_enum = {
+        frame = true, -- a rectangle around the symbol
+        hbar = true, -- top and bottom horizontal bars
+    },
+    fncheck       = function (self, e, _) --> boolean, err
+        if type(e) ~= "string" then return false, "[TypeError] not a string" end
+        local keys = self.method_enum
+        if keys[e] == true then
+            return true, nil
+        else
+            return false, "[Err] enum value not found"
+        end
+    end,
 }
 
 -- auxiliary functions

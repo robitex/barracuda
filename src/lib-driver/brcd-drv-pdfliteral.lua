@@ -13,6 +13,10 @@ local PDFnative = {
     _DESCRIPTION = "A LuaTeX native pdfliteral driver for ga graphic stream",
 }
 
+local tex = assert(tex, "This require a Lua powered TeX engine")
+local node = assert(node, "This require a Lua powered TeX engine")
+local font = assert(font, "This require a Lua powered TeX engine")
+
 PDFnative.ext = "txt" -- file extension
 PDFnative.buf_sep = "\n" -- separation string for buffer concat
 

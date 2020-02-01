@@ -35,12 +35,11 @@ Commit completed before CTAN upload:
 
 2020-__-__: [project][build] make a Lua script to easily create the CTAN upload
           : compressed files
-2020-__-__: [dev] new ITF14 variant
 2020-__-__: [dev] new ISSN ean variant
+2020-__-__: [dev] new ITF14 variant
 
-2020-__-__: : [dev] new _par_def_<variant> field for variant parameter
-            : definition
-
+2020-02-01: [dev] new semantic for barcode parameter: alternative family
+          : parameters definition for a variant, via `_par_def_<variant>` field
 2020-02-01: [dev] rewrite code for the filter option in
           : `Barcode:param_ord_iter()` and execute a test on it
 2020-01-31: [dev] add filter option on `Barcode:param_ord_iter()`
