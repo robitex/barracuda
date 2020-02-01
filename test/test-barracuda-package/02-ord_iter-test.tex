@@ -1,0 +1,32 @@
+% !TeX program = LuaTeX
+% Copyright (C) 2020 Roberto Giacomelli
+
+\directlua{
+local barracuda = require "barracuda"
+local c39 = assert(barracuda:barcode():new_encoder("code39"))
+print()
+print([[no filter:]])
+for _, tpar in c39:param_ord_iter() do
+    print(tpar.pname)
+end
+
+print()
+print([[filter == '*all':]])
+for _, tpar in c39:param_ord_iter([[*all]]) do
+print(tpar.pname)
+end
+
+print()
+print([[filter == '*super':]])
+for _, tpar in c39:param_ord_iter([[*super]]) do
+print(tpar.pname)
+end
+
+print()
+print([[filter == '*enc':]])
+for _, tpar in c39:param_ord_iter([[*enc]]) do
+print(tpar.pname)
+end
+
+}
+\bye

@@ -117,21 +117,22 @@ end
 
 -- main iterator on parameter definitions
 -- optional argument 'filter' eventually excludes some parameters
+-- "*all" -> encoder and Barcode parameters
+-- "*enc" -> only encoder parameters
+-- "*super" -> only Barcode superclass paramenters
 function Barcode:param_ord_iter(filter)
-    if filter and type(filter) ~= "string" then
-        error("[param_ord_iter] filter is not a string")
+    local is_iter_enc, is_iter_super = true, true
+    if filter then
+        if type(filter) ~= "string" then
+            error("[param_ord_iter] 'filter' is not a string")
+        elseif filter == "*enc" then
+            is_iter_super = false
+        elseif filter == "*super" then
+            is_iter_enc = false
+        elseif filter ~= "*all" then
+            error("[param_ord_iter] 'filter' enumeration '"..filter.."' not found")
+        end
     end
-    local filter_flag = {
-        ["*all"] = {true, true}, -- all the available parameters
-        ["*enc"] = {true, false}, -- encoder only parameters
-        ["*super"] = {false, true}, -- superclass 'Barcode' only parameters
-    }
-    filter = filter or "*all"
-    if not filter_flag[filter] then
-        error("[param_ord_iter] filter is a valid enumeration value")
-    end
-    local t_filter = filter_flag[filter]
-    local is_iter_enc, is_iter_super = t_filter[1], t_filter[2]
     local state = {}
     local ordkey = {}
     local fam_len, var_len, super_len = 0, 0, 0

@@ -204,6 +204,10 @@ ITF14._par_def_variant = {
     ITF14 = {}, -- ITF14 GS1 variant parameters
 }
 
+local ITF14_param = {
+    --TODO:
+}
+
 -- auxiliary functions
 
 -- separate a non negative integer in its digits {d_n-1, ..., d_1, d_0}
