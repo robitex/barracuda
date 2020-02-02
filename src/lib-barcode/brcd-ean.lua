@@ -3,15 +3,6 @@
 -- Copyright (C) 2020 Roberto Giacomelli
 -- see LICENSE.txt file
 --
--- variant identifiers of the EAN family barcodes:
--- "13"   EAN13
--- "8"    EAN8
--- "5"    EAN5 add-on
--- "2"    EAN2 add-on
--- "13+5" EAN13 with EAN5 add-on
--- "13+2" EAN13 with EAN2 add-on
--- "8+5"  EAN8 with EAN5 add-on
--- "8+2"  EAN8 with EAN2 add-on
 
 local EAN = {
     _VERSION     = "ean v0.0.6",

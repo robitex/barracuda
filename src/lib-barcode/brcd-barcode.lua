@@ -155,7 +155,7 @@ function Barcode:param_ord_iter(filter)
             end
         end
         -- append variant parameters
-        if var then
+        if var and self._par_def_variant then
             local p2_variant = self._par_def_variant[var]
             if p2_variant then
                 local p2_idlist_var = self._par_variant_order[var] -- parameters' list
@@ -247,7 +247,7 @@ function Barcode:new_encoder(treename, opt) --> object, err
     -- check unique encoder identifier
     local enc_archive = self._encoder_instances
     if enc_archive[treename] then
-        return nil, "[Err] duplicated encoder name"
+        return nil, "[Err] encoder name '"..treename.."' already exists"
     end
     if type(opt) == "table" or opt == nil then
         opt = opt or {}

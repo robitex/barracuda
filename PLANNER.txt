@@ -1,6 +1,14 @@
-Development Program Task Table
+Development Planner and Task History
+====================================
 
-Hypothetical developing tasks list:
+Basic rules
+-----------
+
++ Every new version will be uploaded to CTAN network
++ For each single task there will be a correspomding commit
+
+Hypothetical development task list:
+-----------------------------------
 
 20__-__-__: [dev] TiKz driver
 20__-__-__: [dev] debug driver, ga stream pretty printing
@@ -10,16 +18,16 @@ Hypothetical developing tasks list:
 20__-__-__: [dev] proportional options
 20__-__-__: [dev] a number parameter can be a string? unit measure...
 20__-__-__: [prj] a command line program to print barcodes
-20__-__-__: [doc] put ga-asm-spec together with the manual
-2020-__-__: [dev] guard text in EAN simbology
-2020-__-__: [dev] UPC support
-2020-__-__: [dev] make optional file name in all the Driver methods
-2020-__-__: [prj] test l3build for testing and CTAN files packaging
+20__-__-__: [dev] guard text in EAN simbology
+20__-__-__: [dev] UPC support
+20__-__-__: [dev] make optional file name in all the Driver methods
+20__-__-__: [prj] test l3build for testing and CTAN files packaging
 20__-__-__: [dev] load barcode parameters from an external file
+20__-__-__: [dev] new Parameter Class
 
-Scheduled tasks:
-================
-2020-__-__: [new version] <vx.x.x.x> Data Matrix 2D symbology
+Scheduled task list for Data Matrix 2D simbology:
+-------------------------------------------------
+
 2020-__-__: [dmx] data matrix first run
 2020-__-__: [dmx] ecc200 error correction code
 2020-__-__: [svg] opcode for grids
@@ -27,17 +35,39 @@ Scheduled tasks:
 2020-__-__: [gas] ga-asm grid opcode
 2020-__-__: [geo] grid vector object
 2020-__-__: [dev] init source file encoder for Data Matrix
-2020-__-__: [dev][ean family] ISSN support
 2020-__-__: [dev] parameter preset
 
-Commit completed before CTAN upload:
-===================================
+Dev Planner:
+============
 
+2020-__-__: [milestone] version <v0.0.11> completed task/commit list
+-------------------------------------------------------------------------------
+
+2020-__-__: [doc] barcode symbologies reference
+2020-__-__: [doc] put ga-asm-spec together with the manual
+2020-__-__: [dev][barcode] new `alias` feature
+2020-__-__: [dev][barcode] new `preset` feature
+2020-__-__: [dev][i2of5] human readeable text for i2of5
+2020-__-__: [dev][libgeo] new `Vbar_group` class
+2020-__-__: [test] update test files with recent changes
+2020-__-__: [dev][libgeo][breaking change] return `ok, err` instead of `err`
+            for canvas methods
+2020-__-__: [dev] new constructor `Barcode:new()`; update version number in
+            barracuda.lua file
+
+2020-__-__: [milestone] version <v0.0.10> completed task/commit list
+-------------------------------------------------------------------------------
+
+Planned task:
+
+2020-__-__: [dev][ean] move out of `_config()` `finalize()` method as in i2of5
 2020-__-__: [project][build] make a Lua script to easily create the CTAN upload
           : compressed files
-2020-__-__: [dev] new ISSN ean variant
-2020-__-__: [dev] new ITF14 variant
+2020-__-__: [dev][ean] ISSN support
 
+Commit completed:
+
+2020-02-02:*[dev][i2of5] new ITF14 variant, plan for the next version
 2020-02-01: [dev] new semantic for barcode parameter: alternative family
           : parameters definition for a variant, via `_par_def_<variant>` field
 2020-02-01: [dev] rewrite code for the filter option in
@@ -56,8 +86,9 @@ Commit completed before CTAN upload:
           : reuse or create a new encoder object in barracuda:hbox() and
           : barracuda:save() methods
 
-Completed tasks and previous version:
-=====================================
+Task history and previous version:
+==================================
+
 [🎉] <v0.0.9.1> 2019-12-04: prelude to version v0.1
 09.15: 2019-11-29: [prj] upload to CTAN version v0.0.9.1 (under CTAN rules)
 09.14: 2019-11-29: [prj] upload to CTAN version v0.0.9

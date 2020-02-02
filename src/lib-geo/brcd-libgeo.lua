@@ -70,7 +70,7 @@ function Vbar:from_int(ngen, mod, is_bar) --> <vbar object>
         is_bar = not is_bar
     end
     local o = {
-        _yline = yl,   -- [<xcenter>, <width>, ...] flat array
+        _yline = yl, -- [<xcenter>, <width>, ...] flat array
         _x_lim = x0, -- right external coordinate
     }
     setmetatable(o, self)
@@ -153,7 +153,7 @@ function Vbar:from_int_revpair(ngen, mod, MOD, is_bar) --> <vbar object>
     return o
 end
 
--- return a Vbar inteleaving to sequence narrow/Wide
+-- return a Vbar interleaving narrow/Wide sequences
 -- tbar, tspace = {boolean sequence}, true -> narrow, false -> Wide
 function Vbar:from_two_tab(tbar, tspace, mod, MOD) --> <vbar object>
     assert(type(tbar) == "table", "tbar must be a table")
