@@ -60,14 +60,14 @@ Dev Planner:
 
 Planned task:
 
-2020-__-__: [dev][ean] move out of `_config()` `finalize()` method as in i2of5
 2020-__-__: [project][build] make a Lua script to easily create the CTAN upload
           : compressed files
-2020-__-__: [dev][ean] ISSN support
 
 Commit completed:
 
-2020-02-02:*[dev][i2of5] new ITF14 variant, plan for the next version
+2020-02-03:*[dev][ean] move out of `_config()` `finalize()` method as in i2of5
+2020-__-__: [dev][ean] ISSN support
+2020-02-02: [dev][i2of5] new ITF14 variant, plan for the next version
 2020-02-01: [dev] new semantic for barcode parameter: alternative family
           : parameters definition for a variant, via `_par_def_<variant>` field
 2020-02-01: [dev] rewrite code for the filter option in

@@ -82,7 +82,7 @@ pardef.mod = {
     default    = 0.33 * 186467, -- (mm to sp) X dimension (original value 0.33)
     unit       = "sp", -- scaled point
     isReserved = true,
-    fncheck    = function (self, x, _) --> boolean, err
+    fncheck    = function (_self, x, _) --> boolean, err
         local mm = 186467
         local min, max = 0.264 * mm, 0.660 * mm
         if x < min then
@@ -111,7 +111,7 @@ pardef.quietzone_left_factor = {
     default    = 11,
     unit       = "absolute-number",
     isReserved = false,
-    fncheck    = function (self, qzf, _) --> boolean, err
+    fncheck    = function (_self, qzf, _) --> boolean, err
         if qzf > 0 then
             return true, nil
         else
@@ -124,7 +124,7 @@ pardef.quietzone_right_factor = {
     default    = 7,
     unit       = "absolute-number",
     isReserved = false,
-    fncheck    = function (self, qzf, _) --> boolean, err
+    fncheck    = function (_self, qzf, _) --> boolean, err
         if qzf > 0 then
             return true, nil
         else
@@ -137,7 +137,7 @@ pardef.bars_depth_factor = {
     default    = 5,
     unit       = "absolute-number",
     isReserved = false,
-    fncheck    = function (self, b, _) --> boolean, err
+    fncheck    = function (_self, b, _) --> boolean, err
         if b >= 0 then
             return true, nil
         else
@@ -150,7 +150,7 @@ pardef.bars_depth_factor = {
 pardef.text_enabled = { -- boolean type
     default    = true,
     isReserved = false,
-    fncheck    = function (self, flag, _) --> boolean, err
+    fncheck    = function (_self, flag, _) --> boolean, err
         if type(flag) == "boolean" then
             return true, nil
         else
@@ -163,7 +163,7 @@ pardef.text_ygap_factor = {
     default    = 1.0,
     unit       = "absolute-number",
     isReserved = false,
-    fncheck    = function (self, t, _) --> boolean, err
+    fncheck    = function (_self, t, _) --> boolean, err
         if t >= 0 then
             return true, nil
         else
@@ -176,7 +176,7 @@ pardef.text_xgap_factor = {
     default    = 0.75,
     unit       = "absolute-number",
     isReserved = false,
-    fncheck    = function (self, t, _) --> boolean, err
+    fncheck    = function (_self, t, _) --> boolean, err
         if t >= 0 then
             return true, nil
         else
@@ -230,7 +230,7 @@ local addon_xgap_factor = {-- distance between main and add-on symbol
     default    = 10,
     unit       = "absolute-number",
     isReserved = false,
-    fncheck    = function (self, t, _) --> boolean, err
+    fncheck    = function (_self, t, _) --> boolean, err
         if t >= 7 then
             return true, nil
         else
@@ -251,8 +251,8 @@ par_def_var["isbn+2"].addon_xgap_factor = addon_xgap_factor
 local text_isbn_enabled = { -- boolean type
     default    = "auto",
     isReserved = false,
-    fncheck    = function (self, flag, _) --> boolean, err
-        if type(flag) == "boolean" or 
+    fncheck    = function (_self, flag, _) --> boolean, err
+        if type(flag) == "boolean" or
             (type(flag) == "string" and flag == "auto") then
             return true, nil
         else
@@ -269,7 +269,7 @@ local text_isbn_ygap_factor = {
     default    = 2.0,
     unit       = "absolute-number",
     isReserved = false,
-    fncheck    = function (self, t, _) --> boolean, err
+    fncheck    = function (_self, t, _) --> boolean, err
         if t >= 0 then
             return true, nil
         else
@@ -438,7 +438,7 @@ end
 
 -- group char for readibility '-' or ' '
 -- char won't be inserted in the top isbn code
-local function isbn_check_char(isbn, c, parse_state) --> elem, err
+local function isbn_check_char(_isbn, c, parse_state) --> elem, err
     if type(c) ~= "string" or #c ~= 1 then
         return nil, "[InternalErr] invalid char"
     end
@@ -489,6 +489,25 @@ local function isbn_check_char(isbn, c, parse_state) --> elem, err
         parse_state.isbn_len = isbn_len
         return n, nil
     end
+end
+
+-- finalize for basic encoder
+local function basic_finalize(enc, _parse_state) --> ok, err
+    local l1 = enc._main_len
+    local l2 = enc._addon_len
+    local ok_len = l1 + (l2 or 0)
+    local symb_len = enc._code_len
+    if symb_len ~= ok_len then
+        return false, "[ArgErr] not a "..ok_len.."-digit long array"
+    end
+    if enc._is_last_checksum then -- is the last digit ok?
+        local data = enc._code_data
+        local ck = checksum_8_13(data, l1 - 1)
+        if ck ~= data[l1] then
+            return false, "[Err] wrong checksum digit"
+        end
+    end
+    return true, nil
 end
 
 -- overriding function called every time an input ISBN code has been completely
@@ -594,7 +613,6 @@ function EAN:_config() --> ok, err
     fnconfig(self, VbarClass, mod)
     if variant == "isbn" or variant == "isbn+5" or variant == "isbn+2" then
         self._check_char = isbn_check_char
-        self._finalize = isbn_finalize
     end
     return true, nil
 end
@@ -663,22 +681,14 @@ end
 -- internal methods for Barcode costructors
 
 -- function called every time an input EAN code has been completely parsed
-function EAN:_finalize() --> ok, err
-    local l1 = self._main_len
-    local l2 = self._addon_len
-    local ok_len = l1 + (l2 or 0)
-    local symb_len = self._code_len
-    if symb_len ~= ok_len then
-        return false, "[ArgErr] not a "..ok_len.."-digit long array"
+function EAN:_finalize(parse_state) --> ok, err
+    local variant = self._variant
+    local isbn = variant:match("^isbn")
+    if isbn then
+        return isbn_finalize(self, parse_state) --> ok, err
+    else
+        return basic_finalize(self) --> ok, err
     end
-    if self._is_last_checksum then -- is the last digit ok?
-        local data = self._code_data
-        local ck = checksum_8_13(data, l1 - 1)
-        if ck ~= data[l1] then
-            return false, "[Err] wrong checksum digit"
-        end
-    end
-    return true, nil
 end
 
 -- drawing functions

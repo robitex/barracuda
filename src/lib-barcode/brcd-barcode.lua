@@ -196,9 +196,9 @@ function Barcode:param_ord_iter(filter)
         end
     end
     -- stateless iterator troughtout the ordered parameters collection
-    local p_iter = function (state, i)
+    local p_iter = function (st, i)
         i = i + 1
-        local t = state[i]
+        local t = st[i]
         if t then
             return i, t
         end
@@ -301,7 +301,7 @@ end
 -- 'trename' is the special identifier of the encoder
 function Barcode:enc_by_name(treename) --> <encoder object>, <err>
     -- argument checking
-    local family, variant, enc_name, err = parse_treename(treename)
+    local _family, _variant, _enc_name, err = parse_treename(treename)
     if err then
         return nil, err
     end
@@ -535,15 +535,15 @@ function Barcode:info() --> table
         param       = {},
     }
     local tpar   = info.param
-    for _, pardef in self:param_ord_iter() do
-        local id   = pardef.pname
-        local pdef = pardef.pdef
+    for _, pdef in self:param_ord_iter() do
+        local id   = pdef.pname
+        local def = pdef.pdef
         tpar[#tpar + 1] = {
             name       = id,
             descr      = nil, -- TODO:
             value      = self[id],
-            isReserved = pdef.isReserved,
-            unit       = pdef.unit,
+            isReserved = def.isReserved,
+            unit       = def.unit,
         }
     end
     return info
