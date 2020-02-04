@@ -388,16 +388,21 @@ local function checkdigit(t, last, method)
     end
 end
 
+local function itf14_parse_state()
+    return {
+        itf14_code = {},
+        is_space = false,
+        is_popen = false,
+        itf14_len = 0,
+    }
+end
+
 -- group char for readibility '(' or ')' or ' '
 local function itf14_check_char(enc, c, parse_state) --> elem, err
     if type(c) ~= "string" or #c ~= 1 then
         return nil, "[InternalErr] invalid char"
     end
-    if parse_state.itf14_code == nil then parse_state.itf14_code = {} end
     local code = parse_state.itf14_code
-    if parse_state.is_space == nil then parse_state.is_space = false end
-    if parse_state.is_popen == nil then parse_state.is_popen = false end
-    if parse_state.itf14_len == nil then parse_state.itf14_len = 0 end
     local itf14_len = parse_state.itf14_len
     -- parsing
     if c == " " then
@@ -460,6 +465,7 @@ function ITF:_config() --> ok, err
     local variant = self._variant
     if variant == "ITF14" then
         self._check_char = itf14_check_char
+        self._init_parse_state = itf14_parse_state
     end
     return true, nil
 end
@@ -467,7 +473,11 @@ end
 -- internal methods for constructors
 
 -- input code post processing for ITF14 variant
-local function itf14_finalize(enc) --> ok, err
+local function itf14_finalize(enc, parse_state) --> ok, err
+    local is_open = parse_state.is_popen
+    if is_open then
+        return false, "[ArgErr] unclosed group () in input code"
+    end
     -- check digit action
     local policy = enc.check_digit_policy
     local slen = enc._code_len
@@ -546,11 +556,11 @@ local function basic_finalize(enc) --> ok, err
 end
 
 -- input code post processing
-function ITF:_finalize() --> ok, err
+function ITF:_finalize(parse_state) --> ok, err
     local var = self._variant
     if var then
         assert(var == "ITF14")
-        return itf14_finalize(self)
+        return itf14_finalize(self, parse_state)
     else
         return basic_finalize(self)
     end

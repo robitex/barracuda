@@ -1,6 +1,6 @@
 # `barracuda` project
 
-This a pure Lua library is for drawing barcode symbols. The project components
+This is a pure Lua library for drawing barcode symbols. The project components
 are able to typeset barcode from within a LuaTeX document. Therefore is also
 possible to use `barracuda` with a Lua standalone interpreter to draw barcodes
 with different graphic format such as `SVG` (see an example below). This package
@@ -25,7 +25,7 @@ So far, the barcode symbologies included in the package are:
 
 - Code 39
 - Code 128
-- Interleaved 2 of 5
+- Interleaved 2 of 5 (ITF14, i2of5 general)
 - EAN family (ISBN, ISSN, EAN8, EAN13, and the add-ons EAN5 and EAN2)
 
 Other 1D encoding symbology will be added to the project, then it will be the

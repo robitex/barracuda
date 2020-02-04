@@ -491,32 +491,37 @@ local function isbn_checksum(isbn)
     return sum % 11
 end
 
+local function isbn_parse_state() --> parse state
+    return {
+        isbncode = {},
+        is_space = false,
+        is_dash = false,
+        isbn_len = 0,
+    }
+end
+
 -- group char for readibility '-' or ' '
 -- char won't be inserted in the top isbn code
 local function isbn_check_char(_, c, parse_state) --> elem, err
     if type(c) ~= "string" or #c ~= 1 then
         return nil, "[InternalErr] invalid char"
     end
-    if parse_state.isbncode == nil then parse_state.isbncode = {} end
     local code = parse_state.isbncode
-    if parse_state.isspace == nil then parse_state.isspace = false end
-    if parse_state.isdash == nil then parse_state.isdash = false end
-    if parse_state.isbn_len == nil then parse_state.isbn_len = 0 end
     local isbn_len = parse_state.isbn_len
     if c == "-" then
         if isbn_len == 0 then
             return nil, "[ArgErr] an initial dash is not allowed"
         end
-        if parse_state.isdash then
+        if parse_state.is_dash then
             return nil, "[ArgErr] two consecutive dash char found"
         end
-        parse_state.isdash = true
+        parse_state.is_dash = true
         return nil, nil
     elseif c == " " then
         if isbn_len == 0 then
             return nil, "[ArgErr] an initial space is not allowed"
         end
-        parse_state.isspace = true
+        parse_state.is_space = true
         return nil, nil
     elseif c == "X" then -- ISBN-10 checksum for 10
         code[#code + 1] = c
@@ -531,13 +536,13 @@ local function isbn_check_char(_, c, parse_state) --> elem, err
         if n < 0 or n > 9 then
             return nil, "[ArgErr] found a not digit or a not grouping char"
         end
-        if parse_state.isdash then -- close a group
+        if parse_state.is_dash then -- close a group
             code[#code + 1] = "-"
-            parse_state.isdash = false
-            parse_state.isspace = false
-        elseif parse_state.isspace then
+            parse_state.is_dash = false
+            parse_state.is_space = false
+        elseif parse_state.is_space then
             code[#code + 1] = " "
-            parse_state.isspace = false
+            parse_state.is_space = false
         end
         code[#code + 1] = c
         isbn_len = isbn_len + 1
@@ -660,21 +665,26 @@ local function to_n(c) --> n, err
     return n, false
 end
 
+local function issn_parse_state()
+    return {
+        is_dash = false,
+        is_group_open = false,
+        is_group_close = false,
+        ed_var_len = 0,
+        ed_var_arr = {},
+        code_len = 0,
+        addon_len = 0,
+    }
+end
+
 -- ISSN dddd-dddx[dd] or 13-long array
 -- spaces is always ignored
 local function issn_check_char(enc, c, parse_state) --> elem, err
     if (type(c) ~= "string") or (#c ~= 1) then
         return nil, "[InternalErr] invalid char"
     end
-    if parse_state.is_dash == nil then parse_state.is_dash = false end
-    if parse_state.is_group_open == nil then parse_state.is_group_open = false end
-    if parse_state.is_group_close == nil then parse_state.is_group_close = false end
-    if parse_state.ed_var_len == nil then parse_state.ed_var_len = 0 end
-    if parse_state.ed_var_arr == nil then parse_state.ed_var_arr = {} end
-    if parse_state.code_len == nil then parse_state.code_len = 0 end
-    if parse_state.addon_len == nil then parse_state.addon_len = 0 end
     local addon_len = enc._addon_len
-    -- edition variant part
+    -- `edition variant` input code part
     if c == " " then
         return nil, nil -- ignore all spaces
     end
@@ -899,8 +909,10 @@ function EAN:_config() --> ok, err
     fnconfig(self, VbarClass, mod)
     if v1 == "isbn" then
         self._check_char = isbn_check_char
+        self._init_parse_state = isbn_parse_state
     elseif v1 == "issn" then
         self._check_char = issn_check_char
+        self._init_parse_state = issn_parse_state
     end
     return true, nil
 end

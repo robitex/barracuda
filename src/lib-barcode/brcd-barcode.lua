@@ -347,7 +347,12 @@ function Barcode:from_string(symb, opt) --> object, err
     end
     local chars = {}
     local len = 0
-    local parse_state = {}
+    local parse_state
+    if self._init_parse_state then
+        parse_state = self:_init_parse_state()
+    else
+        parse_state = {}
+    end
     for c in string.gmatch(symb, ".") do
         local elem, err = self:_check_char(c, parse_state)
         if err then
@@ -395,7 +400,12 @@ function Barcode:from_uint(n, opt) --> object, err
         return nil, "[ArgErr] 'opt' is not a table"
     end
     local digits = {}
-    local parse_state = {}
+    local parse_state
+    if self._init_parse_state then
+        parse_state = self:_init_parse_state()
+    else
+        parse_state = {}
+    end
     local i = 0
     if n == 0 then
         local elem, err = self:_check_digit(0, parse_state)

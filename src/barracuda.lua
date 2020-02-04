@@ -26,8 +26,8 @@
 
 local Barracuda = {
     _NAME        = "barracuda",
-    _VERSION     = "barracuda v0.0.10",
-    _DATE        = "2020-02-04",
+    _VERSION     = "barracuda v0.0.11",
+    _DATE        = "2020-04-04",
     _DESCRIPTION = "Lua library for barcode printing",
     _URL         = "https://github.com/robitex/barracuda",
     _LICENSE     = "GNU GENERAL PUBLIC LICENSE, Version 2, June 1991",
