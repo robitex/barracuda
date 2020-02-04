@@ -1,0 +1,57 @@
+% !TeX program = LuaTeX
+\nopagenumbers
+% load package and store it in a global Lua variable
+\directlua{barracuda = require "barracuda"}
+\newbox\mybox
+
+ISSN test:
+
+\vskip10pt
+\leavevmode
+\directlua{barracuda:hbox("ean-issn", "9778881543480", "mybox")}
+\box\mybox
+
+\vskip10pt
+\leavevmode
+\directlua{barracuda:hbox("ean-issn+5", "977888154348000028", "mybox")}
+\box\mybox
+
+\vskip10pt
+\leavevmode
+\directlua{
+local ars_issn = {
+    online  = "9771828236001",
+    print = "9771828235004",
+}
+
+barracuda:hbox("ean-issn+5", ars_issn.online.."00028", "mybox")
+}
+\box\mybox
+
+\vskip10pt
+\leavevmode
+\directlua{barracuda:hbox("ean-issn", "1828-2350", "mybox")}
+\box\mybox
+
+\vskip10pt
+\leavevmode
+\directlua{barracuda:hbox("ean-issn", "1828-2350 [01]", "mybox")}
+\box\mybox
+
+\vskip10pt
+\leavevmode
+\directlua{barracuda:hbox("ean-issn+5", "1828-2350 [01] 00028", "mybox")}
+\box\mybox
+
+\vskip10pt
+\leavevmode
+\directlua{
+barracuda:hbox("ean-issn+2", "1828-2350 [01] 22", "mybox")
+barracuda:save("ean-issn+2", "1828-2350 [01] 22", "ars")
+}
+\box\mybox
+
+
+\bye
+
+

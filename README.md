@@ -1,14 +1,14 @@
 # `barracuda` project
 
-This Lua library is for drawing barcode symbols. The project delivers modules
-to typeset barcode from within a LuaTeX document. Therefore is also possible
-to use `barracuda` with a Lua standalone interpreter to draw barcodes with
-different graphic format such as `SVG` (see an example below).
-This package does not have dependences.
+This a pure Lua library is for drawing barcode symbols. The project components
+are able to typeset barcode from within a LuaTeX document. Therefore is also
+possible to use `barracuda` with a Lua standalone interpreter to draw barcodes
+with different graphic format such as `SVG` (see an example below). This package
+does not have dependences.
 
-![a SVG formatted Code39 symbol](/test/test-ga-svg/test-code39.svg)
+![a Code39 symbol in SVG format](/test/test-ga-svg/test-code39.svg)
 
-Internal modules are structured to ensure good performance and to allow a
+Internal modules are structured to ensure good performance and to give a
 complete user control over barcode symbol parameters :thumbsup: .
 
 Although development is in beta stage, `barracuda` has a good level of
@@ -16,8 +16,8 @@ stability.
 
 ## Current version
 
-Version: v0.0.9.1
-Date: 2019-12-04
+Version: v0.0.10
+Date: 2020-02-04
 
 ## Barcode symbologies list
 
@@ -26,7 +26,7 @@ So far, the barcode symbologies included in the package are:
 - Code 39
 - Code 128
 - Interleaved 2 of 5
-- EAN family (ISBN, EAN8, EAN13, and the add-ons EAN5 and EAN2)
+- EAN family (ISBN, ISSN, EAN8, EAN13, and the add-ons EAN5 and EAN2)
 
 Other 1D encoding symbology will be added to the project, then it will be the
 turn of 2D barcode types like Datamatrix, QRCode or PDF417.
@@ -36,7 +36,7 @@ turn of 2D barcode types like Datamatrix, QRCode or PDF417.
 The LaTeX package `barracuda.sty` under the cover uses Lua code so you need to
 compile your source files with LuaTeX or LuajitTeX with the LaTeX format.
 
-For instance, here there is a minimal example for LuaLaTeX:
+For instance, here is a minimal working example for LuaLaTeX:
 
 ```latex
 % !TeX program = LuaLaTeX
@@ -50,7 +50,7 @@ For instance, here there is a minimal example for LuaLaTeX:
 ## Documentation
 
 Details and package reference can be found in the manual delivered in the `doc`
-project directory, even if it is very minimal at the moment.
+project directory, even if actually it is very minimal at the moment.
 
 Directory `test` contains files useful also for code examples.
 
@@ -76,10 +76,10 @@ Step by step istruction can be found in the INSTALL.txt file.
 ## Contribute
 
 Contributes are welcome in any form and for any topics. You can contact me
-directly via email at giaconet.mailbox@gmail.com or via a pull request on the
-repository <https://github.com/robitex/barracuda> or writing a public message
-via the web page <https://github.com/robitex/barracuda/issues> for todos, bugs,
-feature requests, and more (press the bottom `New issue`).
+directly via email at giaconet.mailbox@gmail.com or via a pull request direct to
+the repository <https://github.com/robitex/barracuda> or writing a public
+message via the web page <https://github.com/robitex/barracuda/issues> for
+todos, bugs, feature requests, and more (press the bottom `New issue`).
 
 Anyway, as a starting point take a look of PLANNER.txt file for the development
 program.

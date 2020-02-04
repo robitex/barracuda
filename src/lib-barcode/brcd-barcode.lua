@@ -329,17 +329,16 @@ end
 --
 function Barcode:_check_digit(n) --> elem, err
     if type(n) ~= "number" then
-        return nil, "[InternalErr] not a number"
+        return nil, "[ArgErr] not a number"
     end
     if n < 0 or n > 9 then
-        return nil, "[InternalErr] not a digit"
+        return nil, "[ArgErr] not a digit"
     end
     return n, nil
 end
 
 -- not empty string --> Barcode object
 function Barcode:from_string(symb, opt) --> object, err
-    assert(self._check_char, "[InternalErr] undefined _check_char() method")
     if type(symb) ~= "string" then
         return nil, "[ArgErr] 'symb' is not a string"
     end
@@ -383,7 +382,6 @@ end
 
 -- positive integer --> Barcode object
 function Barcode:from_uint(n, opt) --> object, err
-    assert(self._check_digit, "[InternalErr] undefined _check_digit() method")
     if type(n) ~= "number" then
         return nil, "[ArgErr] 'n' is not a number"
     end

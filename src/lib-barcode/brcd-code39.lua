@@ -219,7 +219,7 @@ pardef.text_gap = {
 pardef.text_star = {
     default    = false,
     isReserved = false,
-    fncheck    = function(self, flag, _) --> boolean, err
+    fncheck    = function(_self, flag, _) --> boolean, err
         if type(flag) == "boolean" then
             return true, nil
         else
@@ -241,7 +241,7 @@ end
 -- overriding Barcode method
 function Code39:_check_char(c) --> elem, err
     if type(c) ~= "string" or #c ~= 1 then
-        return nil, "[InternalErr] invalid char"
+        return nil, "[ArgErr] invalid char"
     end
     local symb_def = self._symb_def
     local n = symb_def[c]
@@ -255,12 +255,12 @@ end
 -- overriding Barcode method
 function Code39:_check_digit(n) --> elem, err
     if type(n) ~= "number" then
-        return nil, "[InteranlErr] not a number"
+        return nil, "[ArgErr] not a number"
     end
     if n < 0 or n > 9 then
-        return nil, "[InternalErr] not a digit"
+        return nil, "[ArgErr] not a digit"
     end
-    return tostring(n), nil
+    return string.char(n + 48), nil
 end
 
 function Code39:_finalize() --> ok, err

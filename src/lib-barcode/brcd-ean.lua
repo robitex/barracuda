@@ -2,7 +2,6 @@
 --
 -- Copyright (C) 2020 Roberto Giacomelli
 -- see LICENSE.txt file
---
 
 local EAN = {
     _VERSION     = "ean v0.0.6",
@@ -22,6 +21,9 @@ EAN._id_variant = {
     ["isbn"] = true, -- ISBN 13 digits
     ["isbn+2"] = true, -- ISBN 13 digits with an EAN2 add-on
     ["isbn+5"] = true, -- ISBN 13 digits with an EAN2 add-on
+    ["issn"] = true, -- ISSN 13 digits
+    ["issn+2"] = true, -- ISSN 13 digits with an EAN2 add-on
+    ["issn+5"] = true, -- ISSN 13 digits with an EAN2 add-on
 }
 
 EAN._codeset_seq = {-- 1 -> A, 2 -> B, 3 -> C
@@ -209,6 +211,20 @@ EAN._par_variant_order = {
         "text_isbn_ygap_factor",
         "addon_xgap_factor",
     },
+    ["issn"] = { -- ISSN 13 digits, International Standard Serial Number
+        "text_issn_enabled",
+        "text_issn_ygap_factor",
+    },
+    ["issn+2"] = { -- ISSN 13 digits with an EAN2 add-on
+        "text_issn_enabled",
+        "text_issn_ygap_factor",
+        "addon_xgap_factor",
+    },
+    ["issn+5"] = { -- ISSN 13 digits with an EAN2 add-on
+        "text_issn_enabled",
+        "text_issn_ygap_factor",
+        "addon_xgap_factor",
+    },
 }
 EAN._par_def_variant = {
     ["13"]   = {}, -- EAN13
@@ -219,13 +235,18 @@ EAN._par_def_variant = {
     ["13+2"] = {}, -- EAN13 with EAN2 add-on
     ["8+5"]  = {}, -- EAN8 with EAN5 add-on
     ["8+2"]  = {}, -- EAN8 with EAN2 add-on
+    -- ISBN
     ["isbn"] = {}, -- ISBN 13 digits
     ["isbn+2"] = {}, -- ISBN 13 digits with an EAN2 add-on
     ["isbn+5"] = {}, -- ISBN 13 digits with an EAN2 add-on
+    -- ISSN
+    ["issn"] = {}, -- ISBN 13 digits
+    ["issn+2"] = {}, -- ISBN 13 digits with an EAN2 add-on
+    ["issn+5"] = {}, -- ISBN 13 digits with an EAN2 add-on
 }
 local par_def_var = EAN._par_def_variant
 
--- EAN ISBN/13/8 + add-on parameters
+-- EAN ISBN/ISSN/13/8 + add-on parameters
 local addon_xgap_factor = {-- distance between main and add-on symbol
     default    = 10,
     unit       = "absolute-number",
@@ -242,13 +263,17 @@ par_def_var["13+5"].addon_xgap_factor = addon_xgap_factor
 par_def_var["13+2"].addon_xgap_factor = addon_xgap_factor
 par_def_var["8+5"].addon_xgap_factor = addon_xgap_factor
 par_def_var["8+2"].addon_xgap_factor = addon_xgap_factor
+-- ISBN
 par_def_var["isbn+5"].addon_xgap_factor = addon_xgap_factor
 par_def_var["isbn+2"].addon_xgap_factor = addon_xgap_factor
+-- ISSN
+par_def_var["issn+5"].addon_xgap_factor = addon_xgap_factor
+par_def_var["issn+2"].addon_xgap_factor = addon_xgap_factor
 
--- text_ISBN parameter
+-- text_ISBN_* parameter
 -- enable/disable a text ISBN label upon the barcode symbol
 -- if it is "auto" the isbn text appears or not and depends by input code
-local text_isbn_enabled = { -- boolean type
+local isbn_text_enabled = { -- boolean type
     default    = "auto",
     isReserved = false,
     fncheck    = function (_self, flag, _) --> boolean, err
@@ -260,12 +285,33 @@ local text_isbn_enabled = { -- boolean type
         end
     end,
 }
-par_def_var["isbn+5"].text_isbn_enabled = text_isbn_enabled
-par_def_var["isbn+2"].text_isbn_enabled = text_isbn_enabled
-par_def_var["isbn"].text_isbn_enabled = text_isbn_enabled
+-- ISBN
+par_def_var["isbn+5"].text_isbn_enabled = isbn_text_enabled
+par_def_var["isbn+2"].text_isbn_enabled = isbn_text_enabled
+par_def_var["isbn"].text_isbn_enabled = isbn_text_enabled
+
+-- text_ISSN_* parameter
+-- enable/disable a text ISBN label upon the barcode symbol
+-- if it is "auto" the isbn/issn text appears or not and depends by input code
+local issn_text_enabled = { -- boolean type
+    default    = true,
+    isReserved = false,
+    fncheck    = function (_self, flag, _) --> boolean, err
+        if type(flag) == "boolean" then
+            return true, nil
+        else
+            return false, "[TypeErr] not a boolean value for text_issn_enabled"
+        end
+    end,
+}
+
+-- ISSN
+par_def_var["issn+5"].text_issn_enabled = issn_text_enabled
+par_def_var["issn+2"].text_issn_enabled = issn_text_enabled
+par_def_var["issn"].text_issn_enabled = issn_text_enabled
 
 -- ISBN text vertical distance
-local text_isbn_ygap_factor = {
+local text_ygap_factor = {
     default    = 2.0,
     unit       = "absolute-number",
     isReserved = false,
@@ -277,10 +323,14 @@ local text_isbn_ygap_factor = {
         end
     end,
 }
-
-par_def_var["isbn+5"].text_isbn_ygap_factor = text_isbn_ygap_factor
-par_def_var["isbn+2"].text_isbn_ygap_factor = text_isbn_ygap_factor
-par_def_var["isbn"].text_isbn_ygap_factor = text_isbn_ygap_factor
+-- ISBN
+par_def_var["isbn+5"].text_isbn_ygap_factor = text_ygap_factor
+par_def_var["isbn+2"].text_isbn_ygap_factor = text_ygap_factor
+par_def_var["isbn"].text_isbn_ygap_factor = text_ygap_factor
+-- ISSN
+par_def_var["issn+5"].text_issn_ygap_factor = text_ygap_factor
+par_def_var["issn+2"].text_issn_ygap_factor = text_ygap_factor
+par_def_var["issn"].text_issn_ygap_factor = text_ygap_factor
 
 -- configuration functions
 
@@ -348,7 +398,6 @@ local config_variant = {
         for c = 1, 2 do
             tvbar[c] = {}
             local tcs = tvbar[c]
-            local isbar = false
             local sb = symbols[c]
             for i = 0, 9 do
                 tcs[i] = Vbar:from_int(sb[i], mod, false)
@@ -366,7 +415,6 @@ local config_variant = {
         for c = 1, 2 do
             tvbar[c] = {}
             local tcs = tvbar[c]
-            local isbar = false
             local sb = symbols[c]
             for i = 0, 9 do
                 tcs[i] = Vbar:from_int(sb[i], mod, false)
@@ -386,21 +434,17 @@ local config_variant = {
         config_full(ean, Vbar, mod, 8, 2)
     end,
 }
-
+-- ISBN
 config_variant["isbn"] = config_variant["13"]
 config_variant["isbn+2"] = config_variant["13+2"]
 config_variant["isbn+5"] = config_variant["13+5"]
+-- ISSN
+config_variant["issn"] = config_variant["13"]
+config_variant["issn+2"] = config_variant["13+2"]
+config_variant["issn+5"] = config_variant["13+5"]
 EAN._config_variant = config_variant
 
 -- utility function
--- return the ISBN 10 digits checksum
-local function isbn_checksum(isbn)
-    local sum = 0
-    for w = 1,9 do
-        sum = sum + w * isbn[w]
-    end
-    return sum % 11
-end
 
 -- the checksum of EAN8 or EAN13 code
 -- 'data' is an array of digits
@@ -436,9 +480,20 @@ local function checksum_5_2(data, i, len) --> checksum digit or nil
     end
 end
 
+-- ISBN utility function
+
+-- return the ISBN 10 digits checksum
+local function isbn_checksum(isbn)
+    local sum = 0
+    for w = 1, 9 do
+        sum = sum + w * isbn[w]
+    end
+    return sum % 11
+end
+
 -- group char for readibility '-' or ' '
 -- char won't be inserted in the top isbn code
-local function isbn_check_char(_isbn, c, parse_state) --> elem, err
+local function isbn_check_char(_, c, parse_state) --> elem, err
     if type(c) ~= "string" or #c ~= 1 then
         return nil, "[InternalErr] invalid char"
     end
@@ -468,7 +523,7 @@ local function isbn_check_char(_isbn, c, parse_state) --> elem, err
         isbn_len = isbn_len + 1
         parse_state.isbn_len = isbn_len
         if isbn_len ~= 10 then
-            return nil, "[ArgErr] found a 'X' in a wrong position"
+            return nil, "[ArgErr] found a checksum 'X' in a wrong position"
         end
         return 10, nil
     else -- c is at this point eventually a digit
@@ -489,25 +544,6 @@ local function isbn_check_char(_isbn, c, parse_state) --> elem, err
         parse_state.isbn_len = isbn_len
         return n, nil
     end
-end
-
--- finalize for basic encoder
-local function basic_finalize(enc, _parse_state) --> ok, err
-    local l1 = enc._main_len
-    local l2 = enc._addon_len
-    local ok_len = l1 + (l2 or 0)
-    local symb_len = enc._code_len
-    if symb_len ~= ok_len then
-        return false, "[ArgErr] not a "..ok_len.."-digit long array"
-    end
-    if enc._is_last_checksum then -- is the last digit ok?
-        local data = enc._code_data
-        local ck = checksum_8_13(data, l1 - 1)
-        if ck ~= data[l1] then
-            return false, "[Err] wrong checksum digit"
-        end
-    end
-    return true, nil
 end
 
 -- overriding function called every time an input ISBN code has been completely
@@ -600,6 +636,246 @@ local function isbn_finalize(enc, parse_state) --> ok, err
     return true, nil
 end
 
+-- ISSN utility fucntion
+
+-- return the ISSN checksum
+local function issn_checksum(issn)
+    local sum = 0
+    for i = 1, 7 do
+        sum = sum + (9 - i) * issn[i]
+    end
+    local r = sum % 11
+    if r == 0 then
+        return 0
+    else
+        return 11 - r
+    end
+end
+
+local function to_n(c) --> n, err
+    local n = string.byte(c) - 48
+    if n < 0 or n > 9 then
+        return nil, true
+    end
+    return n, false
+end
+
+-- ISSN dddd-dddx[dd] or 13-long array
+-- spaces is always ignored
+local function issn_check_char(enc, c, parse_state) --> elem, err
+    if (type(c) ~= "string") or (#c ~= 1) then
+        return nil, "[InternalErr] invalid char"
+    end
+    if parse_state.is_dash == nil then parse_state.is_dash = false end
+    if parse_state.is_group_open == nil then parse_state.is_group_open = false end
+    if parse_state.is_group_close == nil then parse_state.is_group_close = false end
+    if parse_state.ed_var_len == nil then parse_state.ed_var_len = 0 end
+    if parse_state.ed_var_arr == nil then parse_state.ed_var_arr = {} end
+    if parse_state.code_len == nil then parse_state.code_len = 0 end
+    if parse_state.addon_len == nil then parse_state.addon_len = 0 end
+    local addon_len = enc._addon_len
+    -- edition variant part
+    if c == " " then
+        return nil, nil -- ignore all spaces
+    end
+    if parse_state.is_group_close then
+        if addon_len then
+            if parse_state.addon_len == enc._addon_len then
+                return nil, "[ArgErr] too many chars in the ISSN input code"
+            end
+            local n, e = to_n(c)
+            if e then
+                return nil, "[ArgErr] non digit char after a edition variant group"
+            end
+            parse_state.addon_len = parse_state.addon_len + 1
+            return n, nil
+        else
+            return nil, "[ArgErr] too many chars in the ISSN input code"
+        end
+    end
+    -- code part
+    if c == "-" then
+        if parse_state.is_dash then
+            return nil, "[ArgErr] two or more dash char in the input code"
+        end
+        if parse_state.code_len ~= 4 then
+            return nil, "[ArgErr] incorrect position for a dash sign"
+        end
+        parse_state.is_dash = true
+        return nil, nil
+    elseif c == "[" then -- two digits edition variant group opening
+        if parse_state.code_len ~= 8 then
+            return nil, "[ArgErr] not a 8 digits long code for the ISSN input"
+        end
+        parse_state.is_group_open = true
+        return nil, nil
+    elseif c == "]" then -- two digits edition variant closing
+        if not parse_state.is_group_open then
+            return nil, "[ArgErr] found a ']' without a '['"
+        end
+        if parse_state.ed_var_len ~= 2 then
+            return nil, "[ArgErr] edition variant group must be two digits long"
+        end
+        parse_state.is_group_open = false
+        parse_state.is_group_close = true
+        return nil, nil
+    elseif c == "X" then -- 8th ISSN checksum digit
+        if parse_state.code_len ~= 7 then
+            return nil, "[ArgErr] incorrect position for checksum digit 'X'"
+        end
+        parse_state.code_len = 8
+        return 10, nil
+    else -- at this point 'c' can be only a digit
+        local n, e = to_n(c)
+        if e then
+            return nil, "[ArgErr] found a non digit in code part"
+        end
+        if parse_state.is_group_open then
+            if parse_state.ed_var_len == 2 then
+                return nil, "[ArgErr] group digits are more than two"
+            end
+            parse_state.ed_var_len = parse_state.ed_var_len + 1
+            local t = parse_state.ed_var_arr
+            t[#t + 1] = n
+            return nil, nil
+        end
+        if parse_state.is_dash then
+            if addon_len then
+                if parse_state.code_len < 8 then
+                    parse_state.code_len = parse_state.code_len + 1
+                else
+                    if parse_state.addon_len == addon_len then
+                        return nil, "[ArgErr] too many digits for a 8 + "..addon_len.." ISSN input code"
+                    end
+                    parse_state.addon_len = parse_state.addon_len + 1
+                end
+            else
+                if parse_state.code_len == 8 then
+                    return nil, "[ArgErr] too many digits found for a 8 digits long ISSN input code"
+                end
+                parse_state.code_len = parse_state.code_len + 1
+            end
+        else
+            if addon_len then
+                if parse_state.code_len == (13 + addon_len) then
+                    return nil, "[ArgErr] too many digits in ISSN input code"
+                end
+            else
+                if parse_state.code_len == 13 then
+                    return nil, "[ArgErr] too many digits in a 13 digits long ISSN input code"
+                end
+            end
+            parse_state.code_len = parse_state.code_len + 1
+        end
+        return n, nil
+    end
+end
+
+-- translate an ISSN 8 in an EAN 13
+local function issn8_to_13(issn, ed_var_1, ed_var_2) --> i13, i8, err
+    local r13, r8 = {9, 7, 7}, {}
+    for i = 1, 7 do
+        r8[i]  = issn[i]
+        r13[i + 3] = issn[i]
+    end
+    local issn_cs = issn_checksum(r8)
+    if issn_cs ~= issn[8] then
+        return nil, nil, "[Err] unmatch ISSN 8 checksum"
+    end
+    for i = 1, 7 do
+        r8[i] = string.char(r8[i] + 48)
+    end
+    if issn_cs == 10 then
+        r8[8] = "X"
+    else
+        r8[8] = string.char(issn_cs + 48)
+    end
+    r13[11] = ed_var_1
+    r13[12] = ed_var_2
+    r13[13] = checksum_8_13(r13, 12)
+    return r13, r8, nil
+end
+
+-- translate an EAN 13 to an ISSN 8 input code
+local function ean13_to_issn8(ean)
+    local res = {}
+    for i = 4, 10 do
+        res[i - 3] = ean[i]
+    end
+    local issn_cs = issn_checksum(res)
+    for i = 1, 7 do
+        res[i] = string.char(res[i] + 48)
+    end
+    if issn_cs == 10 then
+        res[8] = "X"
+    else
+        res[8] = string.char(issn_cs + 48)
+    end
+    return res
+end
+
+-- finalize the ISSN input code
+-- new field 'enc._issn_is_short_input' -- the input code was 8 digits long
+-- new filed 'enc._issn_is_dash'        -- the 8 digits long input code contained a dash
+local function issn_finalize(enc, parse_state) --> ok, err
+    if parse_state.is_group_open then
+        return false, "[ArgErr] unclosed edition variant group in ISSN input code"
+    end
+    local data = enc._code_data
+    local code_len = enc._code_len
+    local addon_len = enc._addon_len
+    local main_len = code_len - (addon_len or 0)
+    if main_len == 8 then
+        -- make the 8 long array for human readable text
+        local ev1, ev2 = 0, 0
+        if parse_state.ed_var_len > 0 then
+            local edvar = parse_state.ed_var_arr
+            ev1, ev2 = edvar[1], edvar[2]
+        end
+        local issn13, issn8, err = issn8_to_13(data, ev1, ev2)
+        if err then return false, err end
+        if addon_len then
+            for i = 9, 9 + addon_len do
+                issn13[i + 5] = data[i] -- save addon digits
+            end
+        end
+        enc._code_data = issn13
+        enc._code_text = issn8
+        enc._issn_is_short_input = true
+        enc._issn_is_dash = parse_state.is_dash
+    elseif main_len == 13 then
+        local ck = checksum_8_13(data, 12) -- check EAN checksum
+        if ck ~= data[13] then
+            return false, "[Err] wrong checksum digit"
+        end
+        -- make 8 long array for human readable text
+        enc._code_text = ean13_to_issn8(data)
+        enc._issn_is_short_input = false
+    else
+        return nil, "[ArgErr] incorrect digits number of "..main_len.." in input ISSN code"
+    end
+    return true, nil
+end
+
+-- finalize for basic encoder
+local function basic_finalize(enc) --> ok, err
+    local l1 = enc._main_len
+    local l2 = enc._addon_len
+    local ok_len = l1 + (l2 or 0)
+    local symb_len = enc._code_len
+    if symb_len ~= ok_len then
+        return false, "[ArgErr] not a "..ok_len.."-digit long array"
+    end
+    if enc._is_last_checksum then -- is the last digit ok?
+        local data = enc._code_data
+        local ck = checksum_8_13(data, l1 - 1)
+        if ck ~= data[l1] then
+            return false, "[Err] wrong checksum digit"
+        end
+    end
+    return true, nil
+end
+
 -- config function called at the moment of encoder construction
 -- create all the possible VBar object
 function EAN:_config() --> ok, err
@@ -607,14 +883,40 @@ function EAN:_config() --> ok, err
     if not variant then
         return false, "[Err] variant is mandatory for EAN family"
     end
+    local plus = variant:find("+")
+    local v1
+    if plus then
+        v1 = variant:sub(1, plus - 1)
+        self._sub_variant_1 = v1
+        self._sub_variant_2 = variant:sub(plus + 1)
+    else
+        v1 = variant
+        self._sub_variant_1 = v1
+    end
     local fnconfig = self._config_variant[variant]
     local VbarClass = self._libgeo.Vbar -- Vbar class
     local mod = self.mod
     fnconfig(self, VbarClass, mod)
-    if variant == "isbn" or variant == "isbn+5" or variant == "isbn+2" then
+    if v1 == "isbn" then
         self._check_char = isbn_check_char
+    elseif v1 == "issn" then
+        self._check_char = issn_check_char
     end
     return true, nil
+end
+
+-- internal methods for Barcode costructors
+
+-- function called every time an input EAN code has been completely parsed
+function EAN:_finalize(parse_state) --> ok, err
+    local v1 = self._sub_variant_1
+    if v1 == "isbn" then
+        return isbn_finalize(self, parse_state) --> ok, err
+    elseif v1 == "issn" then
+        return issn_finalize(self, parse_state) --> ok, err
+    else
+        return basic_finalize(self) --> ok, err
+    end
 end
 
 -- public methods
@@ -640,10 +942,10 @@ function EAN:checksum(n) --> n, err
         end
         -- array reversing
         local len = #arr + 1
-        for i = 1, #arr/2 do
-            local dt = arr[i]
-            arr[i] = arr[len - i]
-            arr[len - i] = dt
+        for k = 1, #arr/2 do
+            local dt = arr[k]
+            arr[k] = arr[len - k]
+            arr[len - k] = dt
         end
     elseif type(n) == "table" then
         if not #n > 0 then return nil, "[ArgErr] empty array" end
@@ -675,19 +977,6 @@ function EAN:checksum(n) --> n, err
         return checksum_8_13(arr, 12)
     else
         return nil, "[Err] unsuitable data length for EAN8 or EAN13 checksum"
-    end
-end
-
--- internal methods for Barcode costructors
-
--- function called every time an input EAN code has been completely parsed
-function EAN:_finalize(parse_state) --> ok, err
-    local variant = self._variant
-    local isbn = variant:match("^isbn")
-    if isbn then
-        return isbn_finalize(self, parse_state) --> ok, err
-    else
-        return basic_finalize(self) --> ok, err
     end
 end
 
@@ -741,7 +1030,7 @@ fn_append_ga_variant["13"] = function (ean, canvas, tx, ty, ax, ay)
     -- bounding box set up
     local qzl = ean.quietzone_left_factor * mod
     local qzr = ean.quietzone_right_factor * mod
-    local err = canvas:stop_bbox_group(x0 - qzl, y0, x1 + qzr, y1)
+    err = canvas:stop_bbox_group(x0 - qzl, y0, x1 + qzr, y1)
     assert(not err, err)
     if ean.text_enabled then -- human readable text
         local Text  = ean._libgeo.Text
@@ -750,7 +1039,6 @@ fn_append_ga_variant["13"] = function (ean, canvas, tx, ty, ax, ay)
         local txt_3 = Text:from_digit_array(code, 8, 13)
         local y_bl = ys - ean.text_ygap_factor * mod
         local mx = ean.text_xgap_factor
-        local err
         err = canvas:encode_Text(txt_1, x0 - qzl, y_bl, 0, 1)
         assert(not err, err)
         local x2_1 = x0 + (3+mx)*mod
@@ -780,8 +1068,24 @@ fn_append_ga_variant["13"] = function (ean, canvas, tx, ty, ax, ay)
             local isbn_txt = Text:from_chars(descr)
             local x_isbn = x0 + 47.5 * mod
             local y_isbn = y1 + ean.text_isbn_ygap_factor * mod
-            local err
             err = canvas:encode_Text(isbn_txt, x_isbn, y_isbn, 0.5, 0)
+            assert(not err, err)
+        end
+        -- issn text
+        if ean.text_issn_enabled then
+            local hri = {"I", "S", "S", "N", " "}
+            local txt = assert(ean._code_text, "[IternalErr] _code_text not found")
+            for i = 1, 4 do
+                hri[i + 5] = txt[i]
+            end
+            hri[10] = "-"
+            for i = 5, 8 do
+                hri[i + 6] = txt[i]
+            end
+            local issn_txt = Text:from_chars(hri)
+            local x_issn = x0 + 47.5 * mod
+            local y_issn = y1 + ean.text_issn_ygap_factor * mod
+            err = canvas:encode_Text(issn_txt, x_issn, y_issn, 0.5, 0)
             assert(not err, err)
         end
     end
@@ -832,7 +1136,7 @@ fn_append_ga_variant["8"] = function (ean, canvas, tx, ty, ax, ay)
     -- bounding box set up
     local qzl = ean.quietzone_left_factor * mod
     local qzr = ean.quietzone_right_factor * mod
-    local err = canvas:stop_bbox_group(x0 - qzl, y0, x1 + qzr, y1)
+    err = canvas:stop_bbox_group(x0 - qzl, y0, x1 + qzr, y1)
     assert(not err, err)
     if ean.text_enabled then -- human readable text
         local Text  = ean._libgeo.Text
@@ -898,7 +1202,7 @@ fn_append_ga_variant["5"] = function (ean, canvas, tx, ty, ax, ay, h)
     -- bounding box set up
     local qzl = ean.quietzone_left_factor * mod
     local qzr = ean.quietzone_right_factor * mod
-    local err = canvas:stop_bbox_group(x0 - qzl, y0, x1 + qzr, y1)
+    err = canvas:stop_bbox_group(x0 - qzl, y0, x1 + qzr, y1)
     assert(not err, err)
     if ean.text_enabled then -- human readable text
         local Text = ean._libgeo.Text
@@ -961,7 +1265,7 @@ fn_append_ga_variant["2"] = function (ean, canvas, tx, ty, ax, ay, h)
     -- bounding box set up
     local qzl = ean.quietzone_left_factor * mod
     local qzr = ean.quietzone_right_factor * mod
-    local err = canvas:stop_bbox_group(x0 - qzl, y0, x1 + qzr, y1)
+    err = canvas:stop_bbox_group(x0 - qzl, y0, x1 + qzr, y1)
     assert(not err, err)
     if ean.text_enabled then -- human readable text
         local Text  = ean._libgeo.Text
@@ -1034,9 +1338,14 @@ fn_append_ga_variant["8+2"] = function (ean, canvas, tx, ty, ax, ay)
     fn_2(ean, canvas, x1, y0, 1, 0, 0.85 * h)
 end
 
+-- ISBN
 fn_append_ga_variant["isbn"] = fn_append_ga_variant["13"]
 fn_append_ga_variant["isbn+5"] = fn_append_ga_variant["13+5"]
 fn_append_ga_variant["isbn+2"] = fn_append_ga_variant["13+2"]
+-- ISSN
+fn_append_ga_variant["issn"] = fn_append_ga_variant["13"]
+fn_append_ga_variant["issn+5"] = fn_append_ga_variant["13+5"]
+fn_append_ga_variant["issn+2"] = fn_append_ga_variant["13+2"]
 
 -- Drawing into the provided channel geometrical data
 -- tx, ty is the optional translation vector
