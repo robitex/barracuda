@@ -322,20 +322,16 @@ function Code128:append_ga(canvas, tx, ty) --> canvas
     local y1 = y0 + h
     local xpos = x0
     -- drawing the symbol
-    local err
-    err = canvas:start_bbox_group()
-    assert(not err, err)
+    assert(canvas:start_bbox_group())
     for _, c in ipairs(data) do
         local vb = self._vbar[c]
-        err = canvas:encode_Vbar(vb, xpos, y0, y1)
-        assert(not err, err)
+        assert(canvas:encode_Vbar(vb, xpos, y0, y1))
         xpos = xpos + sw
     end
     -- bounding box setting
     local qz = self.quietzone_factor * xdim
     -- { xmin, ymin, xmax, ymax }
-    err = canvas:stop_bbox_group(x0 - qz, y0, x1 + qz, y1)
-    assert(not err, err)
+    assert(canvas:stop_bbox_group(x0 - qz, y0, x1 + qz, y1))
     return canvas
 end
 

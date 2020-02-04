@@ -580,7 +580,7 @@ end
 -- drawing function
 -- tx, ty is an optional translator vector
 function ITF:append_ga(canvas, tx, ty) --> canvas
-    local err = canvas:start_bbox_group(); assert(not err, err)
+    assert(canvas:start_bbox_group())
     -- draw the start symbol
     local xdim = self.module
     local ratio = self.ratio
@@ -590,8 +590,7 @@ function ITF:append_ga(canvas, tx, ty) --> canvas
     local y0 = ty or 0
     local y1 = y0 + self.height
     local start = self._vbar_start
-    local err
-    err = canvas:encode_Vbar(start, xpos, y0, y1); assert(not err, err)
+    assert(canvas:encode_Vbar(start, xpos, y0, y1))
     xpos = xpos + 4 * xdim
     -- draw the code symbol
     local digits = self._code_data
@@ -599,12 +598,12 @@ function ITF:append_ga(canvas, tx, ty) --> canvas
     for i = 1, #digits, 2 do
         local index = 10 * digits[i] + digits[i+1]
         local b = vbars[index]
-        err = canvas:encode_Vbar(b, xpos, y0, y1); assert(not err, err)
+        assert(canvas:encode_Vbar(b, xpos, y0, y1))
         xpos = xpos + symb_len
     end
     -- draw the stop symbol
     local stop = self._vbar_stop
-    err = canvas:encode_Vbar(stop, xpos, y0, y1); assert(not err, err)
+    assert(canvas:encode_Vbar(stop, xpos, y0, y1))
     -- bounding box setting
     local x1 = xpos + (2 + ratio)*xdim
     local qz = self.quietzone
@@ -615,22 +614,20 @@ function ITF:append_ga(canvas, tx, ty) --> canvas
     local b2x,  b2y = x1 + qz, y1
     if self.bearer_bars_enabled then
         local w = self.bearer_bars_thickness
-        err = canvas:encode_linethick(w); assert(not err, err)
+        assert(canvas:encode_linethick(w))
         b1y, b2y = b1y - w, b2y + w
         local layout = self.bearer_bars_layout
         if layout == "hbar" then
-            err = canvas:encode_hline(b1x, b2x, y0 - w/2); assert(not err, err)
-            err = canvas:encode_hline(b1x, b2x, y1 + w/2); assert(not err, err)
+            assert(canvas:encode_hline(b1x, b2x, y0 - w/2))
+            assert(canvas:encode_hline(b1x, b2x, y1 + w/2))
         elseif layout == "frame" then
-            err = canvas:encode_rectangle(b1x - w/2, y0 - w/2, b2x + w/2, y1 + w/2)
-            assert(not err, err)
+            assert(canvas:encode_rectangle(b1x - w/2, y0 - w/2, b2x + w/2, y1 + w/2))
             b1x, b2x = b1x - w, b2x + w
         else
             error("[IntenalErr] bearer bars layout option is wrong")
         end
     end
-    local err = canvas:stop_bbox_group(b1x, b1y, b2x, b2y)
-    assert(not err, err)
+    assert(canvas:stop_bbox_group(b1x, b1y, b2x, b2y))
     return canvas
 end
 

@@ -371,8 +371,7 @@ Test 1: a vbar 2pt width, 20pt height:
     gacanvas = require "lib-geo.brcd-gacanvas"
     local ga = gacanvas:new()
     local vbar = {_yline = {0.0, 2*pt}}
-    local err = ga:encode_Vbar(vbar, 0.0, 0.0, 20*pt) % x, w
-    assert(not err, err)
+    assert(ga:encode_Vbar(vbar, 0.0, 0.0, 20*pt)) % x, w
     driver:ga_to_hbox(ga, [[mybox]])
 }\box\mybox
 
@@ -386,8 +385,7 @@ Test 2: ten vbars equally spaced by 10pt:
         data[i*2 + 2] = 10*pt           % w
     end
     local bars = {_yline = data}
-    local err = ga:encode_Vbar(bars, 0.0, 0.0, 10*pt)
-    assert(not err, err)
+    assert(ga:encode_Vbar(bars, 0.0, 0.0, 10*pt))
     driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
@@ -405,10 +403,8 @@ Test 3: two series of vbars 10pt and 5pt large:
         b2[i*2 + 2] = 5*pt
     end
     local ga = gacanvas:new()
-    local err = ga:encode_Vbar({_yline=b1}, 0.0, 0.0, 10*pt)
-    assert(not err, err)
-    err = ga:encode_Vbar({_yline=b2}, 10.0*pt, 2.5*pt, 7.5*pt)
-    assert(not err, err)
+    assert(ga:encode_Vbar({_yline=b1}, 0.0, 0.0, 10*pt))
+    assert(ga:encode_Vbar({_yline=b2}, 10.0*pt, 2.5*pt, 7.5*pt))
     driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
@@ -421,8 +417,7 @@ Test 4: a bunch of thin bars:
         b[i*2 + 2] = 2*pt
     end
     local ga = gacanvas:new()
-    local err = ga:encode_Vbar({_yline=b}, 0.0, 5*pt, 25*pt)
-    assert(not err, err)
+    assert(ga:encode_Vbar({_yline=b}, 0.0, 5*pt, 25*pt))
     driver:ga_to_hbox(ga, [[mybox]])
 }\vrule{ }\box\mybox{ }\vrule
 
@@ -436,9 +431,8 @@ Test 5: two levels of a bunch of thin bars:
     end
     local b = {_yline=b}
     local ga = gacanvas:new()
-    local err = ga:encode_Vbar(b, 0.0, 5*pt, 25*pt)
-    assert(not err, err)
-    err = ga:encode_Vbar(b, 2*pt, 25*pt, 45*pt, b)
+    assert(ga:encode_Vbar(b, 0.0, 5*pt, 25*pt))
+    assert(ga:encode_Vbar(b, 2*pt, 25*pt, 45*pt, b))
     driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
@@ -447,12 +441,9 @@ Test number 6: staircase of bars (manual insertion of data):
 \directlua{
     local b = {_yline={0.0, 10*pt}}
     local ga = gacanvas:new()
-    local err = ga:encode_Vbar(b, 0.0, 0.0, 20*pt)
-    assert(not err, err)
-    err = ga:encode_Vbar(b, 10*pt, 20*pt, 40*pt)
-    assert(not err, err)
-    err = ga:encode_Vbar(b, 20*pt, 40*pt, 60*pt)
-    assert(not err, err)
+    assert(ga:encode_Vbar(b, 0.0, 0.0, 20*pt))
+    assert(ga:encode_Vbar(b, 10*pt, 20*pt, 40*pt))
+    assert(ga:encode_Vbar(b, 20*pt, 40*pt, 60*pt))
     driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
@@ -466,10 +457,8 @@ Test number 7: vbars with spaced text, all in three rows:
     end
     local vb = {_yline=b}
     local ga = gacanvas:new()
-    local err = ga:encode_Vbar(vb, 0.0, 0.0, 20*pt)
-    assert(not err, err)
-    local err = ga:encode_Vbar(vb, 0.0, 30*pt, 50*pt)
-    assert(not err, err)
+    assert(ga:encode_Vbar(vb, 0.0, 0.0, 20*pt))
+    assert(ga:encode_Vbar(vb, 0.0, 30*pt, 50*pt))
     local txt = {codepoint = {
         65, % A
         66, % B
@@ -480,8 +469,7 @@ Test number 7: vbars with spaced text, all in three rows:
         71, % G
         72, % H
     }}
-    err = ga:encode_Text_xspaced(txt, 0.0, 10*pt, 25*pt, 0.5)
-    assert(not err, err)
+    assert(ga:encode_Text_xspaced(txt, 0.0, 10*pt, 25*pt, 0.5))
     driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
@@ -495,10 +483,8 @@ Test 8: spaced text, check correct vertical alignment:
     end
     b = {_yline=b}
     local ga = gacanvas:new()
-    local err = ga:encode_Vbar(b, 0.0, 0.0, 20*pt)
-    assert(not err, err)
-    local err = ga:encode_Vbar(b, 0.0, 40*pt, 60*pt)
-    assert(not err, err)
+    assert(ga:encode_Vbar(b, 0.0, 0.0, 20*pt))
+    assert(ga:encode_Vbar(b, 0.0, 40*pt, 60*pt))
     local c = { codepoint = {
         65, % A
         66, % B
@@ -509,8 +495,7 @@ Test 8: spaced text, check correct vertical alignment:
         71, % G
         72, % H
     }}
-    err = ga:encode_Text_xspaced(c, 0.0, 10*pt, 30*pt, 0.0)
-    assert(not err, err)
+    assert(ga:encode_Text_xspaced(c, 0.0, 10*pt, 30*pt, 0.0))
     local n = { codepoint = {
         49, % 1
         50, % 2
@@ -521,8 +506,7 @@ Test 8: spaced text, check correct vertical alignment:
         55, % 7
         56, % 8
     }}
-    err = ga:encode_Text_xspaced(n, 0.0, 10*pt, 30*pt, 1.0)
-    assert(not err, err)
+    assert(ga:encode_Text_xspaced(n, 0.0, 10*pt, 30*pt, 1.0))
     driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
@@ -536,10 +520,8 @@ Test number 9: spaced text, check correct vertical alignment:
     end
     b = {_yline = b}
     local ga = gacanvas:new()
-    local err = ga:encode_Vbar(b, 0.0, 0.0, 20*pt)
-    assert(not err, err)
-    local err = ga:encode_Vbar(b, 0.0, 40*pt, 60*pt)
-    assert(not err, err)
+    assert(ga:encode_Vbar(b, 0.0, 0.0, 20*pt))
+    assert(ga:encode_Vbar(b, 0.0, 40*pt, 60*pt))
     local c = { codepoint = {
         65, % A
         66, % B
@@ -550,8 +532,7 @@ Test number 9: spaced text, check correct vertical alignment:
         71, % G
         72, % H
     }}
-    err = ga:encode_Text_xspaced(c, 0.0, 10*pt, 20*pt, 0.0)
-    assert(not err, err)
+    assert(ga:encode_Text_xspaced(c, 0.0, 10*pt, 20*pt, 0.0))
     local n = { codepoint = {
         49, % 1
         50, % 2
@@ -562,8 +543,7 @@ Test number 9: spaced text, check correct vertical alignment:
         55, % 7
         56, % 8
     }}
-    err = ga:encode_Text_xspaced(n, 0.0, 10*pt, 40*pt, 1.0)
-    assert(not err, err)
+    assert(ga:encode_Text_xspaced(n, 0.0, 10*pt, 40*pt, 1.0))
     driver:ga_to_hbox(ga, [[mybox]])
 }\vrule{ }\box\mybox{ }\vrule
 
@@ -583,15 +563,13 @@ Test number 10: two centered texts and baseline aligned:
         57, % 9
     }}
     local ga = gacanvas:new()
-    local err = ga:encode_Text(n, 0, 0, 0.5, 0)
-    assert(not err, err)
+    assert(ga:encode_Text(n, 0, 0, 0.5, 0))
     local a = { codepoint = {
         65, % A
         string.byte("Q"), % Q
         67, % C
     }}
-    err = ga:encode_Text(a, 0, 0, 0.5, 1)
-    assert(not err, err)
+    assert(ga:encode_Text(a, 0, 0, 0.5, 1))
     driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
@@ -611,15 +589,13 @@ Test number 11: two centered texts aligned:
         57, % 9
     }}
     local ga = gacanvas:new()
-    local err = ga:encode_Text(n, 0, 0, 0.5, 1)
-    assert(not err, err)
+    assert(ga:encode_Text(n, 0, 0, 0.5, 1))
     local a = { codepoint = {
         65, % A
         string.byte("Q"), % Q
         67, % C
     }}
-    err = ga:encode_Text(a, 0, 0, 0.5, 0)
-    assert(not err, err)
+    assert(ga:encode_Text(a, 0, 0, 0.5, 0))
     driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
@@ -640,8 +616,7 @@ Test number 12: text\_xwidth opcode:
         57, % 9
     }}
     local ga = gacanvas:new()
-    local err = ga:encode_Text_xwidth(n, 0, tex.sp "5cm", 0, 0)
-    assert(not err, err)
+    assert(ga:encode_Text_xwidth(n, 0, tex.sp "5cm", 0, 0))
     driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
@@ -665,19 +640,13 @@ Test number 13: text\_xwidth with different size:
         57, % 9
     }}
     local ga = gacanvas:new()
-    %                                (txt, x1, x2, ypos, ay) --> err
-    local err = ga:encode_Text_xwidth(n, tex.sp "0mm", tex.sp "50mm", 0, 0) 
-    assert(not err, err)
-    local err = ga:encode_Text_xwidth(n, tex.sp "5mm", tex.sp "45mm", tex.sp "3mm", 0)
-    assert(not err, err)
-    local err = ga:encode_Text_xwidth(n, tex.sp "10mm", tex.sp "40mm", tex.sp "6mm", 0)
-    assert(not err, err)
-    local err = ga:encode_Text_xwidth(n, tex.sp "15mm", tex.sp "35mm", tex.sp "9mm", 0)
-    assert(not err, err)
-    local err = ga:encode_Text_xwidth(n, tex.sp "20mm", tex.sp "30mm", tex.sp "12mm", 0)
-    assert(not err, err)
-    local err = ga:encode_Text_xwidth(n, tex.sp "24mm", tex.sp "26mm", tex.sp "15mm", 0)
-    assert(not err, err)
+    %                           (txt, x1, x2, ypos, ay) --> ok, err
+    assert(ga:encode_Text_xwidth(n, tex.sp "0mm", tex.sp "50mm", 0, 0))
+    assert(ga:encode_Text_xwidth(n, tex.sp "5mm", tex.sp "45mm", tex.sp "3mm", 0))
+    assert(ga:encode_Text_xwidth(n, tex.sp "10mm", tex.sp "40mm", tex.sp "6mm", 0))
+    assert(ga:encode_Text_xwidth(n, tex.sp "15mm", tex.sp "35mm", tex.sp "9mm", 0))
+    assert(ga:encode_Text_xwidth(n, tex.sp "20mm", tex.sp "30mm", tex.sp "12mm", 0))
+    assert(ga:encode_Text_xwidth(n, tex.sp "24mm", tex.sp "26mm", tex.sp "15mm", 0))
     driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
@@ -694,13 +663,10 @@ Test number 14: place bars and text as text\_xwidth:
     b = {_yline = b}
     local n = {codepoint = { 48, 49, 50, 51, 52, 53, 54, 55, 56, 57,}}
     local ga = gacanvas:new()
-    %                         (vbar, x0, y1, y2) --> err
-    local err = ga:encode_Vbar(b, 0.0,  0*pt, 25*pt)
-    local err = ga:encode_Vbar(b, 0.0, 32*pt, 42*pt)
-    assert(not err, err)
-    %                            (txt, x1, x2, ypos, ay) --> err
-    local err = ga:encode_Text_xwidth(n, 0*pt, 108*pt, 25*pt, 0)
-    assert(not err, err)
+    %                    (vbar, x0, y1, y2) --> ok, err
+    assert(ga:encode_Vbar(b, 0.0,  0*pt, 25*pt))
+    %                    (txt, x1, x2, ypos, ay) --> ok, err
+    assert(ga:encode_Text_xwidth(n, 0*pt, 108*pt, 25*pt, 0))
     driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
@@ -716,12 +682,10 @@ Test number 14: place bars and text as text\_xwidth:
     n = {codepoint = n}
     local ga = gacanvas:new()
     %                    x0,    y1,    y2, bars
-    local err = ga:encode_Vbar(b, 0.0,  0*pt, 25*pt)
-    local err = ga:encode_Vbar(b, 0.0, 32*pt, 42*pt)
-    assert(not err, err)
-    %                (txt, x1, x2, ypos, ay) --> err
-    local err = ga:encode_Text_xwidth(n, 0*pt, 96*pt, 25*pt, 0)
-    assert(not err, err)
+    assert(ga:encode_Vbar(b, 0.0,  0*pt, 25*pt))
+    assert(ga:encode_Vbar(b, 0.0, 32*pt, 42*pt))
+    %                (txt, x1, x2, ypos, ay) --> ok, err
+    assert(ga:encode_Text_xwidth(n, 0*pt, 96*pt, 25*pt, 0))
     driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
@@ -731,9 +695,8 @@ Test number 15: place text\_xwidth when text is only two chars long:
 \directlua{
     local n = {codepoint = { 48, 56,}} % 0 and 8
     local ga = gacanvas:new()
-    %                           (txt, x1, x2, ypos, ay) --> err
-    local err = ga:encode_Text_xwidth(n, 0*pt, 32*pt, 25*pt, 0)
-    assert(not err, err)
+    %                   (txt, x1, x2, ypos, ay) --> ok, err
+    assert(ga:encode_Text_xwidth(n, 0*pt, 32*pt, 25*pt, 0))
     driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 

@@ -295,28 +295,22 @@ function Code39:append_ga(canvas, tx, ty) --> canvas
     local x1         = x0 + w
     local y1         = y0 + h
     local xpos       = x0
-    local err
-    err = canvas:start_bbox_group()
-    assert(not err, err)
+    assert(canvas:start_bbox_group())
     local vbar = self._vbar
     -- start/stop symbol
     local term_vbar = vbar['*']
     -- draw start symbol
-    err = canvas:encode_Vbar(term_vbar, xpos, y0, y1)
-    assert(not err, err)
+    assert(canvas:encode_Vbar(term_vbar, xpos, y0, y1))
     for _, c in ipairs(code) do -- draw code symbols
         xpos = xpos + xgap
         local vb = vbar[c]
-        err = canvas:encode_Vbar(vb, xpos, y0, y1)
-        assert(not err, err)
+        assert(canvas:encode_Vbar(vb, xpos, y0, y1))
     end
     -- draw stop symbol
-    err = canvas:encode_Vbar(term_vbar, xpos + xgap, y0, y1)
-    assert(not err, err)
+    assert(canvas:encode_Vbar(term_vbar, xpos + xgap, y0, y1))
     -- bounding box setting
     local qz = self.quietzone
-    err = canvas:stop_bbox_group(x0 - qz, y0, x1 + qz, y1)
-    assert(not err, err)
+    assert(canvas:stop_bbox_group(x0 - qz, y0, x1 + qz, y1))
     -- check height as the minimum of 15% of length
     -- TODO: message could warn the user
     -- if 0.15 * w > h then
@@ -356,8 +350,7 @@ function Code39:append_ga(canvas, tx, ty) --> canvas
                 xaxis = xaxis + xgap
             end
             xaxis = xaxis + xs/2
-            err = canvas:encode_Text_xspaced(txt, xaxis, xgap, ypos, tay)
-            assert(not err, err)
+            assert(canvas:encode_Text_xspaced(txt, xaxis, xgap, ypos, tay))
         else
             local xpos, tax
             if txt_hpos == "left" then
@@ -372,8 +365,7 @@ function Code39:append_ga(canvas, tx, ty) --> canvas
             else
                 error("[InternalErr] wrong option for text_pos")
             end
-            err = canvas:encode_Text(txt, xpos, ypos, tax, tay)
-            assert(not err, err)
+            assert(canvas:encode_Text(txt, xpos, ypos, tax, tay))
         end
     end
     return canvas
