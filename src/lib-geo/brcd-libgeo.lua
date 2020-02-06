@@ -192,6 +192,68 @@ function Vbar:from_two_tab(tbar, tspace, mod, MOD) --> <vbar object>
     return o
 end
 
+-- Vbar archive class
+libgeo.Vbar_archive = {}
+local Vbar_archive = libgeo.Vbar_archive
+Vbar_archive.__index = Vbar_archive
+
+-- build a new Vbar_archive instance
+function Vbar_archive:new() --> object, err
+    local o = {
+        archive = {},
+    }
+    setmetatable(o, self)
+    return o, nil
+end
+
+-- interally save a vbar reference at index 'key':string|number
+function Vbar_archive:insert(vbar, key) --> ok, err
+    -- check args type
+    if type(vbar) ~= "table" then
+        return false, "[Err] 'vbar' arg must be a table"
+    end
+    if not( type(key) == "string" or  type(key) == "number") then
+        return false, "[Err] 'key' index must be a string or a number"
+    end
+    local archive = self.archive
+    if archive[key] then
+        return false, "[Err] an index key '"..key.."' is already present in the archive"
+    end
+    archive[key] = vbar
+    print()
+    return true, nil
+end
+
+-- feed a Vbar queue, arguments: vbarkey, [queue, [x]]
+-- vbarkey is the index being searched in the archive
+function Vbar_archive:push_queue(vbarkey, queue, x) --> queue, err
+    local typekey = type(vbarkey)  -- check args
+    if not(typekey == "string" or typekey == "number") then
+        return nil, "[ArgErr] unsupported type '"..
+            typekey.."' for vbarkey="..tostring(vbarkey)
+    end
+    local archive = self.archive
+    local vbar = archive[vbarkey]
+    if not vbar then
+        return false, "[ArgErr] Vbar object not found at index '"..vbarkey.."'"
+    end
+    if queue == nil then
+        if x ~= nil then
+            return nil, "[ArgErr] distance 'x' must be nil if 'queue' array is not provided"
+        end
+        return { vbar }, nil
+    else
+        if x == nil then
+            x = 0
+        elseif type(x) ~= "number" then
+            return nil, "[ArgErr] distance 'x' is not a number"
+        end
+        queue[#queue + 1] = x
+        queue[#queue + 1] = vbar
+        return queue, nil
+    end
+end
+
 -- Text class
 
 libgeo.Text = {}

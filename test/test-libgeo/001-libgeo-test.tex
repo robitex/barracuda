@@ -1,0 +1,49 @@
+% !TeX program = LuaTeX
+% test for ga-canvas pdfliteral driver
+%
+% Copyright (C) 2020 Roberto Giacomelli
+% see LICENSE.txt file
+
+\newbox\mybox
+\directlua{
+    barracuda = require [[barracuda]]
+    pt = tex.sp [[1pt]] % 1pt = 65536sp
+}
+
+Test 1: test Vbar\_archive object:
+
+\smallskip
+\directlua{
+    % retrive the Vbar class
+    local libgeo = barracuda._libgeo
+    local Vbar = libgeo.Vbar
+    % create three Vbar objects
+    local b1 = Vbar:from_int(22556, 2*pt)
+    local b2 = Vbar:from_int(3134563, 2*pt)
+    local b3 = Vbar:from_int(1111111, 2*pt)
+    % retrive the Vbar_archive class
+    local Vbar_archive = libgeo.Vbar_archive
+    % create a new instance of an archive and insert vbars
+    local archive = Vbar_archive:new()
+    assert(archive:insert(b1, 1))
+    assert(archive:insert(b2, 2))
+    assert(archive:insert(b3, 3))
+    % fill a queue (an array) two times
+    local queue = assert(archive:push_queue(1))
+    assert(archive:push_queue(2, queue, 20*pt))
+    assert(archive:push_queue(3, queue, 20*pt))
+    assert(archive:push_queue(1, queue, 10*pt))
+    assert(archive:push_queue(2, queue, 20*pt))
+    assert(archive:push_queue(3, queue, 20*pt))
+    % retrive a canvas instance
+    local gacanvas = barracuda._gacanvas
+    local ga = gacanvas:new()
+    % draw the canvas with the driver component
+    assert(ga:encode_Vbar_archive(queue, 0, 0, 30*pt))
+    local driver = barracuda:get_driver()
+    driver:ga_to_hbox(ga, [[mybox]])
+}A\box\mybox A
+
+\bye
+
+    

@@ -46,14 +46,21 @@ Dev Planner:
 2020-__-__: [dev][barcode] new `alias` feature
 2020-__-__: [dev][barcode] new `preset` feature
 2020-__-__: [dev][i2of5] human readeable text for i2of5
-2020-__-__: [dev][libgeo] new `Vbar_group` class
 2020-__-__: [test] update test files with recent changes
 2020-__-__: [dev] new constructor `Barcode:new()`
 2020-__-__: [project][build] make a Lua script to easily create the CTAN upload
           : compressed files
 2020-__-__: [dev][ean] fix the `ean:checksum()` to include ISBN and ISSN variant
+
+[merge]<--------+
+                |
+    2020-__-__: [dev][libgeo] refactor code128 to use `Vbar_archive`
+    2020-__-__: [dev][libgeo] refactor code39 to use `Vbar_archive`
 -------------------------------------------------------------------------------
-2020-02-05:*[dev][libgeo][breaking change] return `ok, err` instead of `err`
+    2020-02-06:*[dev][libgeo] new `Vbar_archive` class in libgeo
+                |
+[vbar_archive]--+
+2020-02-05: [dev][libgeo][breaking change] return `ok, err` instead of `err`
             for canvas methods
 2020-02-04: [dev][ean] new function `encoder:_init_parse_state()`, and EAN
           : family adoption;

@@ -189,6 +189,38 @@ function gaCanvas:encode_Vbar(vbar, x0, y1, y2) --> ok, err
     return true, nil
 end
 
+-- print a Vbar queue starting at x position 'xpos', between the horizontal line
+-- at y0 and y1 y-coordinates
+function gaCanvas:encode_Vbar_archive(queue, xpos, y0, y1) --> ok, err
+    -- check arg
+    if type(queue) ~= "table" then
+        return false, "[Err] 'queue' arg must be a table"
+    end
+    if type(xpos) ~= "number" then
+        return false, "[Err] 'xpos' arg must be a number"
+    end
+    if type(y0) ~= "number" then
+        return false, "[Err] 'y0' arg must be a number"
+    end
+    if type(y1) ~= "number" then
+        return false, "[Err] 'y1' arg must be a number"
+    end
+    local i = 1
+    while queue[i] do
+        local vbar = queue[i]
+        local _, err = self:encode_Vbar(vbar, xpos, y0, y1)
+        if err then return false, err end
+        local w = vbar._x_lim
+        local x = queue[i + 1]
+        if x == nil then
+            break
+        end
+        xpos = xpos + w + x
+        i = i + 2
+    end
+    return true, nil
+end
+
 -- [text] <130> ax ay x y chars
 function gaCanvas:encode_Text(txt, xpos, ypos, ax, ay) --> ok, err
     if type(txt) ~= "table" then
