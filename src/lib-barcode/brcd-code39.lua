@@ -2,30 +2,26 @@
 -- Copyright (C) 2020 Roberto Giacomelli
 --
 -- All dimensions must be in scaled point (sp)
--- every fields that starts with an undercore sign are intended as private
+-- every field that starts with an underscore sign are intended to be private
 
 local Code39 = {
-    _VERSION     = "code39 v0.0.5",
+    _VERSION     = "code39 v0.0.6",
     _NAME        = "Code39",
     _DESCRIPTION = "Code39 barcode encoder",
 }
 
 Code39._symb_def = {-- symbol definition
-    ["0"] = 112122111, ["1"] = 211112112, ["2"] = 211112211,
-    ["3"] = 111112212, ["4"] = 211122111, ["5"] = 111122112,
-    ["6"] = 111122211, ["7"] = 212112111, ["8"] = 112112112,
-    ["9"] = 112112211, ["A"] = 211211112, ["B"] = 211211211,
-    ["C"] = 111211212, ["D"] = 211221111, ["E"] = 111221112,
-    ["F"] = 111221211, ["G"] = 212211111, ["H"] = 112211112,
-    ["I"] = 112211211, ["J"] = 112221111, ["K"] = 221111112,
-    ["L"] = 221111211, ["M"] = 121111212, ["N"] = 221121111,
-    ["O"] = 121121112, ["P"] = 121121211, ["Q"] = 222111111,
-    ["R"] = 122111112, ["S"] = 122111211, ["T"] = 122121111,
-    ["U"] = 211111122, ["V"] = 211111221, ["W"] = 111111222,
-    ["X"] = 211121121, ["Y"] = 111121122, ["Z"] = 111121221,
-    ["-"] = 212111121, ["."] = 112111122, [" "] = 112111221,
-    ["$"] = 111212121, ["/"] = 121112121, ["+"] = 121211121,
-    ["%"] = 121212111,
+    ["0"] = 112122111, ["1"] = 211112112, ["2"] = 211112211, ["3"] = 111112212,
+    ["4"] = 211122111, ["5"] = 111122112, ["6"] = 111122211, ["7"] = 212112111,
+    ["8"] = 112112112, ["9"] = 112112211, ["A"] = 211211112, ["B"] = 211211211,
+    ["C"] = 111211212, ["D"] = 211221111, ["E"] = 111221112, ["F"] = 111221211,
+    ["G"] = 212211111, ["H"] = 112211112, ["I"] = 112211211, ["J"] = 112221111,
+    ["K"] = 221111112, ["L"] = 221111211, ["M"] = 121111212, ["N"] = 221121111,
+    ["O"] = 121121112, ["P"] = 121121211, ["Q"] = 222111111, ["R"] = 122111112,
+    ["S"] = 122111211, ["T"] = 122121111, ["U"] = 211111122, ["V"] = 211111221,
+    ["W"] = 111111222, ["X"] = 211121121, ["Y"] = 111121122, ["Z"] = 111121221,
+    ["-"] = 212111121, ["."] = 112111122, [" "] = 112111221, ["$"] = 111212121,
+    ["/"] = 121112121, ["+"] = 121211121, ["%"] = 121212111,
 }
 Code39._star_def  = 112121121 -- '*' start/stop character
 
@@ -230,11 +226,15 @@ pardef.text_star = {
 
 -- configuration function
 function Code39:_config() --> ok, err
+    local Vbar = self._libgeo.Vbar -- Vbar class
+    local Vbar_archive = self._libgeo.Vbar_archive -- Vbar_archive class
+    local c39_vbars = Vbar_archive:new()
+    self._vbar_archive = c39_vbars
     -- build Vbar object for the start/stop symbol
     local mod, ratio = self.module, self.ratio
     local n_star = self._star_def
-    local Vbar = self._libgeo.Vbar -- Vbar class
-    self._vbar = {['*'] = Vbar:from_int_revpair(n_star, mod, mod*ratio)}
+    local star = Vbar:from_int_revpair(n_star, mod, mod*ratio)
+    c39_vbars:insert(star, "*")
     return true, nil
 end
 
@@ -249,6 +249,13 @@ function Code39:_check_char(c) --> elem, err
         local fmt = "[ArgErr] '%s' is not a valid Code 39 symbol"
         return nil, string.format(fmt, c)
     end
+    local vbar_archive = self._vbar_archive
+    if not vbar_archive:contains_key(c) then
+        local Vbar = self._libgeo.Vbar
+        local mod, ratio = self.module, self.ratio
+        local v = Vbar:from_int_revpair(n, mod, mod*ratio)
+        vbar_archive:insert(v, c)
+    end
     return c, nil
 end
 
@@ -260,54 +267,43 @@ function Code39:_check_digit(n) --> elem, err
     if n < 0 or n > 9 then
         return nil, "[ArgErr] not a digit"
     end
-    return string.char(n + 48), nil
-end
-
-function Code39:_finalize() --> ok, err
-    local v = assert(self._code_data, "[InternalErr] '_code_data' field is nil")
-    local vbar = self._vbar
-    local g_Vbar = self._libgeo.Vbar
-    local mod, ratio = self.module, self.ratio
-    local symb_def = self._symb_def
-    for _, c in ipairs(v) do
-        if not vbar[c] then
-            local n1 = symb_def[c]
-            vbar[c] = g_Vbar:from_int_revpair(n1, mod, mod*ratio)
-        end
+    local c = string.char(n + 48)
+    local vbar_archive = self._vbar_archive
+    if not vbar_archive:contains_key(c) then
+        local Vbar = self._libgeo.Vbar
+        local mod, ratio = self.module, self.ratio
+        local n_def = self._symb_def[c]
+        local v = Vbar:from_int_revpair(n_def, mod, mod*ratio)
+        vbar_archive:insert(v, c)
     end
-    return true, nil
+    return c, nil
 end
 
 -- tx, ty is an optional translator vector
 function Code39:append_ga(canvas, tx, ty) --> canvas
-    local code       = self._code_data
-    local ns         = self._code_len -- number of chars inside the symbol
-    local mod        = self.module
-    local ratio      = self.ratio
+    local code = self._code_data
+    local archive = self._vbar_archive
+    local q = assert(archive:push_queue("*")) -- form the vbar queue
     local interspace = self.interspace
-    local h          = self.height
-    local xs         = mod*(6 + 3*ratio)
-    local xgap       = xs + interspace
-    local w          = xgap*(ns + 1) + xs -- (ns + 2)*xgap - interspace
-    local ax, ay     = self.ax, self.ay
-    local x0         = (tx or 0) - ax * w
-    local y0         = (ty or 0) - ay * h
-    local x1         = x0 + w
-    local y1         = y0 + h
-    local xpos       = x0
-    assert(canvas:start_bbox_group())
-    local vbar = self._vbar
-    -- start/stop symbol
-    local term_vbar = vbar['*']
-    -- draw start symbol
-    assert(canvas:encode_Vbar(term_vbar, xpos, y0, y1))
-    for _, c in ipairs(code) do -- draw code symbols
-        xpos = xpos + xgap
-        local vb = vbar[c]
-        assert(canvas:encode_Vbar(vb, xpos, y0, y1))
+    for _, c in ipairs(code) do
+        assert(archive:push_queue(c, q, interspace))
     end
-    -- draw stop symbol
-    assert(canvas:encode_Vbar(term_vbar, xpos + xgap, y0, y1))
+    assert(archive:push_queue("*", q, interspace)) -- final stop char
+    assert(canvas:start_bbox_group())  -- draw the symbol
+    local ax, ay = self.ax, self.ay
+    local mod    = self.module
+    local ratio  = self.ratio
+    local ns     = self._code_len -- number of chars inside the symbol
+    local xs     = mod*(6 + 3*ratio)
+    local xgap   = xs + interspace
+    local h      = self.height
+    local w      = xgap*(ns + 1) + xs -- (ns + 2)*xgap - interspace
+    --
+    local x0     = (tx or 0) - ax * w
+    local x1     = x0 + w
+    local y0     = (ty or 0) - ay * h
+    local y1     = y0 + h
+    assert(canvas:encode_Vbar_archive(q, x0, y0, y1))
     -- bounding box setting
     local qz = self.quietzone
     assert(canvas:stop_bbox_group(x0 - qz, y0, x1 + qz, y1))

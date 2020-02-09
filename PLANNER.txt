@@ -55,9 +55,9 @@ Dev Planner:
 [merge]<--------+
                 |
     2020-__-__: [dev][libgeo] refactor code128 to use `Vbar_archive`
-    2020-__-__: [dev][libgeo] refactor code39 to use `Vbar_archive`
 -------------------------------------------------------------------------------
-    2020-02-06:*[dev][libgeo] new `Vbar_archive` class in libgeo
+    2020-02-09:*[dev][libgeo] refactor code39 to use `Vbar_archive`
+    2020-02-06: [dev][libgeo] new `Vbar_archive` class in libgeo
                 |
 [vbar_archive]--+
 2020-02-05: [dev][libgeo][breaking change] return `ok, err` instead of `err`

@@ -206,7 +206,15 @@ function Vbar_archive:new() --> object, err
     return o, nil
 end
 
--- interally save a vbar reference at index 'key':string|number
+function Vbar_archive:contains_key(key) --> boolean
+    local typekey = type(key)  -- check args
+    if not(typekey == "string" or typekey == "number") then
+        return false
+    end
+    return self.archive[key] ~= nil
+end
+
+-- internally save a vbar reference at index 'key':string|number
 function Vbar_archive:insert(vbar, key) --> ok, err
     -- check args type
     if type(vbar) ~= "table" then
@@ -235,7 +243,7 @@ function Vbar_archive:push_queue(vbarkey, queue, x) --> queue, err
     local archive = self.archive
     local vbar = archive[vbarkey]
     if not vbar then
-        return false, "[ArgErr] Vbar object not found at index '"..vbarkey.."'"
+        return nil, "[ArgErr] Vbar object not found at index '"..vbarkey.."'"
     end
     if queue == nil then
         if x ~= nil then
