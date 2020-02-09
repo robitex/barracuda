@@ -459,6 +459,26 @@ function Barcode:from_uint(n, opt) --> object, err
     return o, nil
 end
 
+-- recursive general Barcode costructor
+function Barcode:new(code) --> object, err
+    local t = type(code)
+    if t == "string" then
+        return self:from_string(code), nil
+    elseif t == "number" then
+        return self:from_uint(code), nil
+    elseif t == "table" then
+        local res = {}
+        for _, c in ipairs(code) do
+            local b, err = self:new(c)
+            if err then return nil, err end
+            res[#res + 1] = b
+        end
+        return res, nil
+    else
+        return nil, "[ArgErr] unsuitable type '"..t.."' for the input code"
+    end
+end
+
 -- check a parameter set
 -- this method check also reserved parameter
 -- argments: {k=v, ...}, "default" | "current"

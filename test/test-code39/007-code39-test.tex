@@ -1,0 +1,39 @@
+% !TeX program = LuaTeX
+% Copyright (C) 2020 Roberto Giacomelli
+
+\newbox\mybox
+\nopagenumbers
+
+\directlua{
+barracuda = require "barracuda"
+local c39 = assert(
+    barracuda:barcode()
+             :new_encoder("code39")
+)
+
+local bars = c39:new {
+    123456,
+    "123456",
+    "ABCDEF",
+    87429,
+    982398,
+    "HDUHBE"
+}
+
+local canvas = barracuda:new_canvas()
+local tx, ty = 0, 0
+local dh = tex.sp "40pt"
+for _, b in ipairs(bars) do
+    b:append_ga(canvas, tx, ty)
+    ty = ty + dh
+end
+
+local drv = barracuda:get_driver()
+drv:ga_to_hbox(canvas, "mybox")
+}
+
+Test 1: check Barcode recursive costructor new():
+
+\leavevmode\box\mybox
+\bye
+
