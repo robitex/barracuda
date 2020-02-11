@@ -144,7 +144,6 @@ function Vbar:from_int_revpair(ngen, mod, MOD, is_bar) --> <vbar object>
         is_bar = not is_bar
         x0 = x0 + w
     end
-    assert(not is_bar, "[InternalErr] the last element is not a bar")
     local o = {
         _yline = yl, -- [<xcenter>, <width>, ...] flat array
         _x_lim = x0, -- external x coordinate
