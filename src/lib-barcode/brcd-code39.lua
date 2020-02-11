@@ -368,4 +368,3 @@ function Code39:append_ga(canvas, tx, ty) --> canvas
 end
 
 return Code39
---

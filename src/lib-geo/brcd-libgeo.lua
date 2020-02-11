@@ -127,7 +127,7 @@ function Vbar:from_int_revpair(ngen, mod, MOD, is_bar) --> <vbar object>
         assert(type(is_bar) == "boolean", "Invalid argument for 'is_bar'")
     end
     local yl = {}
-	local x0 = 0.0
+    local x0 = 0.0
     local k = 0
     while ngen > 0 do
         local d = ngen % 10 -- digit
@@ -228,7 +228,6 @@ function Vbar_archive:insert(vbar, key) --> ok, err
         return false, "[Err] an index key '"..key.."' is already present in the archive"
     end
     archive[key] = vbar
-    print()
     return true, nil
 end
 
@@ -246,9 +245,6 @@ function Vbar_archive:push_queue(vbarkey, queue, x) --> queue, err
         return nil, "[ArgErr] Vbar object not found at index '"..vbarkey.."'"
     end
     if queue == nil then
-        if x ~= nil then
-            return nil, "[ArgErr] distance 'x' must be nil if 'queue' array is not provided"
-        end
         return { vbar }, nil
     else
         if x == nil then

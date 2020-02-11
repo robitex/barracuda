@@ -54,12 +54,15 @@ Dev Planner:
 
 [merge]<--------+
                 |
-    2020-__-__: [dev][libgeo] refactor code128 to use `Vbar_archive`
+    2020-__-__: [dev][ean] refactor ean to use Vbar_archive
+    2020-__-__: [dev][i2to5] refactor i2of5 to use Vbar_archive
 -------------------------------------------------------------------------------
-    2020-02-09:*[dev][libgeo] refactor code39 to use `Vbar_archive`
+    2020-02-10:*[dev][code128] refactor code128 to use `Vbar_archive`
+    2020-02-09: [dev][libgeo] refactor code39 to use `Vbar_archive`
     2020-02-06: [dev][libgeo] new `Vbar_archive` class in libgeo
                 |
 [vbar_archive]--+
+
 2020-02-05: [dev][libgeo][breaking change] return `ok, err` instead of `err`
             for canvas methods
 2020-02-04: [dev][ean] new function `encoder:_init_parse_state()`, and EAN
