@@ -205,17 +205,12 @@ function gaCanvas:encode_Vbar_archive(queue, xpos, y0, y1) --> ok, err
     if type(y1) ~= "number" then
         return false, "[Err] 'y1' arg must be a number"
     end
-    local i = 1
+    local i = 2
     while queue[i] do
+        local x = queue[i - 1] + xpos
         local vbar = queue[i]
-        local _, err = self:encode_Vbar(vbar, xpos, y0, y1)
+        local _, err = self:encode_Vbar(vbar, x, y0, y1)
         if err then return false, err end
-        local w = vbar._x_lim
-        local x = queue[i + 1]
-        if x == nil then
-            break
-        end
-        xpos = xpos + w + x
         i = i + 2
     end
     return true, nil

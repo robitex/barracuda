@@ -235,8 +235,7 @@ end
 function Vbar_archive:push_queue(vbarkey, queue, x) --> queue, err
     local typekey = type(vbarkey)  -- check args
     if not(typekey == "string" or typekey == "number") then
-        return nil, "[ArgErr] unsupported type '"..
-            typekey.."' for vbarkey="..tostring(vbarkey)
+        return nil, "[ArgErr] unsupported type ["..typekey.."] for vbarkey"
     end
     local archive = self.archive
     local vbar = archive[vbarkey]
@@ -244,15 +243,19 @@ function Vbar_archive:push_queue(vbarkey, queue, x) --> queue, err
         return nil, "[ArgErr] Vbar object not found at index '"..vbarkey.."'"
     end
     if queue == nil then
-        return { vbar }, nil
+        return { 0, vbar, vbar._x_lim }, nil
     else
+        local w_last = queue[#queue]
         if x == nil then
-            x = 0
+            queue[#queue + 1] = vbar
+            queue[#queue + 1] = w_last + vbar._x_lim
+            return queue, nil
         elseif type(x) ~= "number" then
             return nil, "[ArgErr] distance 'x' is not a number"
         end
-        queue[#queue + 1] = x
+        queue[#queue] = w_last + x
         queue[#queue + 1] = vbar
+        queue[#queue + 1] = w_last + x + vbar._x_lim
         return queue, nil
     end
 end
