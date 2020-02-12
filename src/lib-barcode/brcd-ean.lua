@@ -4,7 +4,7 @@
 -- see LICENSE.txt file
 
 local EAN = {
-    _VERSION     = "ean v0.0.6",
+    _VERSION     = "ean v0.0.8",
     _NAME        = "ean",
     _DESCRIPTION = "EAN barcode encoder",
 }
@@ -337,101 +337,117 @@ par_def_var["issn"].text_issn_ygap_factor = text_ygap_factor
 -- utility for generic configuration of full symbol, add-on included
 -- n1 length of main symbol, 8 or 13
 -- n2 length of add-on symbol, 2 or 5
-local function config_full(ean, Vbar, mod, n1, n2)
+local function config_full(ean, n1, n2)
     local i1 = tostring(n1)
     local fn_1 = assert(ean._config_variant[i1])
-    fn_1(ean, Vbar, mod)
+    fn_1(ean)
     local i2 = tostring(n2)
     local fn_2 = assert(ean._config_variant[i2])
-    fn_2(ean, Vbar, mod)
+    fn_2(ean)
     ean._main_len = n1
     ean._addon_len = n2
     ean._is_last_checksum = true
 end
 
 local config_variant = {
-    ["13"] = function (ean13, Vbar, mod)
+    ["13"] = function (ean13)
         ean13._main_len = 13
         ean13._is_last_checksum = true
-        local start = ean13._start
+        local Vbar = ean13._libgeo.Vbar -- Vbar class
+        local Vbar_archive = ean13._libgeo.Vbar_archive -- Vbar_archive class
+        local Ctrl = Vbar_archive:new()
+        local mod = ean13.mod
         local stop  = ean13._stop
-        ean13._13_start_stop_vbar  = Vbar:from_int(start[1], mod, start[2])
-        ean13._13_ctrl_center_vbar = Vbar:from_int(stop[1], mod, stop[2])
-        ean13._13_codeset_vbar = {}
-        local tvbar = ean13._13_codeset_vbar
+        local start = ean13._start
+        Ctrl:insert(Vbar:from_int(start[1], mod, start[2]), "start_stop")
+        Ctrl:insert(Vbar:from_int(stop[1], mod, stop[2]), "central")
+        local Codeset = {}
         for i_cs, codetab in ipairs(ean13._symbol) do
-            tvbar[i_cs] = {}
-            local tv = tvbar[i_cs]
+            local cs_repo = Vbar_archive:new()
+            Codeset[i_cs] = cs_repo
             local isbar = ean13._is_first_bar[i_cs]
             for i = 0, 9 do
-                tv[i] = Vbar:from_int(codetab[i], mod, isbar)
+                cs_repo:insert(Vbar:from_int(codetab[i], mod, isbar), i)
             end
         end
+        ean13._13_codeset_vbar = {ctrl = Ctrl, codeset = Codeset}
     end,
-    ["8"] = function (ean8, Vbar, mod)
+    ["8"] = function (ean8)
         ean8._main_len = 8
         ean8._is_last_checksum = true
+        local Vbar = ean8._libgeo.Vbar
+        local Vbar_archive = ean8._libgeo.Vbar_archive
         local start = ean8._start
         local stop  = ean8._stop
-        ean8._8_start_stop_vbar = Vbar:from_int(start[1], mod, start[2])
-        ean8._8_ctrl_center_vbar = Vbar:from_int(stop[1], mod, stop[2])
-        ean8._8_codeset_vbar = {}
-        local tvbar = ean8._8_codeset_vbar
+        local mod = ean8.mod
+        local Ctrl = Vbar_archive:new()
+        Ctrl:insert(Vbar:from_int(start[1], mod, start[2]), "start_stop")
+        Ctrl:insert(Vbar:from_int(stop[1], mod, stop[2]), "central")
+        local Codeset = {}
         for k = 1, 3, 2 do -- only codeset A and C (k == 1, 3)
-            tvbar[k] = {}
+            local cs_repo = Vbar_archive:new()
+            Codeset[k] = cs_repo
             local codetab = ean8._symbol[k]
             local isbar = ean8._is_first_bar[k]
-            local tv = tvbar[k]
             for i = 0, 9 do
-                tv[i] = Vbar:from_int(codetab[i], mod, isbar)
+                cs_repo:insert(Vbar:from_int(codetab[i], mod, isbar), i)
             end
         end
+        ean8._8_codeset_vbar = {ctrl = Ctrl, codeset = Codeset}
     end,
-    ["5"] = function (ean5, Vbar, mod) -- add-on EAN5
+    ["5"] = function (ean5) -- add-on EAN5
         ean5._main_len = 5
         ean5._is_last_checksum = false
-        ean5._5_start_vbar = Vbar:from_int(112, mod, true)
-        ean5._5_sep_vbar   = Vbar:from_int(11, mod, false)
-        ean5._5_codeset_vbar = {}
-        local tvbar = ean5._5_codeset_vbar
+        local mod = ean5.mod
+        local Vbar = ean5._libgeo.Vbar
+        local Vbar_archive = ean5._libgeo.Vbar_archive
+        local Ctrl = Vbar_archive:new()
+        Ctrl:insert(Vbar:from_int(112, mod, true), "start")
+        Ctrl:insert(Vbar:from_int(11, mod, false), "sep")
+        local Codeset = {}
         local symbols = ean5._symbol
         for c = 1, 2 do
-            tvbar[c] = {}
-            local tcs = tvbar[c]
+            local cs_repo = Vbar_archive:new()
+            Codeset[c] = cs_repo
             local sb = symbols[c]
             for i = 0, 9 do
-                tcs[i] = Vbar:from_int(sb[i], mod, false)
+                cs_repo:insert(Vbar:from_int(sb[i], mod, false), i)
             end
         end
+        ean5._5_codeset_vbar = {ctrl = Ctrl, codeset = Codeset}
     end,
-    ["2"] = function (ean2, Vbar, mod) -- add-on EAN2
+    ["2"] = function (ean2) -- add-on EAN2
         ean2._main_len = 2
         ean2._is_last_checksum = false
-        ean2._2_start_vbar = Vbar:from_int(112, mod, true)
-        ean2._2_sep_vbar   = Vbar:from_int(11, mod, false)
-        ean2._2_codeset_vbar = {}
-        local tvbar = ean2._2_codeset_vbar
+        local mod = ean2.mod
+        local Vbar = ean2._libgeo.Vbar
+        local Vbar_archive = ean2._libgeo.Vbar_archive
+        local Ctrl = Vbar_archive:new()
+        Ctrl:insert(Vbar:from_int(112, mod, true), "start")
+        Ctrl:insert(Vbar:from_int(11, mod, false), "sep")
+        local Codeset = {}
         local symbols = ean2._symbol
         for c = 1, 2 do
-            tvbar[c] = {}
-            local tcs = tvbar[c]
+            local cs_repo = Vbar_archive:new()
+            Codeset[c] = cs_repo
             local sb = symbols[c]
             for i = 0, 9 do
-                tcs[i] = Vbar:from_int(sb[i], mod, false)
+                cs_repo:insert(Vbar:from_int(sb[i], mod, false), i)
             end
         end
+        ean2._2_codeset_vbar = {ctrl = Ctrl, codeset = Codeset}
     end,
     ["13+5"] = function (ean, Vbar, mod) -- EAN13 with EAN5 add-on
-        config_full(ean, Vbar, mod, 13, 5)
+        config_full(ean, 13, 5)
     end,
     ["13+2"] = function(ean, Vbar, mod) -- EAN13 with EAN2 add-on
-        config_full(ean, Vbar, mod, 13, 2)
+        config_full(ean, 13, 2)
     end,
     ["8+5"]  = function(ean, Vbar, mod) -- EAN8 with EAN5 add-on
-        config_full(ean, Vbar, mod, 8, 5)
+        config_full(ean, 8, 5)
     end,
     ["8+2"]  = function(ean, Vbar, mod) -- EAN8 with EAN2 add-on
-        config_full(ean, Vbar, mod, 8, 2)
+        config_full(ean, 8, 2)
     end,
 }
 -- ISBN
@@ -904,9 +920,7 @@ function EAN:_config() --> ok, err
         self._sub_variant_1 = v1
     end
     local fnconfig = self._config_variant[variant]
-    local VbarClass = self._libgeo.Vbar -- Vbar class
-    local mod = self.mod
-    fnconfig(self, VbarClass, mod)
+    fnconfig(self)
     if v1 == "isbn" then
         self._check_char = isbn_check_char
         self._init_parse_state = isbn_parse_state
@@ -999,45 +1013,40 @@ local fn_append_ga_variant = EAN._append_ga_variant
 
 -- draw EAN13 symbol
 fn_append_ga_variant["13"] = function (ean, canvas, tx, ty, ax, ay)
-    local code       = ean._code_data
-    local mod        = ean.mod
+    local Ctrl = ean._13_codeset_vbar.ctrl
+    local mod = ean.mod
+    local queue_0 = assert(Ctrl:push_queue("start_stop"))
+    assert(Ctrl:push_queue("central", queue_0, 42*mod))
+    assert(Ctrl:push_queue("start_stop", queue_0, 42*mod))
+    local Repo = ean._13_codeset_vbar.codeset
+    local code = ean._code_data
+    local code_seq = ean._codeset_seq[code[1]]
+    local queue_1
+    for i = 2, 7 do
+        local codeset = code_seq[i-1]
+        local n = code[i]
+        local rep = Repo[codeset]
+        queue_1 = assert(rep:push_queue(n, queue_1))
+    end
+    local dx = 5*mod
+    for i = 8, 13 do
+        local codeset = code_seq[i-1]
+        local n = code[i]
+        local rep = Repo[codeset]
+        assert(rep:push_queue(n, queue_1, dx))
+        dx = nil
+    end
     local bars_depth = mod * ean.bars_depth_factor
     local w, h       = 95*mod, ean.height + bars_depth
     local x0         = (tx or 0) - ax * w
     local y0         = (ty or 0) - ay * h
     local x1         = x0 + w
     local y1         = y0 + h
-    local xpos       = x0 -- current insertion x-coord
     local ys         = y0 + bars_depth
-    local s_width    = 7*mod
-    local code_seq   = ean._codeset_seq[code[1]]
-    -- draw the start symbol
+    -- draw the symbol
     assert(canvas:start_bbox_group())
-    local be = ean._13_start_stop_vbar
-    assert(canvas:encode_Vbar(be, xpos, y0, y1))
-    xpos = xpos + 3*mod
-    -- draw the first 6 numbers
-    for i = 2, 7 do
-        local codeset = code_seq[i-1]
-        local n = code[i]
-        local vbar = ean._13_codeset_vbar[codeset][n]
-        assert(canvas:encode_Vbar(vbar, xpos, ys, y1))
-        xpos = xpos + s_width
-    end
-    -- draw the control symbol
-    local ctrl = ean._13_ctrl_center_vbar
-    assert(canvas:encode_Vbar(ctrl, xpos, y0, y1))
-    xpos = xpos + 5*mod
-    -- draw the last 6 numbers
-    for i = 8, 13 do
-        local codeset = code_seq[i-1]
-        local n = code[i]
-        local vbar = ean._13_codeset_vbar[codeset][n]
-        assert(canvas:encode_Vbar(vbar, xpos, ys, y1))
-        xpos = xpos + s_width
-    end
-    -- draw the stop char
-    assert(canvas:encode_Vbar(be, xpos, y0, y1))
+    assert(canvas:encode_Vbar_archive(queue_0, x0, y0, y1))
+    assert(canvas:encode_Vbar_archive(queue_1, x0 + 3*mod, ys, y1))
     -- bounding box set up
     local qzl = ean.quietzone_left_factor * mod
     local qzr = ean.quietzone_right_factor * mod
@@ -1098,45 +1107,41 @@ end
 
 -- draw EAN8 symbol
 fn_append_ga_variant["8"] = function (ean, canvas, tx, ty, ax, ay)
-    local code       = ean._code_data
-    local mod        = ean.mod
+    local Ctrl = ean._8_codeset_vbar.ctrl
+    local mod = ean.mod
+    local q0 = assert(Ctrl:push_queue("start_stop"))
+    assert(Ctrl:push_queue("central", q0, 28*mod))
+    assert(Ctrl:push_queue("start_stop", q0, 28*mod))
+    local Repo = ean._8_codeset_vbar.codeset
+    local code = ean._code_data
+    local cs14 = ean._codeset14_8
+    local q1
+    for i = 1, 4 do
+        local n = code[i]
+        local rep = Repo[cs14]
+        q1 = assert(rep:push_queue(n, q1))
+    end
+    local cs58 = ean._codeset58_8
+    local dx = 5*mod
+    for i = 5, 8 do
+        local n = code[i]
+        local rep = Repo[cs58]
+        assert(rep:push_queue(n, q1, dx))
+        dx = nil
+    end
     local bars_depth = mod * ean.bars_depth_factor
     local w, h       = 67*mod, ean.height + bars_depth
     local x0         = (tx or 0) - ax * w
     local y0         = (ty or 0) - ay * h
     local x1         = x0 + w
     local y1         = y0 + h
-    local xpos       = x0 -- current insertion x-coord
+    local xpos       = x0
     local ys         = y0 + bars_depth
     local s_width    = 7*mod
-    -- draw the start symbol
+    -- draw the symbol
     assert(canvas:start_bbox_group())
-    local be = ean._8_start_stop_vbar
-    assert(canvas:encode_Vbar(be, xpos, y0, y1))
-    xpos = xpos + 3*mod
-    -- draw the first 4 numbers
-    local t_vbar = ean._8_codeset_vbar
-    local cs14 = ean._codeset14_8
-    for i = 1, 4 do
-        local n = code[i]
-        local vbar = t_vbar[cs14][n]
-        assert(canvas:encode_Vbar(vbar, xpos, ys, y1))
-        xpos = xpos + s_width
-    end
-    -- draw the control symbol
-    local ctrl = ean._8_ctrl_center_vbar
-    assert(canvas:encode_Vbar(ctrl, xpos, y0, y1))
-    xpos = xpos + 5*mod
-    -- draw the product code
-    local cs58 = ean._codeset58_8
-    for i = 5, 8 do
-        local n    = code[i]
-        local vbar = t_vbar[cs58][n]
-        assert(canvas:encode_Vbar(vbar, xpos, ys, y1))
-        xpos = xpos + s_width
-    end
-    -- draw the stop char
-    assert(canvas:encode_Vbar(be, xpos, y0, y1))
+    assert(canvas:encode_Vbar_archive(q0, x0, y0, y1))
+    assert(canvas:encode_Vbar_archive(q1, x0 + 3*mod, ys, y1))
     -- bounding box set up
     local qzl = ean.quietzone_left_factor * mod
     local qzr = ean.quietzone_right_factor * mod
@@ -1158,7 +1163,8 @@ end
 
 -- draw EAN5 add-on symbol
 fn_append_ga_variant["5"] = function (ean, canvas, tx, ty, ax, ay, h)
-    local code = ean._code_data
+    local Ctrl = ean._5_codeset_vbar.ctrl
+    local queue = assert(Ctrl:push_queue("start"))
     local l1 = ean._main_len
     local i1; if l1 == 5 then
         i1 = 1
@@ -1166,39 +1172,32 @@ fn_append_ga_variant["5"] = function (ean, canvas, tx, ty, ax, ay, h)
         i1 = l1 + 1
     end
     local i2 = i1 + 4
-    local mod    = ean.mod
-    local w      = 47*mod
-    h = h or ean.height
-    local x0     = (tx or 0) - ax * w
-    local y0     = (ty or 0) - ay * h
-    local x1     = x0 + w
-    local y1     = y0 + h
-    local xpos   = x0 -- current insertion x-coord
-    local sym_w  = 7*mod
-    local sep_w  = 2*mod
-    -- draw the start symbol
-    assert(canvas:start_bbox_group())
-    local start = ean._5_start_vbar
-    assert(canvas:encode_Vbar(start, xpos, y0, y1))
-    xpos = xpos + 4*mod
+    local mod = ean.mod
+    -- draw the five digits
+    local code = ean._code_data
     local ck = checksum_5_2(code, i1, 5)
     local codeset = ean._codeset_5[ck]
-    local sep    = ean._5_sep_vbar
-    local t_vbar = ean._5_codeset_vbar
-    -- draw the five digits
+    local Repo = ean._5_codeset_vbar.codeset
     local k = 0
     for i = i1, i2 do
         k = k + 1
         local cs = codeset[k] -- 1 or 2
         local d = code[i]
-        local vbar = t_vbar[cs][d]
-        assert(canvas:encode_Vbar(vbar, xpos, y0, y1))
-        xpos = xpos + sym_w
+        local rep = Repo[cs]
+        assert(rep:push_queue(d, queue))
         if k < 5 then
-            assert(canvas:encode_Vbar(sep, xpos, y0, y1))
-            xpos = xpos + sep_w
+            assert(Ctrl:push_queue("sep", queue))
         end
     end
+    local w = 47*mod
+    h = h or ean.height
+    local x0 = (tx or 0) - ax * w
+    local y0 = (ty or 0) - ay * h
+    local x1 = x0 + w
+    local y1 = y0 + h
+    -- draw the symbol
+    assert(canvas:start_bbox_group())
+    assert(canvas:encode_Vbar_archive(queue, x0, y0, y1))
     -- bounding box set up
     local qzl = ean.quietzone_left_factor * mod
     local qzr = ean.quietzone_right_factor * mod
@@ -1215,6 +1214,8 @@ end
 
 -- draw EAN2 symbol
 fn_append_ga_variant["2"] = function (ean, canvas, tx, ty, ax, ay, h)
+    local Ctrl = ean._2_codeset_vbar.ctrl
+    local queue = assert(Ctrl:push_queue("start"))
     local code = ean._code_data
     local l1 = ean._main_len
     local i1; if l1 == 2 then
@@ -1222,21 +1223,6 @@ fn_append_ga_variant["2"] = function (ean, canvas, tx, ty, ax, ay, h)
     else
         i1 = l1 + 1
     end
-    local mod = ean.mod
-    local w = 20*mod
-    h = h or ean.height
-    local x0 = (tx or 0.0) - ax * w
-    local y0 = (ty or 0.0) - ay * h
-    local x1 = x0 + w
-    local y1 = y0 + h
-    local xpos = x0 -- current insertion x-coord
-    local sym_w = 7*mod
-    local sep_w = 2*mod
-    -- draw the start symbol
-    assert(canvas:start_bbox_group())
-    local start = ean._2_start_vbar
-    assert(canvas:encode_Vbar(start, xpos, y0, y1))
-    xpos = xpos + 4*mod
     local r = checksum_5_2(code, i1, 2)
     local s1, s2
     if r == 0 then     -- LL scheme
@@ -1248,17 +1234,24 @@ fn_append_ga_variant["2"] = function (ean, canvas, tx, ty, ax, ay, h)
     else -- r == 3     -- GG scheme
         s1, s2 = 2, 2
     end
-    local t_vbar = ean._2_codeset_vbar
+    local Repo = ean._2_codeset_vbar.codeset
     local d1 = code[i1] -- render the first digit
-    local vb1 = t_vbar[s1][d1]
-    assert(canvas:encode_Vbar(vb1, xpos, y0, y1))
-    xpos = xpos + sym_w
-    local sep  = ean._2_sep_vbar
-    assert(canvas:encode_Vbar(sep, xpos, y0, y1))
-    xpos = xpos + sep_w
+    local rep1 = Repo[s1]
+    assert(rep1:push_queue(d1, queue))
+    assert(Ctrl:push_queue("sep", queue))
     local d2 = code[i1 + 1] -- render the second digit
-    local vb2 = t_vbar[s2][d2]
-    assert(canvas:encode_Vbar(vb2, xpos, y0, y1))
+    local rep2 = Repo[s2]
+    assert(rep2:push_queue(d2, queue))
+    -- draw the symbol
+    local mod = ean.mod
+    local w = 20*mod
+    h = h or ean.height
+    local x0 = (tx or 0.0) - ax * w
+    local y0 = (ty or 0.0) - ay * h
+    local x1 = x0 + w
+    local y1 = y0 + h
+    assert(canvas:start_bbox_group())
+    assert(canvas:encode_Vbar_archive(queue, x0, y0, y1))
     -- bounding box set up
     local qzl = ean.quietzone_left_factor * mod
     local qzr = ean.quietzone_right_factor * mod

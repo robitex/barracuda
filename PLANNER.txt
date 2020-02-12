@@ -54,9 +54,11 @@ Dev Planner:
 
 [merge]<--------+
                 |
-    2020-__-__: [dev][ean] refactor ean to use `Vbar_archive`
+    2020-02-__: [dev][libgeo] add method `Vbar_archive:add_space()`
+    2020-02-__: [dev][libgeo] refactor `Vbar_archive` class
 -------------------------------------------------------------------------------
-    2020-02-11:*[dev][i2to5] refactor i2of5 to use `Vbar_archive`
+    2020-02-12:*[dev][ean] refactor ean to use `Vbar_archive`
+    2020-02-11: [dev][i2to5] refactor i2of5 to use `Vbar_archive`
     2020-02-10: [dev][code128] refactor code128 to use `Vbar_archive`
     2020-02-09: [dev][libgeo] refactor code39 to use `Vbar_archive`
     2020-02-06: [dev][libgeo] new `Vbar_archive` class in libgeo
