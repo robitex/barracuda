@@ -260,6 +260,21 @@ function Vbar_archive:push_queue(vbarkey, queue, x) --> queue, err
     end
 end
 
+function Vbar_archive:addspace_queue(queue, x) --> ok, err
+    if type(queue) ~= "table" then
+        return false, "[Err] queue must be a table"
+    end
+    local qlen = #queue
+    if qlen < 3 then
+        return false, "[Err] queue is not initialized"
+    end
+    if type(x) ~= "number" then
+        return false, "[Err] x must be a number"
+    end
+    queue[qlen] = queue[qlen] + x
+    return true, nil
+end
+
 -- Text class
 
 libgeo.Text = {}

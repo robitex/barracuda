@@ -289,7 +289,7 @@ function Code39:append_ga(canvas, tx, ty) --> canvas
         assert(archive:push_queue(c, q, interspace))
     end
     assert(archive:push_queue("*", q, interspace)) -- final stop char
-    assert(canvas:start_bbox_group())  -- draw the symbol
+    assert(canvas:start_bbox_group()) -- draw the symbol
     local ax, ay = self.ax, self.ay
     local mod    = self.module
     local ratio  = self.ratio

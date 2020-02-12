@@ -1028,13 +1028,12 @@ fn_append_ga_variant["13"] = function (ean, canvas, tx, ty, ax, ay)
         local rep = Repo[codeset]
         queue_1 = assert(rep:push_queue(n, queue_1))
     end
-    local dx = 5*mod
+    assert(Ctrl:addspace_queue(queue_1, 5*mod))
     for i = 8, 13 do
         local codeset = code_seq[i-1]
         local n = code[i]
         local rep = Repo[codeset]
-        assert(rep:push_queue(n, queue_1, dx))
-        dx = nil
+        assert(rep:push_queue(n, queue_1))
     end
     local bars_depth = mod * ean.bars_depth_factor
     local w, h       = 95*mod, ean.height + bars_depth
@@ -1121,13 +1120,12 @@ fn_append_ga_variant["8"] = function (ean, canvas, tx, ty, ax, ay)
         local rep = Repo[cs14]
         q1 = assert(rep:push_queue(n, q1))
     end
+    assert(Ctrl:addspace_queue(q1, 5*mod))
     local cs58 = ean._codeset58_8
-    local dx = 5*mod
     for i = 5, 8 do
         local n = code[i]
         local rep = Repo[cs58]
-        assert(rep:push_queue(n, q1, dx))
-        dx = nil
+        assert(rep:push_queue(n, q1))
     end
     local bars_depth = mod * ean.bars_depth_factor
     local w, h       = 67*mod, ean.height + bars_depth
