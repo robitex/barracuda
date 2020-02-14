@@ -1,14 +1,75 @@
-
+-- this file is part of barracuda project
+-- Copyright (C) 2020 Roberto Giacomelli
+-- see https://github.com/robitex/barracuda
+--
 -- libgeo simple Geometric Library
--- Copyright (C) 2018 Roberto Giacomelli
 
--- All dimension must be in scaled point (sp)
-
+-- All dimension must be in scaled point (sp) a TeX unit equal to 1/65536pt
 local libgeo = {
-    _VERSION     = "libgeo v0.0.3",
+    _VERSION     = "libgeo v0.0.6",
     _NAME        = "libgeo",
     _DESCRIPTION = "simple geometric library",
 }
+
+-- a simple tree structured Archive class
+libgeo.Archive = {}
+local Archive = libgeo.Archive
+Archive.__index = Archive
+
+function Archive:new() --> object
+    local o = {
+        _archive = {}
+    }
+    setmetatable(o, self)
+    return o
+end
+
+function Archive:insert(o, ...) --> ok, err
+    if type(o) ~= "table" then
+        return false, "[Err] "
+    end
+    local a = self._archive
+    local keys = {...}
+    for i = 1, (#keys - 1) do -- dive into the tree
+        local k = keys[i]
+        local leaf = a[k]
+        if not leaf then
+            a[k] = {}
+            leaf = a[k]
+        end
+        a = leaf
+    end
+    local k = keys[#keys]
+    if a[k] ~= nil then
+        return false, "[Err] an object "
+    end
+    a[k] = o
+    return true, nil
+end
+
+function Archive:contains_key(...) --> boolean
+    local a = self._archive
+    for _, k in ipairs{...} do
+        local leaf = a[k]
+        if leaf == nil then
+            return false
+        end
+        a = leaf
+    end
+    return true
+end
+
+function Archive:get(...) --> object, err
+    local a = self._archive
+    for _, k in ipairs{...} do
+        local leaf = a[k]
+        if leaf == nil then
+            return nil, "[Err] key '"..k.."' not found"
+        end
+        a = leaf
+    end
+    return a, nil
+end
 
 -- VBar class
 -- a pure geometric entity of several infinite vertical lines
