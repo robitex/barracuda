@@ -227,8 +227,8 @@ pardef.text_star = {
 -- configuration function
 function Code39:_config() --> ok, err
     local Vbar = self._libgeo.Vbar -- Vbar class
-    local Vbar_archive = self._libgeo.Vbar_archive -- Vbar_archive class
-    local c39_vbars = Vbar_archive:new()
+    local Archive = self._libgeo.Archive -- Archive class
+    local c39_vbars = Archive:new()
     self._vbar_archive = c39_vbars
     -- build Vbar object for the start/stop symbol
     local mod, ratio = self.module, self.ratio
@@ -283,19 +283,19 @@ end
 function Code39:append_ga(canvas, tx, ty) --> canvas
     local code = self._code_data
     local archive = self._vbar_archive
-    local q = assert(archive:push_queue("*")) -- form the vbar queue
-    local interspace = self.interspace
+    local q = assert(archive:get("*")) -- form the vbar queue, actually it is just a Vbar
+    local dx = self.interspace
     for _, c in ipairs(code) do
-        assert(archive:push_queue(c, q, interspace))
+        q = q + dx + assert(archive:get(c))
     end
-    assert(archive:push_queue("*", q, interspace)) -- final stop char
+    q = q + dx + assert(archive:get("*")) -- final stop char
     assert(canvas:start_bbox_group()) -- draw the symbol
     local ax, ay = self.ax, self.ay
     local mod    = self.module
     local ratio  = self.ratio
     local ns     = self._code_len -- number of chars inside the symbol
     local xs     = mod*(6 + 3*ratio)
-    local xgap   = xs + interspace
+    local xgap   = xs + dx
     local h      = self.height
     local w      = xgap*(ns + 1) + xs -- (ns + 2)*xgap - interspace
     --
@@ -303,7 +303,7 @@ function Code39:append_ga(canvas, tx, ty) --> canvas
     local x1     = x0 + w
     local y0     = (ty or 0) - ay * h
     local y1     = y0 + h
-    assert(canvas:encode_Vbar_archive(q, x0, y0, y1))
+    assert(canvas:encode_Vbar_Queue(q, x0, y0, y1))
     -- bounding box setting
     local qz = self.quietzone
     assert(canvas:stop_bbox_group(x0 - qz, y0, x1 + qz, y1))

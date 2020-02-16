@@ -71,11 +71,62 @@ function Archive:get(...) --> object, err
     return a, nil
 end
 
+-- Queue Class
+local VbarQueue = {_classname = "VbarQueue"}
+VbarQueue.__index = VbarQueue
+
+function VbarQueue:new()
+   local o = { 0 }
+   setmetatable(o, self)
+   return o
+end
+
+VbarQueue.__add = function (lhs, rhs)
+    if type(lhs) == "number" then -- dist + queue
+        local i = 1
+        while rhs[i] do
+            rhs[i] = rhs[i] + lhs
+            i = i + 2
+        end
+        return rhs
+    else -- queue + object
+        if type(rhs) == "number" then
+           lhs[#lhs] = lhs[#lhs] + rhs
+           return lhs
+        elseif type(rhs) == "table" then
+            if rhs._classname == "VbarQueue" then -- queue + queue
+                local q = {}
+                for _, v in ipairs(lhs) do
+                    q[#q + 1] = v
+                end
+                local w = lhs[#lhs]
+                for i = 1, #rhs/2 do
+                    q[#q + 1] = rhs[i] + w
+                    q[#q + 1] = rhs[i + 1]
+                end
+                return q
+            elseif rhs._classname == "Vbar" then -- queue + vbar
+                local w = lhs[#lhs]
+                lhs[#lhs + 1] = rhs
+                lhs[#lhs + 1] = w + rhs._x_lim
+                return lhs
+            else
+                error("[Err] unsupported object type for queue operation")
+            end
+        else
+            error("[Err] unsupported type for queue operation")
+        end
+    end
+end
+
 -- VBar class
 -- a pure geometric entity of several infinite vertical lines
-libgeo.Vbar = {}
+libgeo.Vbar = {_classname = "Vbar"}
 local Vbar = libgeo.Vbar
 Vbar.__index = Vbar
+Vbar.__add = function (lhs, rhs)
+    return VbarQueue:new() + lhs + rhs
+end
 
 -- Vbar costructors
 
@@ -258,12 +309,12 @@ local Vbar_archive = libgeo.Vbar_archive
 Vbar_archive.__index = Vbar_archive
 
 -- build a new Vbar_archive instance
-function Vbar_archive:new() --> object, err
+function Vbar_archive:new() --> object
     local o = {
         archive = {},
     }
     setmetatable(o, self)
-    return o, nil
+    return o
 end
 
 function Vbar_archive:contains_key(key) --> boolean
