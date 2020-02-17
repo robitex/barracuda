@@ -96,10 +96,10 @@ function Code128:_config() --> ok, err
     local mod = self.xdim
     local sc = self._codeset.stopChar -- build the stop char
     local n = self._int_def_bar[sc]
-    local repo = self._libgeo.Vbar_archive:new()
+    local repo = self._libgeo.Archive:new()
     self._vbar_archive = repo
     local Vbar = self._libgeo.Vbar
-    assert(repo:insert(Vbar:from_int(n, mod, true), 106))
+    repo:insert(Vbar:from_int(n, mod, true), 106)
     return true, nil
 end
 
@@ -312,12 +312,12 @@ end
 function Code128:append_ga(canvas, tx, ty) --> canvas
     local data = self._enc_data
     local Repo = self._vbar_archive
-    local queue
+    local queue = self._libgeo.Vbar_queue:new()
     for _, c in ipairs(data) do
-        queue = assert(Repo:push_queue(c, queue, 0))
+        queue = queue + Repo:get(c)
     end
     local stop = self._codeset.stopChar
-    queue = assert(Repo:push_queue(stop, queue, 0))
+    queue = queue + Repo:get(stop)
     local xdim, h = self.xdim, self.ydim
     local ns = #data + 1
     local w = (11*ns + 2) * xdim -- total symbol width
@@ -328,7 +328,7 @@ function Code128:append_ga(canvas, tx, ty) --> canvas
     local y1 = y0 + h
     -- drawing the symbol
     assert(canvas:start_bbox_group())
-    assert(canvas:encode_Vbar_archive(queue, x0, y0, y1))
+    assert(canvas:encode_Vbar_queue(queue, x0, y0, y1))
     -- bounding box setting
     local qz = self.quietzone_factor * xdim
     -- { xmin, ymin, xmax, ymax }
@@ -337,4 +337,3 @@ function Code128:append_ga(canvas, tx, ty) --> canvas
 end
 
 return Code128
---

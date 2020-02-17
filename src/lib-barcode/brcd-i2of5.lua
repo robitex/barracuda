@@ -448,8 +448,8 @@ function ITF:_config() --> ok, err
     local wide = narrow * self.ratio
     -- start symbol
     local Vbar = self._libgeo.Vbar -- Vbar class
-    local Vbar_archive = self._libgeo.Vbar_archive -- Vbar_archive class
-    local Repo = Vbar_archive:new()
+    local archive = self._libgeo.Archive -- Vbar_archive class
+    local Repo = archive:new()
     self._vbar_data = Repo
     Repo:insert(Vbar:from_int_revpair(self._start, narrow, wide), "start")
     Repo:insert(Vbar:from_int_revpair(self._stop, narrow, wide), "stop")
@@ -582,15 +582,14 @@ end
 -- tx, ty is an optional translator vector
 function ITF:append_ga(canvas, tx, ty) --> canvas
     local Repo = self._vbar_data
-    local queue = assert(Repo:push_queue("start"))
-    -- build the vbars queue
+    local queue = assert(Repo:get("start")) -- build the vbars queue
     local digits = self._code_data
     local n = #digits
     for i = 1, n, 2 do
         local index = 10 * digits[i] + digits[i+1]
-        assert(Repo:push_queue(index, queue))
+        queue = queue + assert(Repo:get(index))
     end
-    assert(Repo:push_queue("stop", queue))
+    queue = queue + assert(Repo:get("stop"))
     -- draw the start symbol
     local xdim = self.module
     local ratio = self.ratio
@@ -601,7 +600,7 @@ function ITF:append_ga(canvas, tx, ty) --> canvas
     local y0 = (ty or 0) - h * ay
     local y1 = y0 + h
     assert(canvas:start_bbox_group())
-    assert(canvas:encode_Vbar_archive(queue, x0, y0, y1))
+    assert(canvas:encode_Vbar_queue(queue, x0, y0, y1))
     -- bounding box setting
     local x1 = x0 + w
     local qz = self.quietzone

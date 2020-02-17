@@ -12,7 +12,7 @@ local libgeo = {
 }
 
 -- a simple tree structured Archive class
-libgeo.Archive = {}
+libgeo.Archive = {_classname = "Archive"}
 local Archive = libgeo.Archive
 Archive.__index = Archive
 
@@ -73,6 +73,7 @@ end
 
 -- Queue Class
 local VbarQueue = {_classname = "VbarQueue"}
+libgeo.Vbar_queue = VbarQueue
 VbarQueue.__index = VbarQueue
 
 function VbarQueue:new()
@@ -117,6 +118,10 @@ VbarQueue.__add = function (lhs, rhs)
             error("[Err] unsupported type for queue operation")
         end
     end
+end
+
+function VbarQueue:width()
+    return self[#self] - self[1]
 end
 
 -- VBar class
@@ -303,93 +308,9 @@ function Vbar:from_two_tab(tbar, tspace, mod, MOD) --> <vbar object>
     return o
 end
 
--- Vbar archive class
-libgeo.Vbar_archive = {}
-local Vbar_archive = libgeo.Vbar_archive
-Vbar_archive.__index = Vbar_archive
-
--- build a new Vbar_archive instance
-function Vbar_archive:new() --> object
-    local o = {
-        archive = {},
-    }
-    setmetatable(o, self)
-    return o
-end
-
-function Vbar_archive:contains_key(key) --> boolean
-    local typekey = type(key)  -- check args
-    if not(typekey == "string" or typekey == "number") then
-        return false
-    end
-    return self.archive[key] ~= nil
-end
-
--- internally save a vbar reference at index 'key':string|number
-function Vbar_archive:insert(vbar, key) --> ok, err
-    -- check args type
-    if type(vbar) ~= "table" then
-        return false, "[Err] 'vbar' arg must be a table"
-    end
-    if not( type(key) == "string" or  type(key) == "number") then
-        return false, "[Err] 'key' index must be a string or a number"
-    end
-    local archive = self.archive
-    if archive[key] then
-        return false, "[Err] an index key '"..key.."' is already present in the archive"
-    end
-    archive[key] = vbar
-    return true, nil
-end
-
--- feed a Vbar queue, arguments: vbarkey, [queue, [x]]
--- vbarkey is the index being searched in the archive
-function Vbar_archive:push_queue(vbarkey, queue, x) --> queue, err
-    local typekey = type(vbarkey)  -- check args
-    if not(typekey == "string" or typekey == "number") then
-        return nil, "[ArgErr] unsupported type ["..typekey.."] for vbarkey"
-    end
-    local archive = self.archive
-    local vbar = archive[vbarkey]
-    if not vbar then
-        return nil, "[ArgErr] Vbar object not found at index '"..vbarkey.."'"
-    end
-    if queue == nil then
-        return { 0, vbar, vbar._x_lim }, nil
-    else
-        local w_last = queue[#queue]
-        if x == nil then
-            queue[#queue + 1] = vbar
-            queue[#queue + 1] = w_last + vbar._x_lim
-            return queue, nil
-        elseif type(x) ~= "number" then
-            return nil, "[ArgErr] distance 'x' is not a number"
-        end
-        queue[#queue] = w_last + x
-        queue[#queue + 1] = vbar
-        queue[#queue + 1] = w_last + x + vbar._x_lim
-        return queue, nil
-    end
-end
-
-function Vbar_archive:addspace_queue(queue, x) --> ok, err
-    if type(queue) ~= "table" then
-        return false, "[Err] queue must be a table"
-    end
-    local qlen = #queue
-    if qlen < 3 then
-        return false, "[Err] queue is not initialized"
-    end
-    if type(x) ~= "number" then
-        return false, "[Err] x must be a number"
-    end
-    queue[qlen] = queue[qlen] + x
-    return true, nil
-end
-
 -- Text class
 
-libgeo.Text = {}
+libgeo.Text = {_classname="Text"}
 local Text = libgeo.Text
 Text.__index = Text
 

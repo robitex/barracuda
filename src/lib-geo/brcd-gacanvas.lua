@@ -191,7 +191,7 @@ end
 
 -- print a Vbar queue starting at x position 'xpos', between the horizontal line
 -- at y0 and y1 y-coordinates
-function gaCanvas:encode_Vbar_Queue(queue, xpos, y0, y1) --> ok, err
+function gaCanvas:encode_Vbar_queue(queue, xpos, y0, y1) --> ok, err
     -- check arg
     if type(queue) ~= "table" then
         return false, "[Err] 'queue' arg must be a table"
