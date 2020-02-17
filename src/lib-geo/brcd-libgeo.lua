@@ -1,20 +1,137 @@
-
+-- this file is part of barracuda project
+-- Copyright (C) 2020 Roberto Giacomelli
+-- see https://github.com/robitex/barracuda
+--
 -- libgeo simple Geometric Library
--- Copyright (C) 2018 Roberto Giacomelli
 
--- All dimension must be in scaled point (sp)
-
+-- All dimension must be in scaled point (sp) a TeX unit equal to 1/65536pt
 local libgeo = {
-    _VERSION     = "libgeo v0.0.3",
+    _VERSION     = "libgeo v0.0.6",
     _NAME        = "libgeo",
     _DESCRIPTION = "simple geometric library",
 }
 
+-- a simple tree structured Archive class
+libgeo.Archive = {_classname = "Archive"}
+local Archive = libgeo.Archive
+Archive.__index = Archive
+
+function Archive:new() --> object
+    local o = {
+        _archive = {}
+    }
+    setmetatable(o, self)
+    return o
+end
+
+function Archive:insert(o, ...) --> ok, err
+    if type(o) ~= "table" then
+        return false, "[Err] "
+    end
+    local a = self._archive
+    local keys = {...}
+    for i = 1, (#keys - 1) do -- dive into the tree
+        local k = keys[i]
+        local leaf = a[k]
+        if not leaf then
+            a[k] = {}
+            leaf = a[k]
+        end
+        a = leaf
+    end
+    local k = keys[#keys]
+    if a[k] ~= nil then
+        return false, "[Err] an object "
+    end
+    a[k] = o
+    return true, nil
+end
+
+function Archive:contains_key(...) --> boolean
+    local a = self._archive
+    for _, k in ipairs{...} do
+        local leaf = a[k]
+        if leaf == nil then
+            return false
+        end
+        a = leaf
+    end
+    return true
+end
+
+function Archive:get(...) --> object, err
+    local a = self._archive
+    for _, k in ipairs{...} do
+        local leaf = a[k]
+        if leaf == nil then
+            return nil, "[Err] key '"..k.."' not found"
+        end
+        a = leaf
+    end
+    return a, nil
+end
+
+-- Queue Class
+local VbarQueue = {_classname = "VbarQueue"}
+libgeo.Vbar_queue = VbarQueue
+VbarQueue.__index = VbarQueue
+
+function VbarQueue:new()
+   local o = { 0 }
+   setmetatable(o, self)
+   return o
+end
+
+VbarQueue.__add = function (lhs, rhs)
+    if type(lhs) == "number" then -- dist + queue
+        local i = 1
+        while rhs[i] do
+            rhs[i] = rhs[i] + lhs
+            i = i + 2
+        end
+        return rhs
+    else -- queue + object
+        if type(rhs) == "number" then
+           lhs[#lhs] = lhs[#lhs] + rhs
+           return lhs
+        elseif type(rhs) == "table" then
+            if rhs._classname == "VbarQueue" then -- queue + queue
+                local q = {}
+                for _, v in ipairs(lhs) do
+                    q[#q + 1] = v
+                end
+                local w = lhs[#lhs]
+                for i = 1, #rhs/2 do
+                    q[#q + 1] = rhs[i] + w
+                    q[#q + 1] = rhs[i + 1]
+                end
+                return q
+            elseif rhs._classname == "Vbar" then -- queue + vbar
+                local w = lhs[#lhs]
+                lhs[#lhs + 1] = rhs
+                lhs[#lhs + 1] = w + rhs._x_lim
+                return lhs
+            else
+                error("[Err] unsupported object type for queue operation")
+            end
+        else
+            error("[Err] unsupported type for queue operation")
+        end
+    end
+end
+
+function VbarQueue:width()
+    return self[#self] - self[1]
+end
+
 -- VBar class
 -- a pure geometric entity of several infinite vertical lines
-libgeo.Vbar = {}
+libgeo.Vbar = {_classname = "Vbar"}
 local Vbar = libgeo.Vbar
 Vbar.__index = Vbar
+Vbar.__add = function (lhs, rhs)
+    return VbarQueue:new() + lhs + rhs
+end
 
 -- Vbar costructors
 
@@ -127,7 +244,7 @@ function Vbar:from_int_revpair(ngen, mod, MOD, is_bar) --> <vbar object>
         assert(type(is_bar) == "boolean", "Invalid argument for 'is_bar'")
     end
     local yl = {}
-	local x0 = 0.0
+    local x0 = 0.0
     local k = 0
     while ngen > 0 do
         local d = ngen % 10 -- digit
@@ -144,7 +261,6 @@ function Vbar:from_int_revpair(ngen, mod, MOD, is_bar) --> <vbar object>
         is_bar = not is_bar
         x0 = x0 + w
     end
-    assert(not is_bar, "[InternalErr] the last element is not a bar")
     local o = {
         _yline = yl, -- [<xcenter>, <width>, ...] flat array
         _x_lim = x0, -- external x coordinate
@@ -194,7 +310,7 @@ end
 
 -- Text class
 
-libgeo.Text = {}
+libgeo.Text = {_classname="Text"}
 local Text = libgeo.Text
 Text.__index = Text
 

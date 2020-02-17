@@ -96,10 +96,10 @@ function Code128:_config() --> ok, err
     local mod = self.xdim
     local sc = self._codeset.stopChar -- build the stop char
     local n = self._int_def_bar[sc]
-    local Vbar = self._libgeo.Vbar -- Vbar class
-    self._vbar = {}
-    local b = self._vbar
-    b[sc] = Vbar:from_int(n, mod, true)
+    local repo = self._libgeo.Archive:new()
+    self._vbar_archive = repo
+    local Vbar = self._libgeo.Vbar
+    repo:insert(Vbar:from_int(n, mod, true), 106)
     return true, nil
 end
 
@@ -264,7 +264,6 @@ local function encode128(arr, codeset, switch) --> data, err :TODO:
         end
     end
     res[#res + 1] = check_digit(res)
-    res[#res + 1] = codeset.stopChar
     return res
 end
 
@@ -293,17 +292,17 @@ function Code128:_finalize() --> ok, err
     local chr = assert(self._code_data, "[InternalErr] '_code_data' field is nil")
     local data, err = encode128(chr, self._codeset, self._switch)
     if err then return false, err end
-    -- load dynamically required Vbar objects
-    local vbar = self._vbar
-    local oVbar = self._libgeo.Vbar
+    self._enc_data = data
+    -- dynamically load the required Vbar objects
+    local Repo = self._vbar_archive
+    local Vbar = self._libgeo.Vbar
     for _, c in ipairs(data) do
-        if not vbar[c] then
+        if not Repo:contains_key(c) then
             local n = self._int_def_bar[c]
             local mod = self.xdim
-            vbar[c] = oVbar:from_int(n, mod, true)
+            assert(Repo:insert(Vbar:from_int(n, mod, true), c))
         end
     end
-    self._enc_data = data
     return true, nil
 end
 
@@ -311,23 +310,25 @@ end
 -- tx, ty is the optional translator vector
 -- the function return the canvas reference to allow call chaining
 function Code128:append_ga(canvas, tx, ty) --> canvas
-    local xdim, h = self.xdim, self.ydim
-    local sw = 11*xdim -- the width of a symbol
     local data = self._enc_data
-    local w = #data * sw + 2 * xdim -- total symbol width
+    local Repo = self._vbar_archive
+    local queue = self._libgeo.Vbar_queue:new()
+    for _, c in ipairs(data) do
+        queue = queue + Repo:get(c)
+    end
+    local stop = self._codeset.stopChar
+    queue = queue + Repo:get(stop)
+    local xdim, h = self.xdim, self.ydim
+    local ns = #data + 1
+    local w = (11*ns + 2) * xdim -- total symbol width
     local ax, ay = self.ax, self.ay
     local x0 = (tx or 0) - ax * w
     local y0 = (ty or 0) - ay * h
     local x1 = x0 + w
     local y1 = y0 + h
-    local xpos = x0
     -- drawing the symbol
     assert(canvas:start_bbox_group())
-    for _, c in ipairs(data) do
-        local vb = self._vbar[c]
-        assert(canvas:encode_Vbar(vb, xpos, y0, y1))
-        xpos = xpos + sw
-    end
+    assert(canvas:encode_Vbar_queue(queue, x0, y0, y1))
     -- bounding box setting
     local qz = self.quietzone_factor * xdim
     -- { xmin, ymin, xmax, ymax }
@@ -336,4 +337,3 @@ function Code128:append_ga(canvas, tx, ty) --> canvas
 end
 
 return Code128
---

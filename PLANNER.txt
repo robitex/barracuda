@@ -46,7 +46,6 @@ Dev Planner:
 2020-__-__: [dev][barcode] new `alias` feature
 2020-__-__: [dev][barcode] new `preset` feature
 2020-__-__: [dev][i2of5] human readeable text for i2of5
-2020-__-__: [dev][libgeo] new `Vbar_group` class
 2020-__-__: [test] update test files with recent changes
 2020-__-__: [project][build] make a Lua script to easily create the CTAN upload
           : compressed files
@@ -54,6 +53,22 @@ Dev Planner:
 2020-__-__: [dev] control the method call on the right class
 -------------------------------------------------------------------------------
 2020-02-09:*[dev] new constructor `Barcode:new()`
+
+[merge]<--------+
+                |
+    2020-02-17: [libgeo] delete `Vbar_archive` in favour of `Archive`
+    2020-02-16: [libgeo] arithmetic of new object `Queue`
+    2020-02-12: [libgeo] new class `Archive`
+    2020-02-12: [dev][libgeo] add method `Vbar_archive:add_space()`
+    2020-02-12: [dev][libgeo] refactor `Vbar_archive:push_queue()` method
+    2020-02-12: [dev][ean] refactor ean to use `Vbar_archive`
+    2020-02-11: [dev][i2to5] refactor i2of5 to use `Vbar_archive`
+    2020-02-10: [dev][code128] refactor code128 to use `Vbar_archive`
+    2020-02-09: [dev][libgeo] refactor code39 to use `Vbar_archive`
+    2020-02-06: [dev][libgeo] new `Vbar_archive` class in libgeo
+                |
+[vbar_archive]--+
+
 2020-02-05: [dev][libgeo][breaking change] return `ok, err` instead of `err`
             for canvas methods
 2020-02-04: [dev][ean] new function `encoder:_init_parse_state()`, and EAN

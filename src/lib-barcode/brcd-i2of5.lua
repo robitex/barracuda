@@ -13,7 +13,7 @@ ITF._id_variant = {
     ITF14 = true, -- ITF 14 GS1 specification
 }
 
-ITF._start = 111 -- nnnn
+ITF._start = 1111 -- nnnn
 ITF._stop = 112 -- Wnn (integer must be in reverse order)
 
 ITF._pattern = { -- true -> narrow, false -> Wide
@@ -300,7 +300,7 @@ itf14_pdef.bearer_bars_enabled = { -- boolean type
 -- SHALL be a minimum of twice the width of a narrow bar (dark bar) and need
 -- only appear at the top and bottom of the symbol, butting directly against
 -- the top and bottom of the symbol bars (dark bars).
-pardef.bearer_bars_thickness = { -- dimension
+itf14_pdef.bearer_bars_thickness = { -- dimension
     default    = 5 * 0.495 * 186467, -- 5 modules
     unit       = "sp", -- scaled point
     isReserved = false,
@@ -448,18 +448,19 @@ function ITF:_config() --> ok, err
     local wide = narrow * self.ratio
     -- start symbol
     local Vbar = self._libgeo.Vbar -- Vbar class
-    self._vbar_start = Vbar:from_int_revpair(self._start, narrow, wide)
-    self._vbar_stop = Vbar:from_int_revpair(self._stop, narrow, wide)
+    local archive = self._libgeo.Archive -- Vbar_archive class
+    local Repo = archive:new()
+    self._vbar_data = Repo
+    Repo:insert(Vbar:from_int_revpair(self._start, narrow, wide), "start")
+    Repo:insert(Vbar:from_int_revpair(self._stop, narrow, wide), "stop")
     -- build every possible pair of digits from 00 to 99
-    self._vbar_data = {}
-    local vbar = self._vbar_data
     local pattern = self._pattern
     for dec = 0, 9 do
         for unit = 0, 9 do
             local t1 = pattern[dec]
             local t2 = pattern[unit]
             local n = dec*10 + unit
-            vbar[n] = Vbar:from_two_tab(t1, t2, narrow, wide)
+            Repo:insert(Vbar:from_two_tab(t1, t2, narrow, wide), n)
         end
     end
     local variant = self._variant
@@ -580,51 +581,47 @@ end
 -- drawing function
 -- tx, ty is an optional translator vector
 function ITF:append_ga(canvas, tx, ty) --> canvas
-    assert(canvas:start_bbox_group())
+    local Repo = self._vbar_data
+    local queue = assert(Repo:get("start")) -- build the vbars queue
+    local digits = self._code_data
+    local n = #digits
+    for i = 1, n, 2 do
+        local index = 10 * digits[i] + digits[i+1]
+        queue = queue + assert(Repo:get(index))
+    end
+    queue = queue + assert(Repo:get("stop"))
     -- draw the start symbol
     local xdim = self.module
     local ratio = self.ratio
-    local symb_len = 2 * xdim * (3 + 2*ratio)
-    local x0 = tx or 0
-    local xpos = x0
-    local y0 = ty or 0
-    local y1 = y0 + self.height
-    local start = self._vbar_start
-    assert(canvas:encode_Vbar(start, xpos, y0, y1))
-    xpos = xpos + 4 * xdim
-    -- draw the code symbol
-    local digits = self._code_data
-    local vbars = self._vbar_data
-    for i = 1, #digits, 2 do
-        local index = 10 * digits[i] + digits[i+1]
-        local b = vbars[index]
-        assert(canvas:encode_Vbar(b, xpos, y0, y1))
-        xpos = xpos + symb_len
-    end
-    -- draw the stop symbol
-    local stop = self._vbar_stop
-    assert(canvas:encode_Vbar(stop, xpos, y0, y1))
+    local w = xdim * (6 + ratio + n * (3 + 2 * ratio))
+    local ax, ay = self.ax, self.ay
+    local h = self.height
+    local x0 = (tx or 0) - w * ax
+    local y0 = (ty or 0) - h * ay
+    local y1 = y0 + h
+    assert(canvas:start_bbox_group())
+    assert(canvas:encode_Vbar_queue(queue, x0, y0, y1))
     -- bounding box setting
-    local x1 = xpos + (2 + ratio)*xdim
+    local x1 = x0 + w
     local qz = self.quietzone
     if self._variant then
         qz = qz * xdim
     end
-    local b1x,  b1y = x0 - qz, y0
-    local b2x,  b2y = x1 + qz, y1
+    local b1x, b1y = x0 - qz, y0
+    local b2x, b2y = x1 + qz, y1
     if self.bearer_bars_enabled then
-        local w = self.bearer_bars_thickness
-        assert(canvas:encode_linethick(w))
-        b1y, b2y = b1y - w, b2y + w
+        local t = self.bearer_bars_thickness
+        assert(canvas:encode_linethick(t))
+        b1y, b2y = b1y - t, b2y + t
         local layout = self.bearer_bars_layout
         if layout == "hbar" then
-            assert(canvas:encode_hline(b1x, b2x, y0 - w/2))
-            assert(canvas:encode_hline(b1x, b2x, y1 + w/2))
+            assert(canvas:encode_hline(b1x, b2x, y0 - t/2))
+            assert(canvas:encode_hline(b1x, b2x, y1 + t/2))
         elseif layout == "frame" then
-            assert(canvas:encode_rectangle(b1x - w/2, y0 - w/2, b2x + w/2, y1 + w/2))
-            b1x, b2x = b1x - w, b2x + w
+            assert(canvas:encode_rectangle(b1x - t/2, y0 - t/2, b2x + t/2, y1 + t/2))
+            b1x, b2x = b1x - t, b2x + t
         else
-            error("[IntenalErr] bearer bars layout option is wrong")
+            error("[IntenalErr] unexpected bearer bars layout option value")
         end
     end
     assert(canvas:stop_bbox_group(b1x, b1y, b2x, b2y))
