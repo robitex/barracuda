@@ -504,10 +504,7 @@ end
 
 -- group char for readibility '-' or ' '
 -- char won't be inserted in the top isbn code
-local function isbn_check_char(_, c, parse_state) --> elem, err
-    if type(c) ~= "string" or #c ~= 1 then
-        return nil, "[InternalErr] invalid char"
-    end
+local function isbn_process_char(_, c, parse_state) --> elem, err
     local code = parse_state.isbncode
     local isbn_len = parse_state.isbn_len
     if c == "-" then
@@ -681,10 +678,7 @@ end
 
 -- ISSN dddd-dddx[dd] or 13-long array
 -- spaces is always ignored
-local function issn_check_char(enc, c, parse_state) --> elem, err
-    if (type(c) ~= "string") or (#c ~= 1) then
-        return nil, "[InternalErr] invalid char"
-    end
+local function issn_process_char(enc, c, parse_state) --> elem, err
     local addon_len = enc._addon_len
     -- `edition variant` input code part
     if c == " " then
@@ -908,10 +902,10 @@ function EAN:_config() --> ok, err
     local fnconfig = self._config_variant[variant]
     fnconfig(self)
     if v1 == "isbn" then
-        self._check_char = isbn_check_char
+        self._process_char = isbn_process_char
         self._init_parse_state = isbn_parse_state
     elseif v1 == "issn" then
-        self._check_char = issn_check_char
+        self._process_char = issn_process_char
         self._init_parse_state = issn_parse_state
     end
     return true, nil

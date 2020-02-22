@@ -398,10 +398,7 @@ local function itf14_parse_state()
 end
 
 -- group char for readibility '(' or ')' or ' '
-local function itf14_check_char(enc, c, parse_state) --> elem, err
-    if type(c) ~= "string" or #c ~= 1 then
-        return nil, "[InternalErr] invalid char"
-    end
+local function itf14_process_char(_, c, parse_state) --> elem, err
     local code = parse_state.itf14_code
     local itf14_len = parse_state.itf14_len
     -- parsing
@@ -413,7 +410,7 @@ local function itf14_check_char(enc, c, parse_state) --> elem, err
         return nil, nil
     elseif c == "(" then
         if parse_state.is_popen then
-            return nil, "[Err] a parenthesis group is already open"
+            return nil, "[Err] a parenthesis is already opened"
         end
         parse_state.is_popen = true
         code[#code + 1] = c
@@ -465,7 +462,7 @@ function ITF:_config() --> ok, err
     end
     local variant = self._variant
     if variant == "ITF14" then
-        self._check_char = itf14_check_char
+        self._process_char = itf14_process_char
         self._init_parse_state = itf14_parse_state
     end
     return true, nil

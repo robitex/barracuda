@@ -316,9 +316,13 @@ end
 -- base methods common to all the encoders
 
 -- for numeric only simbology
-function Barcode:_check_char(c) --> elem, err
+function Barcode:_check_char(c, parse_state) --> elem, err
     if type(c) ~= "string" or #c ~= 1 then
         return nil, "[InternalErr] invalid char"
+    end
+    local process_char = self._process_char
+    if process_char then
+        return process_char(self, c, parse_state)
     end
     local n = string.byte(c) - 48
     if n < 0 or n > 9 then
@@ -327,9 +331,13 @@ function Barcode:_check_char(c) --> elem, err
     return n, nil
 end
 --
-function Barcode:_check_digit(n) --> elem, err
+function Barcode:_check_digit(n, parse_state) --> elem, err
     if type(n) ~= "number" then
         return nil, "[ArgErr] not a number"
+    end
+    local process_digit = self._process_digit
+    if process_digit then
+        return process_digit(self, n, parse_state)
     end
     if n < 0 or n > 9 then
         return nil, "[ArgErr] not a digit"

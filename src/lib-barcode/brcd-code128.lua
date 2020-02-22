@@ -269,10 +269,7 @@ end
 
 -- Code 128 internal functions used by Barcode costructors
 
-function Code128:_check_char(c) --> elem, err
-    if type(c) ~= "string" or #c ~= 1 then
-        return nil, "[InternalErr] invalid char"
-    end
+function Code128:_process_char(c) --> char, err
     local b = string.byte(c)
     if b > 127 then
         local fmt = "[unimplemented] the '%d' is an ASCII extented char"
@@ -281,10 +278,7 @@ function Code128:_check_char(c) --> elem, err
     return b, nil
 end
 
-function Code128:_check_digit(n) --> elem, err
-    if type(n) ~= "number" then
-        return nil, "[InternalErr] invalid digit"
-    end
+function Code128:_process_digit(n) --> digit, err
     return n + 48, nil
 end
 

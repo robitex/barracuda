@@ -238,44 +238,33 @@ function Code39:_config() --> ok, err
     return true, nil
 end
 
--- overriding Barcode method
-function Code39:_check_char(c) --> elem, err
-    if type(c) ~= "string" or #c ~= 1 then
-        return nil, "[ArgErr] invalid char"
+function Code39:_ensure_symbol(c)
+    local Archive = self._vbar_archive
+    if not Archive:contains_key(c) then
+        local Vbar = self._libgeo.Vbar
+        local mod, ratio = self.module, self.ratio
+        local symb_def = self._symb_def
+        local n_def = symb_def[c]
+        local v = Vbar:from_int_revpair(n_def, mod, mod*ratio)
+        Archive:insert(v, c)
     end
+end
+
+-- overriding Barcode method
+function Code39:_process_char(c) --> elem, err
     local symb_def = self._symb_def
-    local n = symb_def[c]
-    if not n then
+    if not symb_def[c] then
         local fmt = "[ArgErr] '%s' is not a valid Code 39 symbol"
         return nil, string.format(fmt, c)
     end
-    local vbar_archive = self._vbar_archive
-    if not vbar_archive:contains_key(c) then
-        local Vbar = self._libgeo.Vbar
-        local mod, ratio = self.module, self.ratio
-        local v = Vbar:from_int_revpair(n, mod, mod*ratio)
-        vbar_archive:insert(v, c)
-    end
+    self:_ensure_symbol(c)
     return c, nil
 end
 
 -- overriding Barcode method
-function Code39:_check_digit(n) --> elem, err
-    if type(n) ~= "number" then
-        return nil, "[ArgErr] not a number"
-    end
-    if n < 0 or n > 9 then
-        return nil, "[ArgErr] not a digit"
-    end
+function Code39:_process_digit(n) --> elem, err
     local c = string.char(n + 48)
-    local vbar_archive = self._vbar_archive
-    if not vbar_archive:contains_key(c) then
-        local Vbar = self._libgeo.Vbar
-        local mod, ratio = self.module, self.ratio
-        local n_def = self._symb_def[c]
-        local v = Vbar:from_int_revpair(n_def, mod, mod*ratio)
-        vbar_archive:insert(v, c)
-    end
+    self:_ensure_symbol(c)
     return c, nil
 end
 

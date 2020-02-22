@@ -18,14 +18,13 @@ Hypothetical development task list:
 20__-__-__: [dev] proportional options
 20__-__-__: [dev] a number parameter can be a string? unit measure...
 20__-__-__: [prj] a command line program to print barcodes
-20__-__-__: [dev] guard text in EAN simbology
 20__-__-__: [dev] UPC support
 20__-__-__: [dev] make optional file name in all the Driver methods
 20__-__-__: [prj] test l3build for testing and CTAN files packaging
 20__-__-__: [dev] load barcode parameters from an external file
 20__-__-__: [dev] new Parameter Class
 
-Scheduled task list for Data Matrix 2D simbology implementation:
+Scheduled task list for Data Matrix 2D symbology implementation:
 ----------------------------------------------------------------
 
 2020-__-__: [dmx] data matrix first run
@@ -43,6 +42,7 @@ Dev Planner:
 2020-__-__: [milestone] version <v0.0.11> completed task/commit list
 2020-__-__: [doc] barcode symbologies reference
 2020-__-__: [doc] put ga-asm-spec together with the manual
+2020-__-__: [dev] guard text in EAN symbology
 2020-__-__: [dev][barcode] new `alias` feature
 2020-__-__: [dev][barcode] new `preset` feature
 2020-__-__: [dev][i2of5] human readeable text for i2of5
@@ -52,7 +52,8 @@ Dev Planner:
 2020-__-__: [dev][ean] fix the `ean:checksum()` to include ISBN and ISSN variant
 2020-__-__: [dev] control the method call on the right class
 -------------------------------------------------------------------------------
-2020-02-09:*[dev] new constructor `Barcode:new()`
+2020-02-22:*[dev] new methods _process_char() and _process_digit()
+2020-02-09: [dev] new constructor `Barcode:new()`
 
 [merge]<--------+
                 |
