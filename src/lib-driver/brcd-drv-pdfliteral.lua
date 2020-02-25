@@ -130,8 +130,8 @@ end
 -- 33 <x1: DIM> <x2: DIM> <y: DIM>
 function PDFnative.append_033(st, bf, xt, x1, x2, y)
     local bp = st.bp -- conversion factor bp -> sp
-    bf[#bf + 1] = string.format("% 0.6f %0.6f m", x1/bp, y/bp)
-    bf[#bf + 1] = string.format("% 0.6f %0.6f l", x2/bp, y/bp)
+    bf[#bf + 1] = string.format("%0.6f %0.6f m", x1/bp, y/bp)
+    bf[#bf + 1] = string.format("%0.6f %0.6f l", x2/bp, y/bp)
     bf[#bf + 1] = "S" -- stroke
 end
 
@@ -140,8 +140,8 @@ end
 -- 34 <y1: DIM> <y2: DIM> <x: DIM>
 function PDFnative.append_034(st, bf, xt, y1, y2, x)
     local bp = st.bp -- conversion factor bp -> sp
-    bf[#bf + 1] = string.format("% 0.6f %0.6f m", x/bp, y1/bp)
-    bf[#bf + 1] = string.format("% 0.6f %0.6f l", x/bp, y2/bp)
+    bf[#bf + 1] = string.format("%0.6f %0.6f m", x/bp, y1/bp)
+    bf[#bf + 1] = string.format("%0.6f %0.6f l", x/bp, y2/bp)
     bf[#bf + 1] = "S" -- stroke
 end
 
@@ -158,6 +158,21 @@ function PDFnative.append_036_bar(st, bf, xt, x, w, y1, y2)
 end
 function PDFnative.append_036_stop(st, bf, xt, nbar, y1, y2)
     bf[#bf + 1] = "f" -- fill
+    bf[#bf + 1] = "S" -- stroke
+end
+
+-- Polyline
+-- draw a polyline
+-- 38 <n> <x1: DIM> <y1: DIM> ... <xn: DIM> <yn: DIM>
+function PDFnative.append_038_start(st, bf, xt, n, x1, y1)
+    local bp = st.bp -- conversion factor bp -> sp
+    bf[#bf + 1] = string.format("%0.6f %0.6f m", x1/bp, y1/bp)
+end
+function PDFnative.append_038_point(st, bf, xt, x, y)
+    local bp = st.bp -- conversion factor bp -> sp
+    bf[#bf + 1] = string.format("%0.6f %0.6f l", x/bp, y/bp)
+end
+function PDFnative.append_038_stop(st, bf, xt)
     bf[#bf + 1] = "S" -- stroke
 end
 

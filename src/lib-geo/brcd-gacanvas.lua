@@ -131,6 +131,36 @@ function gaCanvas:encode_hline(x1, x2, y) --> ok, err
     return true, nil
 end
 
+-- insert a polyline
+-- <38> <n> x1 y1 x2, y2, ... , xn, yn
+function gaCanvas:encode_polyline(Polyline, tx, ty) --> ok, err
+    if Polyline._classname ~= "Polyline" then
+        return false, "[Err] Polyline object expected"
+    end
+    local n = Polyline._n
+    if n == 0 then return true, nil end
+    if n < 2 then return false, "[Err] polyline must have at least two point" end
+    if tx == nil then
+        tx = 0
+    elseif type(tx) ~= "number" then
+        return false, "[ArgErr] number expected for 'tx'"
+    end
+    if ty == nil then
+        ty = 0
+    elseif type(ty) ~= "number" then
+        return false, "[ArgErr] number expected for 'ty'"
+    end
+    local point = Polyline._point
+    local data = self._data
+    data[#data + 1] = 38
+    data[#data + 1] = n
+    for i = 1, 2*n, 2 do
+        data[#data + 1] = point[i] + tx
+        data[#data + 1] = point[i + 1] + ty
+    end
+    return true, nil
+end
+
 -- insert a rectangle from point (x1, x2) to (x2, y2)
 -- <48> <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>
 function gaCanvas:encode_rectangle(x1, y1, x2, y2) --> ok, err

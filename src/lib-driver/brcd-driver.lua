@@ -67,10 +67,10 @@ function Driver:_ga_process(drv, ga, st, bf, xt)
 end
 
 -- save graphic data in an external file with the 'id_drv' format
--- id_drv: specific driver output
+-- id_drv: specific driver output identifier
 -- ga: ga object
 -- filename: file name
--- ext: file extension (optional)
+-- ext: file extension (optional, default SVG)
 function Driver:save(id_drv, ga, filename, ext) --> ok, err
     -- retrive the output library
     local drv, err = self:_get_driver(id_drv)
@@ -273,6 +273,54 @@ Driver._opcode_v001 = {
                 if bx2 > st.bb_x2 then st.bb_x2 = bx2 end
                 if  y1 < st.bb_y1 then st.bb_y1 = y1 end
                 if  y2 > st.bb_y2 then st.bb_y2 = y2 end
+            end
+        end
+        return pc_next
+    end,
+    -- draw a polyline
+    -- 38 <n> <x1: DIM> <y1: DIM> ... <xn: DIM> <yn: DIM>
+    -- basic support for bounding box calculation
+    [38] = function(drv, st, pc, ga, bf, xt) -- polyline
+        local n = ga[pc]; pc = pc + 1; assert(n > 1)
+        local x1 = ga[pc]; pc = pc + 1
+        local y1 = ga[pc]; pc = pc + 1
+        if drv.append_038_start then
+            drv.append_038_start(st, bf, xt, n, x1, y1)
+        end
+        local pc_next = pc + 2*(n - 1)
+        local bx1, bx2, by1, by2 = x1, x1, y1, y1 -- simplified bb vertex
+        for i = pc, pc_next - 1, 2 do -- reading coordinates <x> <y>
+            local x = assert(ga[i], "[InternalErr] ga prematurely reached the end")
+            local y = assert(ga[i+1], "[InternalErr] ga prematurely reached the end")
+            drv.append_038_point(st, bf, xt, x, y)
+            -- check the bounding box only if the corresponding flag is true
+            if st.bb_on then
+                if x > bx2 then
+                    bx2 = x
+                elseif x < bx1 then
+                    bx1 = x
+                end
+                if y > by2 then
+                    by2 = y
+                elseif y < by1 then
+                    by1 = y
+                end
+            end
+        end
+        if drv.append_038_stop then
+            drv.append_038_stop(st, bf, xt)
+        end
+        if st.bb_on then -- eventually update bbox
+            if st.bb_x1 == nil then
+                st.bb_x1 = bx1
+                st.bb_x2 = bx2
+                st.bb_y1 = by1
+                st.bb_y2 = by2
+            else
+                if bx1 < st.bb_x1 then st.bb_x1 = bx1 end
+                if bx2 > st.bb_x2 then st.bb_x2 = bx2 end
+                if by1 < st.bb_y1 then st.bb_y1 = by1 end
+                if by2 > st.bb_y2 then st.bb_y2 = by2 end
             end
         end
         return pc_next

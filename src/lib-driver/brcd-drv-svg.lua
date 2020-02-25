@@ -55,8 +55,7 @@ end
 -- SVG encoding functions
 
 -- 1 <W: dim>; set line width
-function SVG.append_001(st, bf, xt, w)
-    -- nothing to do
+function SVG.append_001(st, bf, xt, w) -- nothing to do
 end
 
 -- draw an horizontal line
@@ -116,6 +115,37 @@ function SVG.append_036_stop(st, bf, xt, nbar, y1, y2)
     st.ident_lvl = st.ident_lvl - 1
     local ident = string.rep("  ", st.ident_lvl)
     bf[#bf + 1] = ident..'</g>\n' -- end group
+end
+
+-- Polyline
+-- draw a polyline
+-- 38 <n> <x1: DIM> <y1: DIM> ... <xn: DIM> <yn: DIM>
+function SVG.append_038_start(st, bf, xt, n, x1, y1)
+    local lvl = st.ident_lvl
+    local ident = string.rep("  ", lvl)
+    local mm = st.mm -- conversion factor mm -> sp
+    bf[#bf + 1] = string.format(
+        '%s<g stroke="black" stroke-width="%0.6f" fill="none">\n',
+        ident, st.line_width/mm
+    )
+    ident = ident .. "  "
+    bf[#bf + 1] = string.format('%s<polyline points="%0.6f,%0.6f',
+        ident, x1/mm, -y1/mm
+    )
+    st.ident_lvl = lvl + 1
+end
+function SVG.append_038_point(st, bf, xt, x, y)
+    local lvl = st.ident_lvl
+    local ident = string.rep("  ", lvl)
+    local mm = st.mm -- conversion factor mm -> sp
+    bf[#bf + 1] = string.format('\n%s%0.6f,%0.6f', ident, x/mm, -y/mm)
+end
+function SVG.append_038_stop(st, bf, xt)
+    bf[#bf + 1] = '"/>\n' -- closing tag
+    local lvl = st.ident_lvl - 1
+    local ident = string.rep("  ", lvl)
+    st.ident_lvl = lvl
+    bf[#bf + 1] = ident..'</g>\n' -- close the group
 end
 
 -- Text
