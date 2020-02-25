@@ -53,7 +53,8 @@ Development Planner:
 [merge]<--------+
                 |
     2020-__-__: [ean] guard text in EAN symbology
-    2020-02-25:*[libgeo][gaCanvas] new Polyline object
+    2020-02-25:*[libgeo][gaCanvas] Polyline object test file
+    2020-02-25: [libgeo][gaCanvas] new Polyline object
                 |
 [polyline]------+
 -------------------------------------------------------------------------------
