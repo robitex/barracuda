@@ -75,6 +75,7 @@ EAN._par_order = {
     "text_enabled",
     "text_ygap_factor",
     "text_xgap_factor",
+    "text_guard_enabled",
 }
 EAN._par_def = {}
 local pardef = EAN._par_def
@@ -148,7 +149,7 @@ pardef.bars_depth_factor = {
     end,
 }
 
--- enable/disable a text label upon the barcode symbol
+-- enable/disable human readble text
 pardef.text_enabled = { -- boolean type
     default    = true,
     isReserved = false,
@@ -186,6 +187,30 @@ pardef.text_xgap_factor = {
         end
     end,
 }
+
+pardef.text_guard_enabled = { -- boolean type
+    default    = false,
+    isReserved = false,
+    fncheck    = function (_self, flag, _) --> boolean, err
+        if type(flag) == "boolean" then
+            return true, nil
+        else
+            return false, "[TypeErr] not a boolean value for text_guard_enabled"
+        end
+    end,
+}
+
+EAN._par_def_8 = {} -- ean8 substitute parameters
+local pardef8 = EAN._par_def_8
+pardef8.quietzone_left_factor = pardef.quietzone_right_factor
+
+EAN._par_def_5 = {} -- ean5 add-on substitute parameters
+local pardef5 = EAN._par_def_5
+pardef5.quietzone_left_factor = pardef.quietzone_right_factor
+
+EAN._par_def_2 = {} -- ean2 add-on substitute parameters
+local pardef2 = EAN._par_def_2
+pardef2.quietzone_left_factor = pardef.quietzone_right_factor
 
 -- variant parameters
 EAN._par_variant_order = {
@@ -1039,6 +1064,23 @@ fn_append_ga_variant["13"] = function (ean, canvas, tx, ty, ax, ay)
         local x3_1 = x0 + (49+mx)*mod
         local x3_2 = x0 + (92-mx)*mod
         assert(canvas:encode_Text_xwidth(txt_3, x3_1, x3_2, y_bl, 1))
+        if ean.text_guard_enabled and (not ean._addon_len) then
+            local Polyline = ean._libgeo.Polyline
+            local mm = 186467.98
+            local alpha = 36 * math.pi/180
+            local pw = 0.30*mm
+            local dx = pw/(2*math.sin(alpha))
+            local dy = (pw/2) * math.cos(alpha)
+            local px = x1 + qzr - dx
+            local pb = 1.55*mm
+            local ph = pb * math.tan(alpha)
+            local p = Polyline:new()
+            p:add_point(px - pb, y_bl - 2*ph - dy)
+            p:add_point(px, y_bl - ph - dy)
+            p:add_point(px - pb, y_bl - dy)
+            assert(canvas:encode_linethick(pw))
+            assert(canvas:encode_polyline(p))
+        end
         local istxt = false
         if ean.text_isbn_enabled then
             if ean.text_isbn_enabled == "auto" then
@@ -1126,6 +1168,28 @@ fn_append_ga_variant["8"] = function (ean, canvas, tx, ty, ax, ay)
         local x2_1 = x0 + (35+mx)*mod
         local x2_2 = x0 + (64-mx)*mod
         assert(canvas:encode_Text_xwidth(t_2, x2_1, x2_2, y_bl, 1))
+        if ean.text_guard_enabled and (not ean._addon_len) then
+            local Polyline = ean._libgeo.Polyline
+            local mm = 186467.98
+            local alpha = 36 * math.pi/180
+            local pw = 0.30*mm
+            local pb = 1.55*mm
+            local ph = pb * math.tan(alpha)
+            local dx = pw/(2*math.sin(alpha))
+            local dy = (pw/2) * math.cos(alpha)
+            local px1, px2 = x0 - qzl + dx, x1 + qzr - dx
+            local p1 = Polyline:new()
+            p1:add_point(px1 + pb, y_bl - 2*ph - dy)
+            p1:add_point(px1, y_bl - ph - dy)
+            p1:add_point(px1 + pb, y_bl - dy)
+            local p2 = Polyline:new()
+            p2:add_point(px2 - pb, y_bl - 2*ph - dy)
+            p2:add_point(px2, y_bl - ph - dy)
+            p2:add_point(px2 - pb, y_bl - dy)
+            assert(canvas:encode_linethick(pw))
+            assert(canvas:encode_polyline(p1))
+            assert(canvas:encode_polyline(p2))
+        end
     end
 end
 
@@ -1173,6 +1237,23 @@ fn_append_ga_variant["5"] = function (ean, canvas, tx, ty, ax, ay, h)
         local x1_1 = x0 + 3*mod
         local x1_2 = x1 - 3*mod
         assert(canvas:encode_Text_xwidth(txt, x1_1, x1_2, y_bl, 0))
+        if ean.text_guard_enabled then
+            local Polyline = ean._libgeo.Polyline
+            local mm = 186467.98
+            local alpha = 36 * math.pi/180
+            local pw = 0.30*mm
+            local dx = pw/(2*math.sin(alpha))
+            local dy = (pw/2) * math.cos(alpha)
+            local px = x1 + qzr - dx
+            local pb = 1.55*mm
+            local ph = pb * math.tan(alpha)
+            local p = Polyline:new()
+            p:add_point(px - pb, y_bl + dy)
+            p:add_point(px, y_bl + ph + dy)
+            p:add_point(px - pb, y_bl + 2*ph + dy)
+            assert(canvas:encode_linethick(pw))
+            assert(canvas:encode_polyline(p))
+        end
     end
 end
 
@@ -1222,6 +1303,23 @@ fn_append_ga_variant["2"] = function (ean, canvas, tx, ty, ax, ay, h)
         local x1_1 = x0 + 3*mod
         local x1_2 = x1 - 3*mod
         assert(canvas:encode_Text_xwidth(txt, x1_1, x1_2, y_bl, 0))
+        if ean.text_guard_enabled then
+            local Polyline = ean._libgeo.Polyline
+            local mm = 186467.98
+            local alpha = 36 * math.pi/180
+            local pw = 0.30*mm
+            local dx = pw/(2*math.sin(alpha))
+            local dy = (pw/2) * math.cos(alpha)
+            local px = x1 + qzr - dx
+            local pb = 1.55*mm
+            local ph = pb * math.tan(alpha)
+            local p = Polyline:new()
+            p:add_point(px - pb, y_bl + dy)
+            p:add_point(px, y_bl + ph + dy)
+            p:add_point(px - pb, y_bl + 2*ph + dy)
+            assert(canvas:encode_linethick(pw))
+            assert(canvas:encode_polyline(p))
+        end
     end
 end
 

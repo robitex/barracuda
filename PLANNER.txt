@@ -52,11 +52,11 @@ Development Planner:
 
 [merge]<--------+
                 |
-    2020-__-__: [ean] guard text in EAN symbology
-    2020-02-25:*[libgeo][gaCanvas] Polyline object test file
+    2020-02-26:*[ean] guard text in EAN symbology
+    2020-02-25: [libgeo][gaCanvas] Polyline object test file
     2020-02-25: [libgeo][gaCanvas] new Polyline object
                 |
-[polyline]------+
+[Polyline]------+
 -------------------------------------------------------------------------------
 2020-02-22: [dev] new methods _process_char() and _process_digit()
 2020-02-09: [dev] new constructor `Barcode:new()`

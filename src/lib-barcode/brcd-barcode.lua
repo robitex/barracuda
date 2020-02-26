@@ -221,7 +221,7 @@ function Barcode:new_encoder(treename, opt) --> object, err
     -- argument checking
     local family, variant, enc_name, err = parse_treename(treename)
     if err then
-        return err
+        return nil, err
     end
     local av_enc = self._available_enc
     local mod_path = av_enc[family]
