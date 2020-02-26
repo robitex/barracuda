@@ -1,0 +1,69 @@
+% !TeX program = LuaTeX
+
+\directlua{
+    brcd = require "barracuda"
+}
+\newbox\mybox
+
+Test 1: a simple polyline:
+\directlua{
+    local Polyline = brcd._libgeo.Polyline
+    local p = Polyline:new()
+    p:add_point(0, 0)
+    p:add_point(tex.sp "32pt", 0)
+    p:add_relpoint(tex.sp "16pt", tex.sp "16pt")
+
+    local gaCanvas = brcd._gacanvas
+    local ga = gaCanvas:new()
+    assert(ga:encode_polyline(p))
+
+    local driver = brcd:get_driver()
+    driver:ga_to_hbox(ga, [[mybox]])
+}\vrule\box\mybox\vrule
+
+
+Test 2: a staircase:
+\directlua{
+    local h = tex.sp "18pt"
+    local b = tex.sp "36pt"
+    local Polyline = brcd._libgeo.Polyline
+    local p = Polyline:new()
+    p:add_point(0, 0)
+    for _ = 1, 5 do
+        p:add_relpoint(0, h)
+        p:add_relpoint(b, 0)
+    end
+
+    local gaCanvas = brcd._gacanvas
+    local ga = gaCanvas:new()
+    assert(ga:encode_polyline(p))
+
+    local driver = brcd:get_driver()
+    driver:ga_to_hbox(ga, [[mybox]])
+}\vrule\box\mybox\vrule
+
+Test 3: several regular polygons:
+\directlua{
+    local Polyline = brcd._libgeo.Polyline
+    local l = tex.sp "36pt" % side length
+    local gaCanvas = brcd._gacanvas
+    local ga = gaCanvas:new()
+    ga:encode_linethick(tex.sp "0.4pt")
+    for n = 3, 13 do
+        local p = Polyline:new()
+        p:add_point(0, 0)
+        local alpha = 2*math.pi/n % angle
+        local a = alpha/2 % regular angles sum
+        for _ = 1, n do
+            local x, y = l * math.cos(a), l * math.sin(a)
+            a = a + alpha
+            p:add_relpoint(x, y)
+        end
+        assert(ga:encode_polyline(p))
+    end
+    local driver = brcd:get_driver()
+    driver:ga_to_hbox(ga, [[mybox]])
+    driver:save("svg", ga, "polygon")
+}\vrule\box\mybox\vrule
+
+\bye

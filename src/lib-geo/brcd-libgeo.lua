@@ -308,6 +308,41 @@ function Vbar:from_two_tab(tbar, tspace, mod, MOD) --> <vbar object>
     return o
 end
 
+-- Polyline class
+local Polyline = {_classname = "Polyline"}
+Polyline.__index = Polyline
+libgeo.Polyline = Polyline
+
+function Polyline:new() --> object
+    local o = {
+        _point = {},
+        _n = 0,
+    }
+    setmetatable(o, self)
+    return o
+end
+
+function Polyline:add_point(x, y)
+    assert(type(x) == "number", "Invalid type for x-coordinate")
+    assert(type(y) == "number", "Invalid type for y-coordinate")
+    local point = self._point
+    point[#point + 1] = x
+    point[#point + 1] = y
+    self._n = self._n + 1
+end
+
+function Polyline:add_relpoint(x, y)
+    assert(type(x) == "number", "Invalid type for x-coordinate")
+    assert(type(y) == "number", "Invalid type for y-coordinate")
+    local point = self._point
+    local n = self._n
+    assert(n > 0, "Attempt to add a relative point to an empty polyline")
+    local i = 2 * n
+    point[#point + 1] = point[i - 1] + x
+    point[#point + 1] = point[i] + y
+    self._n = n + 1
+end
+
 -- Text class
 
 libgeo.Text = {_classname="Text"}

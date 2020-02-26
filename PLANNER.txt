@@ -5,7 +5,7 @@ Basic rules
 -----------
 
 + Every new version will be uploaded to CTAN network
-+ For each single task there will be a correspomding commit
++ For each single task there will be a corresponding commit
 
 Hypothetical development task list:
 -----------------------------------
@@ -34,25 +34,31 @@ Scheduled task list for Data Matrix 2D symbology implementation:
 2020-__-__: [gas] ga-asm grid opcode
 2020-__-__: [geo] grid vector object
 2020-__-__: [dev] init source file encoder for Data Matrix
-2020-__-__: [dev] parameter preset
 
-Dev Planner:
-============
+Development Planner:
+====================
 -------------------------------------------------------------------------------
 2020-__-__: [milestone] version <v0.0.11> completed task/commit list
 2020-__-__: [doc] barcode symbologies reference
 2020-__-__: [doc] put ga-asm-spec together with the manual
-2020-__-__: [dev] guard text in EAN symbology
 2020-__-__: [dev][barcode] new `alias` feature
 2020-__-__: [dev][barcode] new `preset` feature
-2020-__-__: [dev][i2of5] human readeable text for i2of5
 2020-__-__: [test] update test files with recent changes
 2020-__-__: [project][build] make a Lua script to easily create the CTAN upload
           : compressed files
 2020-__-__: [dev][ean] fix the `ean:checksum()` to include ISBN and ISSN variant
 2020-__-__: [dev] control the method call on the right class
+2020-__-__: [dev][i2of5] human readeable text for i2of5 and ITF14
+
+[merge]<--------+
+                |
+    2020-02-26:*[ean] guard text in EAN symbology
+    2020-02-25: [libgeo][gaCanvas] Polyline object test file
+    2020-02-25: [libgeo][gaCanvas] new Polyline object
+                |
+[Polyline]------+
 -------------------------------------------------------------------------------
-2020-02-22:*[dev] new methods _process_char() and _process_digit()
+2020-02-22: [dev] new methods _process_char() and _process_digit()
 2020-02-09: [dev] new constructor `Barcode:new()`
 
 [merge]<--------+
