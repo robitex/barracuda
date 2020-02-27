@@ -313,7 +313,7 @@ local Polyline = {_classname = "Polyline"}
 Polyline.__index = Polyline
 libgeo.Polyline = Polyline
 
-function Polyline:new() --> object
+function Polyline:new() --> <Polyline>
     local o = {
         _point = {},
         _n = 0,
@@ -322,6 +322,7 @@ function Polyline:new() --> object
     return o
 end
 
+-- append a new point with absolute coordinates
 function Polyline:add_point(x, y)
     assert(type(x) == "number", "Invalid type for x-coordinate")
     assert(type(y) == "number", "Invalid type for y-coordinate")
@@ -331,6 +332,7 @@ function Polyline:add_point(x, y)
     self._n = self._n + 1
 end
 
+-- append a new point with relative coordinates respect to the last one
 function Polyline:add_relpoint(x, y)
     assert(type(x) == "number", "Invalid type for x-coordinate")
     assert(type(y) == "number", "Invalid type for y-coordinate")

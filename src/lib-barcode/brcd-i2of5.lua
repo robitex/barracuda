@@ -40,6 +40,7 @@ ITF._par_order = {
     "bearer_bars_enabled",
     "bearer_bars_thickness",
     "bearer_bars_layout",
+    "text_enabled",
 }
 ITF._par_def = {}
 local pardef = ITF._par_def
@@ -190,6 +191,19 @@ pardef.bearer_bars_layout = { -- enumeration
             return true, nil
         else
             return false, "[Err] enum value not found"
+        end
+    end,
+}
+
+-- human readable information
+pardef.text_enabled = { -- boolean type
+    default    = true,
+    isReserved = false,
+    fncheck    = function (self, flag, _) --> boolean, err
+        if type(flag) == "boolean" then
+            return true, nil
+        else
+            return false, "[TypeErr] option 'text_enabled' is not a boolean value"
         end
     end,
 }
@@ -472,9 +486,8 @@ end
 
 -- input code post processing for ITF14 variant
 local function itf14_finalize(enc, parse_state) --> ok, err
-    local is_open = parse_state.is_popen
-    if is_open then
-        return false, "[ArgErr] unclosed group () in input code"
+    if parse_state.is_popen then
+        return false, "[ArgErr] unclosed group in input code"
     end
     -- check digit action
     local policy = enc.check_digit_policy
@@ -500,21 +513,30 @@ local function itf14_finalize(enc, parse_state) --> ok, err
             is_add = true
         else
             return nil, "[DataErr] incorrect input lenght of "..slen..
-                " respect to the policy '"..policy.."'"
+                " respect to the current policy '"..policy.."'"
         end
     else
         return false, "[InternalErr] incorrect policy enum value '"..policy.."'"
     end
     assert(type(is_add) == "boolean")
     local cs = checkdigit(digits, 13, enc.check_digit_method)
-    if is_add then
+    if is_add then -- add final checkdigit
         digits[14] = cs
         enc._code_len = 14
-    else
+    else -- check only the final digit
         if cs ~= digits[14] then
             return false, "[DataErr] last digit is not equal to checksum"
         end
     end
+    local hri = parse_state.itf14_code
+    if #hri == 0 then -- input code was a number
+        for i, n in ipairs(digits) do
+            hri[i] = string.char(n + 48)
+        end
+    elseif is_add then
+        hri[#hri + 1] = string.char(cs + 48)
+    end
+    enc._code_data_hri = hri -- human readable interpretation
     return true, nil
 end
 
@@ -601,7 +623,7 @@ function ITF:append_ga(canvas, tx, ty) --> canvas
     -- bounding box setting
     local x1 = x0 + w
     local qz = self.quietzone
-    if self._variant then
+    if self._variant then -- "ITF14"
         qz = qz * xdim
     end
     local b1x, b1y = x0 - qz, y0
@@ -622,6 +644,18 @@ function ITF:append_ga(canvas, tx, ty) --> canvas
         end
     end
     assert(canvas:stop_bbox_group(b1x, b1y, b2x, b2y))
+    if self.text_enabled then
+        local Text = self._libgeo.Text
+        local t
+        if self._variant == "ITF14" then
+            t = Text:from_chars(self._code_data_hri)
+        else
+            t = Text:from_digit_array(self._code_data)
+        end
+        local y_top = b1y -  0.6 * 186467 -- mm
+        local x_top = (b1x + b2x)/2
+        assert(canvas:encode_Text(t, x_top, y_top, 0.50, 1))
+    end
     return canvas
 end
 
