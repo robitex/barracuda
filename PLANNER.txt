@@ -45,12 +45,22 @@ Development Planner:
 2020-__-__: [milestone] version <v0.0.11> completed task/commit list
 2020-__-__: [doc] barcode symbologies reference
 2020-__-__: [doc] put ga-asm-spec together with the manual
+2020-__-__: [dev][barcode] new `alias` feature
+2020-__-__: [dev][barcode] new `preset` feature
 2020-__-__: [test] update test files with recent changes
 2020-__-__: [dev][ean] fix the `ean:checksum()` to include ISBN and ISSN variant
 2020-__-__: [dev] control the method call on the right class
 -------------------------------------------------------------------------------
 2020-02-__: [code128] add hri
 2020-02-__: [breaking change] refactor Text libgeo object
+2020-__-__: [doc] barcode symbologies reference
+
+[merge]<--------+
+                |
+    2020-03-02:*[doc] put ga-asm-spec together with the manual
+                |
+[doc-basic-ref]-+
+
 2020-02-27:*[dev][i2of5] human readeable text for i2of5 and ITF14
 
 [merge]<--------+

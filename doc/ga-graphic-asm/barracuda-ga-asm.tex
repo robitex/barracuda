@@ -60,8 +60,9 @@ OpCode & Mnemonic key & Graphic property & Operands\\
  3 & line\_join\_style & Line join style &  <e: u8>\\
  8 & color & ... \\
 \midrule
-30 & start\_bbox\_group & Stop to check the bounding box & -\\
-31 & end\_bbox\_group   & Set a bounding box and restart to check &  <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>\\
+29 & enable\_bbox & start to update the bounding box & -\\
+30 & disable\_bbox & Stop to check the bounding box & -\\
+31 & set\_bbox & Set a bounding box &  <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>\\
 \bottomrule
 \end{tabular}
 
@@ -100,7 +101,6 @@ OpCode & Mnemonic key & Graphic object & Operands\\
  49 & f\_rect & Filled rectangle & <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>\\
  50 & rect\_size & Rectangle & <x1: DIM> <y1: DIM> <w: DIM> <h: DIM>\\
  51 & f\_rect\_size & Filled rectangle & <x1: DIM> <y1: DIM> <w: DIM> <h: DIM>\\
-
 \bottomrule
 \end{tabular}
 

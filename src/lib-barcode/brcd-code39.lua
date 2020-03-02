@@ -278,7 +278,8 @@ function Code39:append_ga(canvas, tx, ty) --> canvas
         q = q + dx + assert(archive:get(c))
     end
     q = q + dx + assert(archive:get("*")) -- final stop char
-    assert(canvas:start_bbox_group()) -- draw the symbol
+    assert(canvas:encode_disable_bbox())
+    -- draw the symbol
     local ax, ay = self.ax, self.ay
     local mod    = self.module
     local ratio  = self.ratio
@@ -295,13 +296,14 @@ function Code39:append_ga(canvas, tx, ty) --> canvas
     assert(canvas:encode_Vbar_queue(q, x0, y0, y1))
     -- bounding box setting
     local qz = self.quietzone
-    assert(canvas:stop_bbox_group(x0 - qz, y0, x1 + qz, y1))
+    assert(canvas:encode_set_bbox(x0 - qz, y0, x1 + qz, y1))
     -- check height as the minimum of 15% of length
     -- TODO: message could warn the user
     -- if 0.15 * w > h then
         -- message("The height of the barcode is to small")
     -- end
     if self.text_enabled then -- human readable text
+        assert(canvas:encode_enable_bbox())
         local chars; if self.text_star then
             chars = {"*"}
             for _, c in ipairs(code) do

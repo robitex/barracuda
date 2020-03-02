@@ -1,42 +1,40 @@
 # `barracuda` project
 
-This is a pure Lua library for drawing barcode symbols. The project components
-are able to typeset barcode from within a LuaTeX document. Therefore is also
-possible to use `barracuda` with a Lua standalone interpreter to draw barcodes
-with different graphic format such as `SVG` (see an example below). This package
-does not have dependences.
+This is a pure Lua library for drawing barcode symbols. `barracuda` components'
+are able to typeset barcode from within a LuaTeX document in order to produce a
+PDF file, or is also possible to use a Lua standalone interpreter to draw
+barcodes in different graphic format such as `SVG` (see an example below).
 
 ![a Code39 symbol in SVG format](/test/test-ga-svg/test-code39.svg)
 
-Internal modules are structured to ensure good performance and to give a
-complete user control over barcode symbol parameters :thumbsup: .
+The internal modules are structured to ensure good performance beside of a
+complete user control over barcode symbol parameters :thumbsup:
 
 Although development is in beta stage, `barracuda` has a good level of
-stability.
+stability. The package does not have any dependences.
 
 ## Current version
 
-Version: v0.0.10
-Date: 2020-02-04
+Version: 0.0.10 - Date: 2020-02-04
 
 ## Barcode symbologies list
 
-So far, the barcode symbologies included in the package are:
+So far, the barcode symbologies supported by the package are:
 
 - Code 39
 - Code 128
 - Interleaved 2 of 5 (ITF14, i2of5 general)
 - EAN family (ISBN, ISSN, EAN8, EAN13, and the add-ons EAN5 and EAN2)
 
-Other 1D encoding symbology will be added to the project, then it will be the
-turn of 2D barcode types like Datamatrix, QRCode or PDF417.
+Other 1D encoding symbology will be eventually added to the project, then it
+will be the turn of 2D barcode types like Datamatrix, QRCode or PDF417.
 
 ## A very simple LaTeX example
 
 The LaTeX package `barracuda.sty` under the cover uses Lua code so you need to
 compile your source files with LuaTeX or LuajitTeX with the LaTeX format.
 
-For instance, here is a minimal working example for LuaLaTeX:
+For instance, the follow is a minimal working example for LuaLaTeX:
 
 ```latex
 % !TeX program = LuaLaTeX
@@ -71,7 +69,7 @@ releases can be found only at <https://github.com/robitex/barracuda> .
 TeX Live distribution or Lua interpreter executable are available for a very
 large number of Operating Systems so it is also for `barracuda`.
 
-Step by step istruction can be found in the INSTALL.txt file.
+Step by step instruction can be found in the INSTALL.txt file.
 
 ## Contribute
 

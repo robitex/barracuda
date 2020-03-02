@@ -42,8 +42,13 @@ local Barcode = Barracuda._barcode
 Barcode._libgeo = Barracuda._libgeo
 
 -- return a reference of Barcode abstract class
-function Barracuda:barcode() --> Barcode class object
+function Barracuda:barcode() --> <Barcode class>
     return self._barcode
+end
+
+-- return a reference to the libgeo library
+function Barracuda:libgeo() --> <libgeo library>
+    return self._libgeo
 end
 
 -- encoder costructor (a bridge to Barcode class method)

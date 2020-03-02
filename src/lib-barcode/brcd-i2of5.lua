@@ -618,7 +618,7 @@ function ITF:append_ga(canvas, tx, ty) --> canvas
     local x0 = (tx or 0) - w * ax
     local y0 = (ty or 0) - h * ay
     local y1 = y0 + h
-    assert(canvas:start_bbox_group())
+    assert(canvas:encode_disable_bbox())
     assert(canvas:encode_Vbar_queue(queue, x0, y0, y1))
     -- bounding box setting
     local x1 = x0 + w
@@ -630,21 +630,22 @@ function ITF:append_ga(canvas, tx, ty) --> canvas
     local b2x, b2y = x1 + qz, y1
     if self.bearer_bars_enabled then
         local t = self.bearer_bars_thickness
-        assert(canvas:encode_linethick(t))
+        assert(canvas:encode_linewidth(t))
         b1y, b2y = b1y - t, b2y + t
         local layout = self.bearer_bars_layout
         if layout == "hbar" then
             assert(canvas:encode_hline(b1x, b2x, y0 - t/2))
             assert(canvas:encode_hline(b1x, b2x, y1 + t/2))
         elseif layout == "frame" then
-            assert(canvas:encode_rectangle(b1x - t/2, y0 - t/2, b2x + t/2, y1 + t/2))
+            assert(canvas:encode_rect(b1x - t/2, y0 - t/2, b2x + t/2, y1 + t/2))
             b1x, b2x = b1x - t, b2x + t
         else
-            error("[IntenalErr] unexpected bearer bars layout option value")
+            error("[InternalErr] unexpected bearer bars layout option value")
         end
     end
     assert(canvas:stop_bbox_group(b1x, b1y, b2x, b2y))
     if self.text_enabled then
+        assert(canvas:encode_enable_bbox())
         local Text = self._libgeo.Text
         local t
         if self._variant == "ITF14" then
@@ -656,6 +657,7 @@ function ITF:append_ga(canvas, tx, ty) --> canvas
         local x_top = (b1x + b2x)/2
         assert(canvas:encode_Text(t, x_top, y_top, 0.50, 1))
     end
+    assert(canvas:encode_set_bbox(b1x, b1y, b2x, b2y))
     return canvas
 end
 
