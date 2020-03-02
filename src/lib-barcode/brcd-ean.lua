@@ -1043,14 +1043,15 @@ fn_append_ga_variant["13"] = function (ean, canvas, tx, ty, ax, ay)
     local y1         = y0 + h
     local ys         = y0 + bars_depth
     -- draw the symbol
-    assert(canvas:start_bbox_group())
+    assert(canvas:encode_disable_bbox())
     assert(canvas:encode_Vbar_queue(queue_0, x0, y0, y1))
     assert(canvas:encode_Vbar_queue(queue_1, x0 + 3*mod, ys, y1))
     -- bounding box set up
     local qzl = ean.quietzone_left_factor * mod
     local qzr = ean.quietzone_right_factor * mod
-    assert(canvas:stop_bbox_group(x0 - qzl, y0, x1 + qzr, y1))
+    assert(canvas:encode_set_bbox(x0 - qzl, y0, x1 + qzr, y1))
     if ean.text_enabled then -- human readable text
+        assert(canvas:encode_enable_bbox())
         local Text  = ean._libgeo.Text
         local txt_1 = Text:from_digit_array(code, 1,  1)
         local txt_2 = Text:from_digit_array(code, 2,  7)
@@ -1078,7 +1079,7 @@ fn_append_ga_variant["13"] = function (ean, canvas, tx, ty, ax, ay)
             p:add_point(px - pb, y_bl - 2*ph - dy)
             p:add_point(px, y_bl - ph - dy)
             p:add_point(px - pb, y_bl - dy)
-            assert(canvas:encode_linethick(pw))
+            assert(canvas:encode_linewidth(pw))
             assert(canvas:encode_polyline(p))
         end
         local istxt = false
@@ -1149,14 +1150,15 @@ fn_append_ga_variant["8"] = function (ean, canvas, tx, ty, ax, ay)
     local ys         = y0 + bars_depth
     local s_width    = 7*mod
     -- draw the symbol
-    assert(canvas:start_bbox_group())
+    assert(canvas:encode_disable_bbox())
     assert(canvas:encode_Vbar_queue(q0, x0, y0, y1))
     assert(canvas:encode_Vbar_queue(q1, x0 + 3*mod, ys, y1))
     -- bounding box set up
     local qzl = ean.quietzone_left_factor * mod
     local qzr = ean.quietzone_right_factor * mod
-    assert(canvas:stop_bbox_group(x0 - qzl, y0, x1 + qzr, y1))
+    assert(canvas:encode_set_bbox(x0 - qzl, y0, x1 + qzr, y1))
     if ean.text_enabled then -- human readable text
+        assert(canvas:encode_enable_bbox())
         local Text  = ean._libgeo.Text
         local t_1 = Text:from_digit_array(code, 1, 4)
         local t_2 = Text:from_digit_array(code, 5, 8)
@@ -1186,7 +1188,7 @@ fn_append_ga_variant["8"] = function (ean, canvas, tx, ty, ax, ay)
             p2:add_point(px2 - pb, y_bl - 2*ph - dy)
             p2:add_point(px2, y_bl - ph - dy)
             p2:add_point(px2 - pb, y_bl - dy)
-            assert(canvas:encode_linethick(pw))
+            assert(canvas:encode_linewidth(pw))
             assert(canvas:encode_polyline(p1))
             assert(canvas:encode_polyline(p2))
         end
@@ -1224,13 +1226,14 @@ fn_append_ga_variant["5"] = function (ean, canvas, tx, ty, ax, ay, h)
     local x1 = x0 + w
     local y1 = y0 + h
     -- draw the symbol
-    assert(canvas:start_bbox_group())
+    assert(canvas:encode_disable_bbox())
     assert(canvas:encode_Vbar_queue(queue, x0, y0, y1))
     -- bounding box set up
     local qzl = ean.quietzone_left_factor * mod
     local qzr = ean.quietzone_right_factor * mod
-    assert(canvas:stop_bbox_group(x0 - qzl, y0, x1 + qzr, y1))
+    assert(canvas:encode_set_bbox(x0 - qzl, y0, x1 + qzr, y1))
     if ean.text_enabled then -- human readable text
+        assert(canvas:encode_enable_bbox())
         local Text = ean._libgeo.Text
         local txt  = Text:from_digit_array(code, i1, i2)
         local y_bl = y1 + ean.text_ygap_factor * mod
@@ -1251,7 +1254,7 @@ fn_append_ga_variant["5"] = function (ean, canvas, tx, ty, ax, ay, h)
             p:add_point(px - pb, y_bl + dy)
             p:add_point(px, y_bl + ph + dy)
             p:add_point(px - pb, y_bl + 2*ph + dy)
-            assert(canvas:encode_linethick(pw))
+            assert(canvas:encode_linewidth(pw))
             assert(canvas:encode_polyline(p))
         end
     end
@@ -1290,13 +1293,14 @@ fn_append_ga_variant["2"] = function (ean, canvas, tx, ty, ax, ay, h)
     local y0 = (ty or 0.0) - ay * h
     local x1 = x0 + w
     local y1 = y0 + h
-    assert(canvas:start_bbox_group())
+    assert(canvas:encode_disable_bbox())
     assert(canvas:encode_Vbar_queue(queue, x0, y0, y1))
     -- bounding box set up
     local qzl = ean.quietzone_left_factor * mod
     local qzr = ean.quietzone_right_factor * mod
-    assert(canvas:stop_bbox_group(x0 - qzl, y0, x1 + qzr, y1))
+    assert(canvas:encode_set_bbox(x0 - qzl, y0, x1 + qzr, y1))
     if ean.text_enabled then -- human readable text
+        assert(canvas:encode_enable_bbox())
         local Text  = ean._libgeo.Text
         local txt = Text:from_digit_array(code, i1, i1 + 1)
         local y_bl = y1 + ean.text_ygap_factor * mod
@@ -1317,7 +1321,7 @@ fn_append_ga_variant["2"] = function (ean, canvas, tx, ty, ax, ay, h)
             p:add_point(px - pb, y_bl + dy)
             p:add_point(px, y_bl + ph + dy)
             p:add_point(px - pb, y_bl + 2*ph + dy)
-            assert(canvas:encode_linethick(pw))
+            assert(canvas:encode_linewidth(pw))
             assert(canvas:encode_polyline(p))
         end
     end

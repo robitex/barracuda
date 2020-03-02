@@ -15,6 +15,7 @@ gaCanvas.__index = gaCanvas
 -- gaCanvas constructor
 function gaCanvas:new() --> object
     local o = {
+        _classname = "gaCanvas",
         _data = {},
         _v    = 100, -- version of the ga format
     }
@@ -22,12 +23,16 @@ function gaCanvas:new() --> object
     return o
 end
 
+function gaCanvas:get_stream()
+    return self._data
+end
+
 -- Ipothetical another constructor
 -- function gaCanvas:from_tcp_server() --> err
 -- end
 
 -- line width: opcode <1> <w: DIM>
-function gaCanvas:encode_linethick(w) --> ok, err
+function gaCanvas:encode_linewidth(w) --> ok, err
     if type(w) ~= "number" then
         return false, "[ArgErr] 'w' number expected"
     end
@@ -56,7 +61,7 @@ function gaCanvas:encode_linecap(cap) --> ok, err
     return true, nil
 end
 
--- line cap style: opcode <3> <join: u8>
+-- line join style: opcode <3> <join: u8>
 -- 0 Miter join
 -- 1 Round join
 -- 2 Bevel join
@@ -74,18 +79,25 @@ function gaCanvas:encode_linejoin(join) --> ok, err
     return true, nil
 end
 
+-- checking the bounding box from now on
+-- opcode: <29>
+function gaCanvas:encode_enable_bbox() --> ok, err
+    local data = self._data
+    data[#data + 1] = 29
+    return true, nil
+end
+
 -- Stop checking the bounding box
 -- opcode: <30>
-function gaCanvas:start_bbox_group() --> ok, err
+function gaCanvas:encode_disable_bbox() --> ok, err
     local data = self._data
     data[#data + 1] = 30
     return true, nil
 end
 
--- restart checking the bounding box
 -- and insert the specified bb for the entire object group
 -- code: <31> x1 y1 x2 y2
-function gaCanvas:stop_bbox_group(x1, y1, x2, y2) --> ok, err
+function gaCanvas:encode_set_bbox(x1, y1, x2, y2) --> ok, err
     if type(x1) ~= "number" then return false, "[ArgErr] 'x1' number expected" end
     if type(y1) ~= "number" then return false, "[ArgErr] 'y1' number expected" end
     if type(x2) ~= "number" then return false, "[ArgErr] 'x2' number expected" end
@@ -122,7 +134,7 @@ end
 function gaCanvas:encode_hline(x1, x2, y) --> ok, err
     if type(x1) ~= "number" then return false, "[ArgErr] 'x1' number expected" end
     if type(x2) ~= "number" then return false, "[ArgErr] 'x2' number expected" end
-    if type(y) ~= "number" then return false, "[ArgErr] 'y2' number expected" end
+    if type(y) ~= "number" then return false, "[ArgErr] 'y' number expected" end
     local data = self._data
     data[#data + 1] = 33 -- append hline data
     data[#data + 1] = x1
@@ -131,39 +143,57 @@ function gaCanvas:encode_hline(x1, x2, y) --> ok, err
     return true, nil
 end
 
+-- vline, Vertical line, from point (x, y1) to point (x, y2)
+-- <34> y1 y2 x
+function gaCanvas:encode_vline(y1, y2, x) --> ok, err
+    if type(y1) ~= "number" then return false, "[ArgErr] 'y1' number expected" end
+    if type(y2) ~= "number" then return false, "[ArgErr] 'y2' number expected" end
+    if type(x) ~= "number" then return false, "[ArgErr] 'x' number expected" end
+    local data = self._data
+    data[#data + 1] = 34 -- append vline data
+    data[#data + 1] = y1
+    data[#data + 1] = y2
+    data[#data + 1] = x
+    return true, nil
+end
+
 -- insert a polyline
 -- <38> <n> x1 y1 x2, y2, ... , xn, yn
-function gaCanvas:encode_polyline(Polyline, tx, ty) --> ok, err
-    if Polyline._classname ~= "Polyline" then
-        return false, "[Err] Polyline object expected"
+function gaCanvas:encode_polyline(point) --> ok, err
+    if type(point) ~= "table" then
+        return false, "[ArgErr] table expected for 'point'"
     end
-    local n = Polyline._n
-    if n == 0 then return true, nil end
+    local n, p
+    if point._classname == "Polyline" then
+        n, p = point:get_points()
+    else
+        local len = #point
+        if len == 0 then return false, "[Err] 'point' is an empty table" end
+        if (len % 2) ~= 0 then
+            return false, "[Err] 'point' is not an even lenght array"
+        end
+        n = len/2
+        for _, coord in ipairs(point) do
+            if type(coord) ~= "number" then
+                return false, "[Err] found a not number element in 'point' array"
+            end
+        end
+        p = point
+    end
     if n < 2 then return false, "[Err] polyline must have at least two point" end
-    if tx == nil then
-        tx = 0
-    elseif type(tx) ~= "number" then
-        return false, "[ArgErr] number expected for 'tx'"
-    end
-    if ty == nil then
-        ty = 0
-    elseif type(ty) ~= "number" then
-        return false, "[ArgErr] number expected for 'ty'"
-    end
-    local point = Polyline._point
     local data = self._data
     data[#data + 1] = 38
     data[#data + 1] = n
     for i = 1, 2*n, 2 do
-        data[#data + 1] = point[i] + tx
-        data[#data + 1] = point[i + 1] + ty
+        data[#data + 1] = p[i]
+        data[#data + 1] = p[i + 1]
     end
     return true, nil
 end
 
 -- insert a rectangle from point (x1, x2) to (x2, y2)
 -- <48> <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>
-function gaCanvas:encode_rectangle(x1, y1, x2, y2) --> ok, err
+function gaCanvas:encode_rect(x1, y1, x2, y2) --> ok, err
     if type(x1) ~= "number" then return false, "[ArgErr] 'x1' number expected" end
     if type(y1) ~= "number" then return false, "[ArgErr] 'y1' number expected" end
     if type(x2) ~= "number" then return false, "[ArgErr] 'x2' number expected" end

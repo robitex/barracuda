@@ -48,7 +48,7 @@ Test 3: several regular polygons:
     local l = tex.sp "36pt" % side length
     local gaCanvas = brcd._gacanvas
     local ga = gaCanvas:new()
-    ga:encode_linethick(tex.sp "0.4pt")
+    ga:encode_linewidth(tex.sp "0.4pt")
     for n = 3, 13 do
         local p = Polyline:new()
         p:add_point(0, 0)

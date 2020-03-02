@@ -39,8 +39,6 @@ Development Planner:
 ====================
 -------------------------------------------------------------------------------
 2020-__-__: [milestone] version <v0.0.11> completed task/commit list
-2020-__-__: [doc] barcode symbologies reference
-2020-__-__: [doc] put ga-asm-spec together with the manual
 2020-__-__: [dev][barcode] new `alias` feature
 2020-__-__: [dev][barcode] new `preset` feature
 2020-__-__: [test] update test files with recent changes
@@ -49,15 +47,21 @@ Development Planner:
 2020-__-__: [dev][ean] fix the `ean:checksum()` to include ISBN and ISSN variant
 2020-__-__: [dev] control the method call on the right class
 2020-__-__: [dev][i2of5] human readeable text for i2of5 and ITF14
+2020-__-__: [doc] barcode symbologies reference
 
 [merge]<--------+
                 |
-    2020-02-26:*[ean] guard text in EAN symbology
+    2020-03-02:*[doc] put ga-asm-spec together with the manual
+                |
+[doc-basic-ref]-+
+
+[merge]<--------+
+                |
+    2020-02-26: [ean] guard text in EAN symbology
     2020-02-25: [libgeo][gaCanvas] Polyline object test file
     2020-02-25: [libgeo][gaCanvas] new Polyline object
                 |
 [Polyline]------+
--------------------------------------------------------------------------------
 2020-02-22: [dev] new methods _process_char() and _process_digit()
 2020-02-09: [dev] new constructor `Barcode:new()`
 

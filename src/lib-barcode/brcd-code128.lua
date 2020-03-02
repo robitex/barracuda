@@ -321,12 +321,12 @@ function Code128:append_ga(canvas, tx, ty) --> canvas
     local x1 = x0 + w
     local y1 = y0 + h
     -- drawing the symbol
-    assert(canvas:start_bbox_group())
+    assert(canvas:encode_disable_bbox())
     assert(canvas:encode_Vbar_queue(queue, x0, y0, y1))
     -- bounding box setting
     local qz = self.quietzone_factor * xdim
     -- { xmin, ymin, xmax, ymax }
-    assert(canvas:stop_bbox_group(x0 - qz, y0, x1 + qz, y1))
+    assert(canvas:encode_set_bbox(x0 - qz, y0, x1 + qz, y1))
     return canvas
 end
 

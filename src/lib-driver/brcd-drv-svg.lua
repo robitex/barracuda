@@ -87,7 +87,7 @@ function SVG.append_034(st, bf, xt, y1, y2, x)
     )
     local lw = st.line_width
     bf[#bf + 1] = string.format(
-        '%s  style="stroke:#000000;stroke-width:%0.6f"\n', 
+        '%s  style="stroke:#000000;stroke-width:%0.6f"\n',
         ident, lw/mm
     )
     bf[#bf + 1] = ident..'/>\n'

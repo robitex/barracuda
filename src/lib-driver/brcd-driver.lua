@@ -55,31 +55,35 @@ function Driver:_new_state() --> a new state
     }
 end
 
-function Driver:_ga_process(drv, ga, st, bf, xt)
+function Driver:_ga_process(drv, ga_stream, st, bf, xt)
     local op_fn = self._opcode_v001
     local pc = 1 -- program counter
-    local data = ga._data
-    while data[pc] do -- stream processing
-        local opcode = data[pc]
+    while ga_stream[pc] do -- stream processing
+        local opcode = ga_stream[pc]
         local fn = assert(op_fn[opcode], "[InternalErr] unimpl opcode ".. opcode)
-        pc = fn(drv, st, pc + 1, data, bf, xt)
+        pc = fn(drv, st, pc + 1, ga_stream, bf, xt)
     end
 end
 
 -- save graphic data in an external file with the 'id_drv' format
 -- id_drv: specific driver output identifier
--- ga: ga object
--- filename: file name
--- ext: file extension (optional, default SVG)
+-- ga ::= gaCanvas class | ga stream table array
+-- filename ::= string, file name
+-- ext ::= string, file extension (optional, default SVG)
 function Driver:save(id_drv, ga, filename, ext) --> ok, err
     -- retrive the output library
     local drv, err = self:_get_driver(id_drv)
     if err then return false, err end
+    local ga_stream; if ga._classname == "gaCanvas" then
+        ga_stream = ga:get_stream()
+    else
+        ga_stream = ga
+    end
     -- init
     local state = self:_new_state()
     local buf, txt_buf = drv.init_buffer(state) -- a new buffer and text_buffer
     -- processing
-    self:_ga_process(drv, ga, state, buf, txt_buf)
+    self:_ga_process(drv, ga_stream, state, buf, txt_buf)
     -- buffer finalizing
     drv.close_buffer(state, buf, txt_buf) -- finalize the istruction
     -- file saving
@@ -91,9 +95,19 @@ function Driver:save(id_drv, ga, filename, ext) --> ok, err
     return true, nil
 end
 
--- insert a ga drawing in a TeX box
+-- insert a ga drawing in a TeX hbox
 -- PDFnative only function
+-- ga ::= gaCanvas class | ga stream table array
+-- boxname ::= string
 function Driver:ga_to_hbox(ga, boxname) --> ok, err
+    if not type(ga) == "table" then
+        return false, "[ArgErr] 'ga' is not a table"
+    end
+    local ga_stream; if ga._classname == "gaCanvas" then
+        ga_stream = ga:get_stream()
+    else
+        ga_stream = ga
+    end
     -- retrive the output library
     local id_drv = "native"
     local drv, err = self:_get_driver(id_drv)
@@ -102,7 +116,7 @@ function Driver:ga_to_hbox(ga, boxname) --> ok, err
     local state = self:_new_state()
     local buf, txt_buf = drv.init_buffer(state) -- a new buffer and text_buffer
     -- processing
-    self:_ga_process(drv, ga, state, buf, txt_buf)
+    self:_ga_process(drv, ga_stream, state, buf, txt_buf)
     -- finalizing
     drv.close_buffer(state, buf, txt_buf) -- finalize the istruction sequence
     -- build hbox
@@ -148,14 +162,15 @@ Driver._opcode_v001 = {
         drv.append_003(st, bf, xt, join)
         return pc + 1
     end,
-    [30] = function (drv, st, pc, ga, bf, xt) -- start_bbox_group
-        assert(st.bb_on)
+    [29] = function (drv, st, pc, ga, bf, xt) -- enable_bbox
+        st.bb_on = true
+        return pc
+    end,
+    [30] = function (drv, st, pc, ga, bf, xt) -- disable_bbox
         st.bb_on = false
         return pc
     end,
-    [31] = function (drv, st, pc, ga, bf, xt) -- end_bbox_group
-        assert(st.bb_on == false)
-        st.bb_on = true
+    [31] = function (drv, st, pc, ga, bf, xt) -- set_bbox
         local x1 = ga[pc]; pc = pc + 1
         local y1 = ga[pc]; pc = pc + 1
         local x2 = ga[pc]; pc = pc + 1
@@ -206,7 +221,7 @@ Driver._opcode_v001 = {
         local y1 = ga[pc]; pc = pc + 1
         local y2 = ga[pc]; pc = pc + 1
         local x  = ga[pc]; pc = pc + 1
-        if st.bb_on then -- eventually update the figure bounding box
+        if st.bb_on then -- eventually update the figure's bounding box
             local hw  = st.line_width/2
             local bx1 = x - hw
             local bx2 = x + hw

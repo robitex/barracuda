@@ -322,6 +322,10 @@ function Polyline:new() --> object
     return o
 end
 
+function Polyline:get_points()
+    return self._n, self._point
+end
+
 function Polyline:add_point(x, y)
     assert(type(x) == "number", "Invalid type for x-coordinate")
     assert(type(y) == "number", "Invalid type for y-coordinate")
