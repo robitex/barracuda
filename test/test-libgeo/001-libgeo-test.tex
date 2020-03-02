@@ -39,7 +39,7 @@ Test 1: test Vbar\_archive object:
     local gacanvas = barracuda._gacanvas
     local ga = gacanvas:new()
     % draw the canvas with the driver component
-    assert(ga:encode_Vbar_archive(queue, 0, 0, 30*pt))
+    assert(ga:encode_vbar_archive(queue, 0, 0, 30*pt))
     local driver = barracuda:get_driver()
     driver:ga_to_hbox(ga, [[mybox]])
 }A\box\mybox A

@@ -124,7 +124,7 @@ function VbarQueue:width()
     return self[#self] - self[1]
 end
 
--- VBar class
+-- Vbar class
 -- a pure geometric entity of several infinite vertical lines
 libgeo.Vbar = {_classname = "Vbar"}
 local Vbar = libgeo.Vbar
@@ -140,6 +140,7 @@ function Vbar:from_array(yl_arr) --> <vbar object>
     assert(type(yl_arr) == "table", "'yline_array' is a mandatory arg")
     -- stream scanning
     local i = 1
+    local nbars = 0
     local xlim = 0.0
     while yl_arr[i] do
         local x = yl_arr[i]; i = i + 1
@@ -147,12 +148,14 @@ function Vbar:from_array(yl_arr) --> <vbar object>
         assert(type(x) == "number", "[InternalErr] not a number")
         assert(type(w) == "number", "[InternalErr] not a number")
         xlim = x + w/2
+        nbars = nbars + 1
     end
     assert(i % 2 == 0, "[InternalErr] the index is not even")
-    assert(i > 0, "[InternalErr] empty array")
+    assert(nbars > 0, "[InternalErr] empty array")
     local o = {
         _yline = yl_arr, -- [<xcenter>, <width>, ...] flat array
         _x_lim = xlim,   -- right external bounding box coordinates
+        _nbars = nbars,  -- number of bars
     }
     setmetatable(o, self)
     return o
@@ -174,6 +177,7 @@ function Vbar:from_int(ngen, mod, is_bar) --> <vbar object>
         digits[#digits + 1] = d
         ngen = (ngen - d)/10
     end
+    local nbars = 0
     local x0 = 0.0 -- axis reference
     local yl = {}
     for k = #digits, 1, -1 do
@@ -182,13 +186,16 @@ function Vbar:from_int(ngen, mod, is_bar) --> <vbar object>
         if is_bar then    -- bar
             yl[#yl + 1] = x0 + w/2
             yl[#yl + 1] = w
+            nbars = nbars + 1
         end
         x0 = x0 + w
         is_bar = not is_bar
     end
+    assert(nbars > 0, "[InternalErr] no bars")
     local o = {
         _yline = yl, -- [<xcenter>, <width>, ...] flat array
         _x_lim = x0, -- right external coordinate
+        _nbars = nbars,  -- number of bars
     }
     setmetatable(o, self)
     return o
@@ -203,7 +210,8 @@ function Vbar:from_int_revstep(ngen, mod, is_bar) --> <vbar object>
     if is_bar == nil then is_bar = true else
         assert(type(is_bar) == "boolean", "Invalid argument for is_bar")
     end
-    -- 
+    --
+    local nbars = 0
     local x0 = 0.0 -- axis reference
     local i = 0
     local yl = {}
@@ -213,15 +221,18 @@ function Vbar:from_int_revstep(ngen, mod, is_bar) --> <vbar object>
         if is_bar then -- bar
             i = i + 1; yl[i] = x0 + w/2
             i = i + 1; yl[i] = w
+            nbars = nbars + 1
         end
         x0 = x0 + w
         is_bar = not is_bar
         ngen = (ngen - d)/10
     end
     assert(not is_bar, "[InternalErr] the last element in not a bar")
+    assert(nbars > 0, "[InternalErr] no bars")
     local o = {
         _yline = yl,   -- [<xcenter>, <width>, ...] flat array
         _x_lim = x0, -- right external coordinate
+        _nbars = nbars,  -- number of bars
     }
     setmetatable(o, self)
     return o
@@ -243,6 +254,7 @@ function Vbar:from_int_revpair(ngen, mod, MOD, is_bar) --> <vbar object>
     else
         assert(type(is_bar) == "boolean", "Invalid argument for 'is_bar'")
     end
+    local nbars = 0
     local yl = {}
     local x0 = 0.0
     local k = 0
@@ -257,13 +269,16 @@ function Vbar:from_int_revpair(ngen, mod, MOD, is_bar) --> <vbar object>
         if is_bar then -- bars
             k = k + 1; yl[k] = x0 + w/2 -- xcenter
             k = k + 1; yl[k] = w        -- width
+            nbars = nbars + 1
         end
         is_bar = not is_bar
         x0 = x0 + w
     end
+    assert(nbars > 0, "[InternalErr] no bars")
     local o = {
         _yline = yl, -- [<xcenter>, <width>, ...] flat array
         _x_lim = x0, -- external x coordinate
+        _nbars = nbars, -- number of bars
     }
     setmetatable(o, self)
     return o
@@ -278,6 +293,7 @@ function Vbar:from_two_tab(tbar, tspace, mod, MOD) --> <vbar object>
     assert(type(mod) == "number", "Invalid argument for narrow module width")
     assert(type(MOD) == "number", "Invalid argument for wide module width")
     assert(mod < MOD, "Not ordered narrow/Wide values")
+    local nbars = 0
     local x0 = 0.0 -- x-coordinate
     local yl = {}
     for i = 1, #tbar do
@@ -292,6 +308,7 @@ function Vbar:from_two_tab(tbar, tspace, mod, MOD) --> <vbar object>
             yl[#yl + 1] = MOD -- bar width
             x0 = x0 + MOD
         end
+        nbars = nbars + 1
         local is_narrow_space = tspace[i]
         assert(type(is_narrow_space) == "boolean", "[InternalErr] found a not boolean value")
         if is_narrow_space then
@@ -300,12 +317,18 @@ function Vbar:from_two_tab(tbar, tspace, mod, MOD) --> <vbar object>
             x0 = x0 + MOD
         end
     end
+    assert(nbars > 0, "[InternalErr] no bars")
     local o = {
         _yline = yl, -- [<xcenter>, <width>, ...] flat array
         _x_lim = x0, -- external x coordinate
+        _nbars = nbars, -- number of bars
     }
     setmetatable(o, self)
     return o
+end
+
+function Vbar:get_bars() --> nbars, <coordinates flat array>
+    return self._nbars, self._yline
 end
 
 -- Polyline class

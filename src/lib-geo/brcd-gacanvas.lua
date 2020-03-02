@@ -180,7 +180,7 @@ function gaCanvas:encode_polyline(point) --> ok, err
         end
         p = point
     end
-    if n < 2 then return false, "[Err] polyline must have at least two point" end
+    if n < 2 then return false, "[Err] a polyline must have at least two points" end
     local data = self._data
     data[#data + 1] = 38
     data[#data + 1] = n
@@ -209,7 +209,7 @@ end
 
 -- Vbar object: opcode <36>
 -- x0, y1, y2 ordinates
-function gaCanvas:encode_Vbar(vbar, x0, y1, y2) --> ok, err
+function gaCanvas:encode_vbar(vbar, x0, y1, y2) --> ok, err
     if type(vbar) ~= "table" then
         return false, "[ArgErr] table expected for 'vbar'"
     end
@@ -223,17 +223,23 @@ function gaCanvas:encode_Vbar(vbar, x0, y1, y2) --> ok, err
     -- ordinates
     if y1 == y2 then return false, "[ArgErr] 'y1' 'y2' are the same value" end
     if y1 > y2 then y1, y2 = y2, y1 end
-    local bars = assert(vbar._yline, "[InternalErr] no '_yline' field")
-    local bdim = #bars
-    if bdim == 0 then return false, "[InternalErr] number of bars is zero" end
-    if bdim % 2 ~= 0 then
-        return false, "[InternalErr] '_yline' does not have an even number of elements"
+    local bdim, bars
+    if vbar._classname == "Vbar" then
+        bdim, bars = vbar:get_bars()
+        bdim = 2*bdim
+    else
+        bdim = #vbar
+        if bdim % 2 ~= 0 then -- bdim must be even
+            return false, "[Err] 'vbar' does not have an even number of elements"
+        end
+        bars = vbar
     end
+    if bdim == 0 then return false, "[Err] the number of bars is zero" end
     local data = self._data
     data[#data + 1] = 36 -- vbar sequence start
     data[#data + 1] = y1
     data[#data + 1] = y2
-    data[#data + 1] = bdim / 2 -- the number of bars <x_i t_i>
+    data[#data + 1] = bdim/2 -- the number of bars, pair <x_i, w_i>
     for i = 1, bdim, 2 do
         local coord = bars[i]
         local width = bars[i + 1]
@@ -251,7 +257,7 @@ end
 
 -- print a Vbar queue starting at x position 'xpos', between the horizontal line
 -- at y0 and y1 y-coordinates
-function gaCanvas:encode_Vbar_queue(queue, xpos, y0, y1) --> ok, err
+function gaCanvas:encode_vbar_queue(queue, xpos, y0, y1) --> ok, err
     -- check arg
     if type(queue) ~= "table" then
         return false, "[Err] 'queue' arg must be a table"
@@ -269,7 +275,7 @@ function gaCanvas:encode_Vbar_queue(queue, xpos, y0, y1) --> ok, err
     while queue[i] do
         local x = queue[i - 1] + xpos
         local vbar = queue[i]
-        local _, err = self:encode_Vbar(vbar, x, y0, y1)
+        local _, err = self:encode_vbar(vbar, x, y0, y1)
         if err then return false, err end
         i = i + 2
     end

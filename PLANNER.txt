@@ -50,14 +50,16 @@ Development Planner:
 2020-__-__: [test] update test files with recent changes
 2020-__-__: [dev][ean] fix the `ean:checksum()` to include ISBN and ISSN variant
 2020-__-__: [dev] control the method call on the right class
+2020-03-__: [code128] add hri
+2020-03-__: [breaking change] refactor Text libgeo object
+2020-03-__: [doc] barcode symbologies reference
+2020-03-__: [doc] new section for `Vbar`
 -------------------------------------------------------------------------------
-2020-02-__: [code128] add hri
-2020-02-__: [breaking change] refactor Text libgeo object
-2020-__-__: [doc] barcode symbologies reference
+2020-03-02:*[doc] add a chess example for `ga` stream
 
 [merge]<--------+
                 |
-    2020-03-02:*[doc] put ga-asm-spec together with the manual
+    2020-03-02: [doc] put ga-asm-spec together with the manual
                 |
 [doc-basic-ref]-+
 

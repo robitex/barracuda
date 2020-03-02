@@ -371,7 +371,7 @@ Test 1: a vbar 2pt width, 20pt height:
     gacanvas = require "lib-geo.brcd-gacanvas"
     local ga = gacanvas:new()
     local vbar = {_yline = {0.0, 2*pt}}
-    assert(ga:encode_Vbar(vbar, 0.0, 0.0, 20*pt)) % x, w
+    assert(ga:encode_vbar(vbar, 0.0, 0.0, 20*pt)) % x, w
     driver:ga_to_hbox(ga, [[mybox]])
 }\box\mybox
 
@@ -385,7 +385,7 @@ Test 2: ten vbars equally spaced by 10pt:
         data[i*2 + 2] = 10*pt           % w
     end
     local bars = {_yline = data}
-    assert(ga:encode_Vbar(bars, 0.0, 0.0, 10*pt))
+    assert(ga:encode_vbar(bars, 0.0, 0.0, 10*pt))
     driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
@@ -403,8 +403,8 @@ Test 3: two series of vbars 10pt and 5pt large:
         b2[i*2 + 2] = 5*pt
     end
     local ga = gacanvas:new()
-    assert(ga:encode_Vbar({_yline=b1}, 0.0, 0.0, 10*pt))
-    assert(ga:encode_Vbar({_yline=b2}, 10.0*pt, 2.5*pt, 7.5*pt))
+    assert(ga:encode_vbar({_yline=b1}, 0.0, 0.0, 10*pt))
+    assert(ga:encode_vbar({_yline=b2}, 10.0*pt, 2.5*pt, 7.5*pt))
     driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
@@ -417,7 +417,7 @@ Test 4: a bunch of thin bars:
         b[i*2 + 2] = 2*pt
     end
     local ga = gacanvas:new()
-    assert(ga:encode_Vbar({_yline=b}, 0.0, 5*pt, 25*pt))
+    assert(ga:encode_vbar({_yline=b}, 0.0, 5*pt, 25*pt))
     driver:ga_to_hbox(ga, [[mybox]])
 }\vrule{ }\box\mybox{ }\vrule
 
@@ -431,8 +431,8 @@ Test 5: two levels of a bunch of thin bars:
     end
     local b = {_yline=b}
     local ga = gacanvas:new()
-    assert(ga:encode_Vbar(b, 0.0, 5*pt, 25*pt))
-    assert(ga:encode_Vbar(b, 2*pt, 25*pt, 45*pt, b))
+    assert(ga:encode_vbar(b, 0.0, 5*pt, 25*pt))
+    assert(ga:encode_vbar(b, 2*pt, 25*pt, 45*pt, b))
     driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
@@ -441,9 +441,9 @@ Test number 6: staircase of bars (manual insertion of data):
 \directlua{
     local b = {_yline={0.0, 10*pt}}
     local ga = gacanvas:new()
-    assert(ga:encode_Vbar(b, 0.0, 0.0, 20*pt))
-    assert(ga:encode_Vbar(b, 10*pt, 20*pt, 40*pt))
-    assert(ga:encode_Vbar(b, 20*pt, 40*pt, 60*pt))
+    assert(ga:encode_vbar(b, 0.0, 0.0, 20*pt))
+    assert(ga:encode_vbar(b, 10*pt, 20*pt, 40*pt))
+    assert(ga:encode_vbar(b, 20*pt, 40*pt, 60*pt))
     driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
@@ -457,8 +457,8 @@ Test number 7: vbars with spaced text, all in three rows:
     end
     local vb = {_yline=b}
     local ga = gacanvas:new()
-    assert(ga:encode_Vbar(vb, 0.0, 0.0, 20*pt))
-    assert(ga:encode_Vbar(vb, 0.0, 30*pt, 50*pt))
+    assert(ga:encode_vbar(vb, 0.0, 0.0, 20*pt))
+    assert(ga:encode_vbar(vb, 0.0, 30*pt, 50*pt))
     local txt = {codepoint = {
         65, % A
         66, % B
@@ -483,8 +483,8 @@ Test 8: spaced text, check correct vertical alignment:
     end
     b = {_yline=b}
     local ga = gacanvas:new()
-    assert(ga:encode_Vbar(b, 0.0, 0.0, 20*pt))
-    assert(ga:encode_Vbar(b, 0.0, 40*pt, 60*pt))
+    assert(ga:encode_vbar(b, 0.0, 0.0, 20*pt))
+    assert(ga:encode_vbar(b, 0.0, 40*pt, 60*pt))
     local c = { codepoint = {
         65, % A
         66, % B
@@ -520,8 +520,8 @@ Test number 9: spaced text, check correct vertical alignment:
     end
     b = {_yline = b}
     local ga = gacanvas:new()
-    assert(ga:encode_Vbar(b, 0.0, 0.0, 20*pt))
-    assert(ga:encode_Vbar(b, 0.0, 40*pt, 60*pt))
+    assert(ga:encode_vbar(b, 0.0, 0.0, 20*pt))
+    assert(ga:encode_vbar(b, 0.0, 40*pt, 60*pt))
     local c = { codepoint = {
         65, % A
         66, % B
@@ -664,7 +664,7 @@ Test number 14: place bars and text as text\_xwidth:
     local n = {codepoint = { 48, 49, 50, 51, 52, 53, 54, 55, 56, 57,}}
     local ga = gacanvas:new()
     %                    (vbar, x0, y1, y2) --> ok, err
-    assert(ga:encode_Vbar(b, 0.0,  0*pt, 25*pt))
+    assert(ga:encode_vbar(b, 0.0,  0*pt, 25*pt))
     %                    (txt, x1, x2, ypos, ay) --> ok, err
     assert(ga:encode_Text_xwidth(n, 0*pt, 108*pt, 25*pt, 0))
     driver:ga_to_hbox(ga, [[mybox]])
@@ -682,8 +682,8 @@ Test number 14: place bars and text as text\_xwidth:
     n = {codepoint = n}
     local ga = gacanvas:new()
     %                    x0,    y1,    y2, bars
-    assert(ga:encode_Vbar(b, 0.0,  0*pt, 25*pt))
-    assert(ga:encode_Vbar(b, 0.0, 32*pt, 42*pt))
+    assert(ga:encode_vbar(b, 0.0,  0*pt, 25*pt))
+    assert(ga:encode_vbar(b, 0.0, 32*pt, 42*pt))
     %                (txt, x1, x2, ypos, ay) --> ok, err
     assert(ga:encode_Text_xwidth(n, 0*pt, 96*pt, 25*pt, 0))
     driver:ga_to_hbox(ga, [[mybox]])

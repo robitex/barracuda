@@ -1044,8 +1044,8 @@ fn_append_ga_variant["13"] = function (ean, canvas, tx, ty, ax, ay)
     local ys         = y0 + bars_depth
     -- draw the symbol
     assert(canvas:encode_disable_bbox())
-    assert(canvas:encode_Vbar_queue(queue_0, x0, y0, y1))
-    assert(canvas:encode_Vbar_queue(queue_1, x0 + 3*mod, ys, y1))
+    assert(canvas:encode_vbar_queue(queue_0, x0, y0, y1))
+    assert(canvas:encode_vbar_queue(queue_1, x0 + 3*mod, ys, y1))
     -- bounding box set up
     local qzl = ean.quietzone_left_factor * mod
     local qzr = ean.quietzone_right_factor * mod
@@ -1151,8 +1151,8 @@ fn_append_ga_variant["8"] = function (ean, canvas, tx, ty, ax, ay)
     local s_width    = 7*mod
     -- draw the symbol
     assert(canvas:encode_disable_bbox())
-    assert(canvas:encode_Vbar_queue(q0, x0, y0, y1))
-    assert(canvas:encode_Vbar_queue(q1, x0 + 3*mod, ys, y1))
+    assert(canvas:encode_vbar_queue(q0, x0, y0, y1))
+    assert(canvas:encode_vbar_queue(q1, x0 + 3*mod, ys, y1))
     -- bounding box set up
     local qzl = ean.quietzone_left_factor * mod
     local qzr = ean.quietzone_right_factor * mod
@@ -1227,7 +1227,7 @@ fn_append_ga_variant["5"] = function (ean, canvas, tx, ty, ax, ay, h)
     local y1 = y0 + h
     -- draw the symbol
     assert(canvas:encode_disable_bbox())
-    assert(canvas:encode_Vbar_queue(queue, x0, y0, y1))
+    assert(canvas:encode_vbar_queue(queue, x0, y0, y1))
     -- bounding box set up
     local qzl = ean.quietzone_left_factor * mod
     local qzr = ean.quietzone_right_factor * mod
@@ -1294,7 +1294,7 @@ fn_append_ga_variant["2"] = function (ean, canvas, tx, ty, ax, ay, h)
     local x1 = x0 + w
     local y1 = y0 + h
     assert(canvas:encode_disable_bbox())
-    assert(canvas:encode_Vbar_queue(queue, x0, y0, y1))
+    assert(canvas:encode_vbar_queue(queue, x0, y0, y1))
     -- bounding box set up
     local qzl = ean.quietzone_left_factor * mod
     local qzr = ean.quietzone_right_factor * mod

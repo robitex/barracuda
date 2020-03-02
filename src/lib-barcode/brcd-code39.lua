@@ -293,7 +293,7 @@ function Code39:append_ga(canvas, tx, ty) --> canvas
     local x1     = x0 + w
     local y0     = (ty or 0) - ay * h
     local y1     = y0 + h
-    assert(canvas:encode_Vbar_queue(q, x0, y0, y1))
+    assert(canvas:encode_vbar_queue(q, x0, y0, y1))
     -- bounding box setting
     local qz = self.quietzone
     assert(canvas:encode_set_bbox(x0 - qz, y0, x1 + qz, y1))

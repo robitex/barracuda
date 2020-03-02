@@ -14,6 +14,8 @@ local Driver = {
 
 Driver.__index = Driver
 Driver._drv_instance = {} -- driver instances repository
+Driver.mm = 186467.98110236 -- conversion factor sp -> mm (millimeter)
+Driver.bp = 65781.76 -- conversion factor sp -> bp (big point)
 
 -- driver_type/submodule name
 Driver._drv_available_drv = { -- lowercase keys please
@@ -50,8 +52,8 @@ function Driver:_new_state() --> a new state
         bb_y1 = nil,
         bb_x2 = nil,
         bb_y2 = nil,
-        mm = 186467.98110236, -- conversion factor sp -> mm (millimeter)
-        bp = 65781.76, -- conversion factor sp -> bp (big point)
+        mm = self.mm, -- conversion factor sp -> mm (millimeter)
+        bp = self.bp, -- conversion factor sp -> bp (big point)
     }
 end
 

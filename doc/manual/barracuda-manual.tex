@@ -739,6 +739,28 @@ OpCode & Mnemonic key & Graphic object/Operands\\
 \bottomrule
 \end{tabular}
 
+\subsection{\code{Vbar} class}
+
+This section show you how to draw a group of vertical lines, the main component
+of every 1D barcode symbol. In the \brcd{} jargon a group of vertical lines is
+called \code{Vbar} and is defined by a flat array of pair numbers: the first one
+is the x-coordinate of the bar while the second is the its width.
+Our \code{Vbar} is represented by this array:
+\begin{Verbatim}
+-- {   x1,    w1,      x2,    w2,     x3,     w3}
+   {1*mod, 2*mod, 3.5*mod, 1*mod, 5.5*mod, 1*mod}
+\end{Verbatim}
+We have three bars based on the fixed lenght \code{mod} represented as:
+\begin{center}
+
+\end{center}
+
+
+
+
+
+In the module \code{libgeo} there is a class called \code{Vbar}
+
 \subsection{\code{ga} code examples}
 
 To support a better understanding and provide some \code{ga} stream examples,
@@ -791,8 +813,74 @@ In both cases the drawing looks like: \directlua{
     drv:ga_to_hbox(canvas, "mybox")
 }\box\mybox
 
-
 \subsubsection{Example number 2}
+
+A more complex drawing is a chess. Let's begin to draw a single cell with a
+square 1cm width:
+\begin{Verbatim}
+% !TeX program = LuaTeX
+\newbox\mybox
+\directlua{
+    local barracuda = require "barracuda"
+    local drv = barracuda:get_driver()
+    local mm = drv.mm
+    local s, t = 10*mm, 2*mm
+    local canvas = barracuda:new_canvas()
+    canvas:encode_linewidth(t)
+    canvas:encode_rect(t/2, t/2, s-t/2, s-t/2)
+    drv:ga_to_hbox(canvas, "mybox")
+}\leavevmode\box\mybox
+\bye
+\end{Verbatim}
+
+and repeat the game for the chess grid:
+\begin{Verbatim}
+% !TeX program = LuaTeX
+\newbox\mybox
+\directlua{
+    local barracuda = require "barracuda"
+    local drv = barracuda:get_driver()
+    local mm = drv.mm
+    local s, t = 10*mm, 2*mm
+    local canvas = barracuda:new_canvas()
+    canvas:encode_linewidth(t)
+    for row = 1, 5 do
+        for col = 1, 5 do
+            local l = (row + col)/2
+            if l == math.floor(l) then
+                local x = (col - 1) * s
+                local y = (row - 1) *s
+                canvas:encode_rect(x+t/2, y+t/2, x+s-t/2, y+s-t/2)
+            end
+        end
+    end
+    drv:ga_to_hbox(canvas, "mybox")
+}\leavevmode\box\mybox
+\bye
+\end{Verbatim}
+
+The final drawing is showed here: \directlua{
+    local barracuda = require "barracuda"
+    local drv = barracuda:get_driver()
+    local mm = drv.mm
+    local s, t = 10*mm, 2*mm
+    local canvas = barracuda:new_canvas()
+    canvas:encode_linewidth(t)
+    for row = 1, 5 do
+        for col = 1, 5 do
+            local l = (row + col)/2
+            if l == math.floor(l) then
+                local x = (col - 1) * s
+                local y = (row - 1) *s
+                canvas:encode_rect(x+t/2, y+t/2, x+s-t/2, y+s-t/2)
+            end
+        end
+    end
+    drv:ga_to_hbox(canvas, "mybox")
+}\box\mybox
+
+
+\subsubsection{Example number 3}
 
 A drawing of a zig zag staircase can be represented by a \code{ga} stream with
 a \code{<polyline>} operation. The \code{gaCanvas} method we have to call is
@@ -885,12 +973,12 @@ code that re-implement the previuos version:
 Pretty sure that this new version is more clear and intuitive.
 
 
-%\subsubsection{Example number 3}
+%\subsubsection{Example number 4}
 
 %A polyline that represents a path of ... Hilbert
 
 
-%\subsubsection{Example number 4}
+%\subsubsection{Example number 5}
 
 %Text pyramid
 
