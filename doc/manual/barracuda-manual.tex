@@ -9,10 +9,13 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{array}
+\usepackage{tikz}
 \usepackage{hyperref}
 
 \newcolumntype{C}{>{\ttfamily}c}
 \newcolumntype{L}{>{\ttfamily}l}
+
+\usetikzlibrary{arrows.meta}
 
 % special macro for manual typesetting
 \input{barracuda-manual-tool}
@@ -21,7 +24,7 @@
 hidelinks,
 linktoc = all,
 pdfinfo={
-    Title={the Barracuda manual},
+    Title={The Barracuda manual},
     Subject={Barcode printing package},
     Author={Roberto Giacomelli},
     Keywords={Barcode EAN Code128 Lua}
@@ -31,9 +34,7 @@ pdfinfo={
 \setmonofont[Scale=0.82]{Fira Mono}
 \fvset{
     fontsize=\small,
-    frame=single,
     labelposition=topline,
-    framesep=5pt
 }
 \geometry{
     left=32mm,
@@ -739,27 +740,148 @@ OpCode & Mnemonic key & Graphic object/Operands\\
 \bottomrule
 \end{tabular}
 
+
 \subsection{\code{Vbar} class}
 
 This section show you how to draw a group of vertical lines, the main component
 of every 1D barcode symbol. In the \brcd{} jargon a group of vertical lines is
-called \code{Vbar} and is defined by a flat array of pair numbers: the first one
-is the x-coordinate of the bar while the second is the its width.
-Our \code{Vbar} is represented by this array:
-\begin{Verbatim}
--- {   x1,    w1,      x2,    w2,     x3,     w3}
-   {1*mod, 2*mod, 3.5*mod, 1*mod, 5.5*mod, 1*mod}
-\end{Verbatim}
-We have three bars based on the fixed lenght \code{mod} represented as:
-\begin{center}
+called \code{Vbar} and is defined by a flat array of pair numbers sequence: the
+first one is the x-coordinate of the bar while the second is its width.
 
+For instance, consider a \code{Vbar} of three bars for which width is a
+multiple of the fixed lenght called \code{mod}, defined by the array and fugure
+showed below:
+\begin{Verbatim}
+-- {     x1,    w1,      x2,    w2,     x3,     w3}
+   {1.5*mod, 3*mod, 5.5*mod, 1*mod, 7.5*mod, 1*mod}
+\end{Verbatim}
+\directlua{
+local libgeo = barracuda:libgeo()
+local Vbar = libgeo.Vbar
+local drv = barracuda:get_driver()
+local mm = drv.mm
+local b = Vbar:from_int(32111, 2*mm)
+local canvas = barracuda:new_canvas()
+canvas:encode_vbar(b, 0, 0, 25*mm)
+drv:ga_to_hbox(canvas, "mybox")
+}
+\begin{center}
+\begin{tikzpicture}
+\foreach \i in {0,2,...,16}
+\draw[help lines] (\i mm, -2mm) -- (\i mm, 28mm);
+\node at (8mm, 12.5mm) {\box\mybox};
+\draw[-{Latex[open]}] (0, 0) -- (20mm, 0);
+\draw[-{Latex[open]}] (0, 0) -- (0, 30mm);
+\draw[white, dashed] (3mm, 0) -- (3mm, 25mm);
+\draw[white, dashed] (11mm, 0) -- (11mm, 25mm);
+\draw[white, dashed] (15mm, 0) -- (15mm, 25mm);
+\end{tikzpicture}
 \end{center}
 
+For clearness, to the drawing were added gray vertical grid stepping one module
+and white dashed lines at every bar axis.
+
+Spaces between bars can be seen as white bars. In fact, an integer number can
+represents the sequence of black and white bars with the rule that the single
+digit is the width module multiplier. So, the previous \code{Vbar} can be
+defined by 32111 with module equals to 2 mm.
+
+The class \code{Vbar} of module \code{libgeo} has several costructors one of
+which is \code{from\_int()}. Its arguments are the multipler integer
+\code{ngen}, the module lenght \code{mod} and the optional boolean flag
+\code{is\_bar}, true if the first bar is black (default to true):
+\begin{Verbatim}
+b = Vbar:from_int(32111, 2*mm)
+\end{Verbatim}
+
+A \code{Vbar} object has a local axis \( x \) and is unbounded. Constructors
+place the axis origin at the left of the first bar. Bars are infinite vertical
+straight lines. In order to draw a \code{Vbar} addition information must be
+passed to \code{encode\_vbar()} method of the \code{gaCanvas} class: the global
+position of the local origin \( x_0 \), and the bottom and top limit \( y_1 \)
+\( y_2 \):
+\begin{Verbatim}
+canvas:encode_vbar(ovbar, x0, y1, y2)
+\end{Verbatim}
+
+The following listing is the complete source code to draw the \code{Vbar} taken
+as example in this section:
+\begin{Verbatim}
+% !TeX program = LuaTeX
+\newbox\mybox
+\directlua{
+    local barracuda = require "barracuda"
+    local Vbar = barracuda:libgeo().Vbar
+    local drv = barracuda:get_driver()
+    local mm = drv.mm
+    local b = Vbar:from_int(32111, 2*mm)
+    local canvas = barracuda:new_canvas()
+    canvas:encode_vbar(b, 0, 0, 25*mm)
+    drv:ga_to_hbox(canvas, "mybox")
+}\leavevmode\box\mybox
+\bye
+\end{Verbatim}
 
 
+\subsubsection{\code{Vbar} class arithmetic}
 
+Can two \code{Vbar} objects be added? Yes, they can! And also with numbers.
+Thanks to metamethod and metatable feature of Lua, \code{libgeo} module can
+provide arithmetic for \code{Vbar}s. More in detail, to add two \code{Vbar}s
+deploy them side by side while to add a number put a distance between the
+previous or the next object, depending on the order of addends.
 
-In the module \code{libgeo} there is a class called \code{Vbar}
+Anyway, every sum creates or modifies a \code{VbarQueue} object that can be
+encoded in a \code{ga} stream with the method \code{encode\_vbar\_queue()}. The
+method arguments' are the same needed to encode a \code{Vbar}: an axis position
+\( x_0 \) and the two y-coordinates bound \( y_1 \) and \( y_2 \).
+
+A \code{VbarQueue} code example is the following (in the drawing some graphical
+aid has been added: a vertical grid marks the module wide step and light colored
+bars mark the space added between two \code{Vbar}s):
+\begin{Verbatim}
+% !TeX program = LuaTeX
+\newbox\mybox
+\directlua{
+    local barracuda = require "barracuda"
+    local Vbar = barracuda:libgeo().Vbar
+    local drv = barracuda:get_driver()
+    local mm = drv.mm
+    local mod = 2 * mm
+    local queue = Vbar:from_int(32111, mod)
+    for _, ngen in ipairs {131, 21312, 11412} do
+        queue = queue + mod + Vbar:from_int(ngen, mod)
+    end
+    local canvas = barracuda:new_canvas()
+    canvas:encode_vbar_queue(queue, 0, 0, 25*mm)
+    drv:ga_to_hbox(canvas, "mybox")
+}\leavevmode\box\mybox
+\bye
+\end{Verbatim}
+
+\directlua{
+    local barracuda = require "barracuda"
+    local Vbar = barracuda:libgeo().Vbar
+    local drv = barracuda:get_driver()
+    local mm = drv.mm
+    local mod = 2 * mm
+    local queue = Vbar:from_int(32111, mod)
+    for _, ngen in ipairs {131, 21312, 11412} do
+        queue = queue + mod + Vbar:from_int(ngen, mod)
+    end
+    local canvas = barracuda:new_canvas()
+    canvas:encode_vbar_queue(queue, 0, 0, 25*mm)
+    drv:ga_to_hbox(canvas, "mybox")
+}
+\begin{tikzpicture}
+\fill[orange!50!white] (16mm, -2mm) rectangle (18mm, 28mm); %
+\fill[orange!50!white] (28mm, -2mm) rectangle (30mm, 28mm); %
+\fill[orange!50!white] (48mm, -2mm) rectangle (50mm, 28mm); %
+\foreach \i in {0,2,...,68}
+\draw[help lines] (\i mm, -2mm) -- (\i mm, 28mm);
+\node at (34mm, 12.5mm) {\box\mybox};
+\end{tikzpicture}
+
 
 \subsection{\code{ga} code examples}
 
@@ -815,8 +937,8 @@ In both cases the drawing looks like: \directlua{
 
 \subsubsection{Example number 2}
 
-A more complex drawing is a chess. Let's begin to draw a single cell with a
-square 1cm width:
+A more complex drawing is a chessboard. Let's begin to draw a single cell with a
+square 1cm wide:
 \begin{Verbatim}
 % !TeX program = LuaTeX
 \newbox\mybox
@@ -975,7 +1097,7 @@ Pretty sure that this new version is more clear and intuitive.
 
 %\subsubsection{Example number 4}
 
-%A polyline that represents a path of ... Hilbert
+%A polyline that represents a path of ... Hilbert curve
 
 
 %\subsubsection{Example number 5}

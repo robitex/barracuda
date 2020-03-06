@@ -53,9 +53,9 @@ Development Planner:
 2020-03-__: [code128] add hri
 2020-03-__: [breaking change] refactor Text libgeo object
 2020-03-__: [doc] barcode symbologies reference
-2020-03-__: [doc] new section for `Vbar`
 -------------------------------------------------------------------------------
-2020-03-02:*[doc] add a chess example for `ga` stream
+2020-03-06:*[doc] new section explains `Vbar`
+2020-03-02: [doc] add a chess example for `ga` stream
 
 [merge]<--------+
                 |
