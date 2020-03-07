@@ -5,7 +5,7 @@ Basic rules
 -----------
 
 + Every new version will be uploaded to CTAN network
-+ For each single task there will be a corresponding commit
++ For each single task there will be a commit
 
 Hypothetical development task list:
 -----------------------------------
@@ -44,7 +44,6 @@ Development Planner:
 -------------------------------------------------------------------------------
 2020-__-__: [milestone] version <v0.0.11> completed task/commit list
 2020-__-__: [doc] barcode symbologies reference
-2020-__-__: [doc] put ga-asm-spec together with the manual
 2020-__-__: [dev][barcode] new `alias` feature
 2020-__-__: [dev][barcode] new `preset` feature
 2020-__-__: [test] update test files with recent changes
@@ -53,8 +52,10 @@ Development Planner:
 2020-03-__: [code128] add hri
 2020-03-__: [breaking change] refactor Text libgeo object
 2020-03-__: [doc] barcode symbologies reference
+2020-__-__: [dev] new `debug_draw_bbox` Barcode parameter
 -------------------------------------------------------------------------------
-2020-03-06:*[doc] new section explains `Vbar`
+2020-03-07:*[ga] new <dash-pattern> and <reset-pattern> opcodes
+2020-03-06: [doc] new section explains `Vbar`
 2020-03-02: [doc] add a chess example for `ga` stream
 
 [merge]<--------+

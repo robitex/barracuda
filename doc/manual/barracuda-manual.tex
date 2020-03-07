@@ -649,17 +649,22 @@ OpCode & Mnemonic key & Graphic property & Operands\\
 \midrule
  1 & linewidth & Line width      & w <len>\\
  2 & linecap   & Line cap style  & e <enum>\\
-   & & & 0: Butt cap\\
-   & & & 1: Round cap\\
-   & & & 2: Projecting square cap\\
+   &&& 0: Butt cap\\
+   &&& 1: Round cap\\
+   &&& 2: Projecting square cap\\
  3 & linejoin  & Line join style & e <enum>\\
-   & & & 0: Miter join\\
-   & & & 1: Round join\\
-   & & & 2: Bevel join\\
+   &&& 0: Miter join\\
+   &&& 1: Round join\\
+   &&& 2: Bevel join\\
+ 5 & dash\_pattern & Dash pattern line style & p <len> n <qty> bi <len>\\
+   &&& p: phase lenght\\
+   &&& n: number of array element\\
+   &&& bi: dash array lenght\\
+ 6 & reset\_pattern & Set the continous line style & -\\
 \midrule
 29 & enable\_bbox & Compute bounding box & -\\
 30 & disable\_bbox & Do not compute bounding box & -\\
-31 & set\_bbox & Overlap a bounding box & x1 y1 <point> x2 y2 <point>\\
+31 & set\_bbox & Overlap current bounding box & x1 y1 <point> x2 y2 <point>\\
 \bottomrule
 \end{tabular}
 

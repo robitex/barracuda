@@ -79,6 +79,34 @@ function gaCanvas:encode_linejoin(join) --> ok, err
     return true, nil
 end
 
+-- 5 <dash_pattern>, Dash pattern line style, p <len> n <qty> bi <len>
+-- p: phase lenght
+-- n: number of array element
+-- bi: dash array lenght
+function gaCanvas:encode_dash_pattern(p, ...) --> ok, err
+    if type(p) ~= "number" then return false, "[ArgErr] number expected for 'phase'" end
+    local t = {...}
+    for _, v in ipairs(t) do
+        if type(v) ~= "number" then return false, "[ArgErr] number expected in an array position" end
+    end
+    local n = #t
+    local d = self._data
+    d[#d + 1] = 5
+    d[#d + 1] = p
+    d[#d + 1] = n
+    for _, b in ipairs(t) do
+        d[#d + 1] = b
+    end
+    return true, nil
+end
+
+-- 6 <reset_pattern>, set the continous line style
+function gaCanvas:encode_reset_pattern() --> ok, err
+    local d = self._data
+    d[#d + 1] = 6
+    return true, nil
+end
+
 -- checking the bounding box from now on
 -- opcode: <29>
 function gaCanvas:encode_enable_bbox() --> ok, err

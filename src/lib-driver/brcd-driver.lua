@@ -164,6 +164,30 @@ Driver._opcode_v001 = {
         drv.append_003(st, bf, xt, join)
         return pc + 1
     end,
+    -- 5 <dash_pattern>, Dash pattern line style
+    -- phase <len> n <qty> [bi <len>]+
+    [5] = function (drv, st, pc, ga, bf, xt)
+        if not drv.append_005_start or not drv.append_005_dash or not drv.append_005_stop then
+            error("[InternalErr] unimplemented opcode 5 for "..drv._NAME)
+        end
+        drv.append_005_start(st, bf, xt)
+        local phase = ga[pc]; pc = pc + 1
+        local n = ga[pc]; pc = pc + 1
+        assert(n > 0, "[Err] dash pattern needs one length or more ("..n..")")
+        for i = pc, pc + n - 1 do
+            local v = ga[i]
+            drv.append_005_dash(st, bf, xt, v)
+        end
+        drv.append_005_stop(st, bf, xt, phase)
+        return pc + n
+    end,
+    [6] = function (drv, st, pc, ga, bf, xt) -- 6 <reset_pattern>
+        if not drv.append_006 then
+            error("[InternalErr] unimplemented opcode 6 for "..drv._NAME)
+        end
+        drv.append_006(st, bf, xt)
+        return pc
+    end,
     [29] = function (drv, st, pc, ga, bf, xt) -- enable_bbox
         st.bb_on = true
         return pc
@@ -345,13 +369,13 @@ Driver._opcode_v001 = {
     -- draw a rectangle
     -- 48 <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>
     [48] = function(drv, st, pc, ga, bf, xt)
-        local x1   = ga[pc]; pc = pc + 1
-        local y1   = ga[pc]; pc = pc + 1
-        local x2   = ga[pc]; pc = pc + 1
-        local y2   = ga[pc]; pc = pc + 1
+        local x1 = ga[pc]; pc = pc + 1
+        local y1 = ga[pc]; pc = pc + 1
+        local x2 = ga[pc]; pc = pc + 1
+        local y2 = ga[pc]; pc = pc + 1
         -- check the bounding box only if the flag is true
         if st.bb_on then
-            local hw  = st.line_width/2
+            local hw = st.line_width/2
             local bx1, bx2 = x1 - hw, x2 + hw
             local by1, by2 = y1 - hw, y2 + hw
             if st.bb_x1 == nil then

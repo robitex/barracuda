@@ -24,6 +24,7 @@ function PDFnative.init_buffer(st) --> buffer, text buffer
     st.head = nil -- addition for text processing (to remember purpose)
     st.last = nil
     st.hbox = nil
+    st.dash_array = nil
     st.cw = nil
     st.x_hbox = nil
     st.char_counter = nil
@@ -124,6 +125,31 @@ end
 -- 3 <enum: u8>; set line join style
 function PDFnative.append_003(st, bf, xt, j)
     bf[#bf + 1] = string.format("%d j", j)
+end
+
+-- 5 dash_pattern
+function PDFnative.append_005_start(st, bf, xt)
+    st.dash_array = {}
+end
+function PDFnative.append_005_dash(st, bf, xt, a)
+    local array = st.dash_array
+    array[#array + 1] = a
+end
+function PDFnative.append_005_stop(st, bf, xt, phase)
+    local array = st.dash_array; st.dash_array = nil
+    local t = {"["}
+    local bp = st.bp -- conversion factor bp -> sp
+    for _, a in ipairs(array) do
+        t[#t + 1] = string.format("%0.6f", a/bp)
+        t[#t + 1] = " "
+    end
+    t[#t] = string.format("] %0.6f d", phase/bp)
+    bf[#bf + 1] = table.concat(t)
+end
+
+-- 6 reset_pattern
+function PDFnative.append_006(st, bf, xt)
+    bf[#bf + 1] = string.format("[] 0 d")
 end
 
 -- draw an horizontal line
