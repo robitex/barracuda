@@ -15,7 +15,7 @@ local enc = assert(barcode:new_encoder("i2of5-ITF14"))
 local s1 = assert(enc:from_uint(1234567890123))
 
 local canvas = barracuda:new_canvas()
-s1:append_ga(canvas)
+s1:draw(canvas)
 local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }
@@ -28,7 +28,7 @@ local enc = assert(barcode:enc_by_name("i2of5-ITF14"))
 local s1 = assert(enc:from_string("1234567890123"))
 
 local canvas = barracuda:new_canvas()
-s1:append_ga(canvas)
+s1:draw(canvas)
 local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }
@@ -41,9 +41,10 @@ local enc = assert(barcode:enc_by_name("i2of5-ITF14"))
 local s1 = assert(enc:from_string("(12) 34 56 78 90 12 3"))
 
 local canvas = barracuda:new_canvas()
-s1:append_ga(canvas)
+s1:draw(canvas)
 local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
+drv:save("svg", canvas, "02-itf14")
 }
 \vskip 10pt
 12345678901231 is \vrule A\vrule\box\mybox \vrule A\vrule

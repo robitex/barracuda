@@ -1,18 +1,13 @@
 --
 -- ga Intermediate Graphic Language for barcode drawing
--- SVG library
+-- SVG driver for the ga graphic stream
 -- Copyright (C) 2020 Roberto Giacomelli
 --
 -- All dimension in the ga stream are scaled point (sp)
 -- 1 pt = 65536 sp
 
 -- class for drawing elementary geometric elements
-local SVG = {
-    _VERSION     = "SVGdriver v0.0.1",
-    _NAME        = "SVGdriver",
-    _DESCRIPTION = "A SVG driver for the ga graphic stream",
-}
-
+local SVG = {_drvname = "SVG"}
 SVG.ext = "svg" -- file extension
 SVG.buf_sep = nil -- separation string for buffer concat
 
@@ -30,10 +25,10 @@ function SVG.init_buffer(st) --> buffer, text buffer
     }
     -- additions for SVG driver to 'state'
     st.ident_lvl = 1 -- identation level
-    st.char_buf = nil
+    st.char_buf = nil -- character buffer
     local mm = st.mm
     st.h_char = 2.1 * mm -- char height (mm)
-    st.w_char = st.h_char / 1.303 -- avg char width (mm)
+    st.w_char = st.h_char / 1.303 -- average char width (mm)
     st.d_char = st.h_char / 3.7 -- char deep (mm)
     return bf, {}
 end
@@ -42,7 +37,7 @@ function SVG.close_buffer(st, bf, xt)
     bf[#bf + 1] = '</svg>\n' -- close svg xml element
     bf[#bf + 1] = '\n' -- a last empty line
     local mm = st.mm
-    local x1, y1, x2, y2 = st.bb_x1, st.bb_y1, st.bb_x2, st.bb_y2
+    local x1, y1, x2, y2 = st.bb_x1 or 0, st.bb_y1 or 0, st.bb_x2 or 0, st.bb_y2 or 0
     local w = (x2 - x1)/mm
     local h = (y2 - y1)/mm
     local fmt_wh = bf[7]
@@ -58,21 +53,44 @@ end
 function SVG.append_001(st, bf, xt, w) -- nothing to do
 end
 
--- draw an horizontal line
+-- 5 <dash_pattern>
+function SVG.append_005(st, bf, xt) -- nothing to do
+end
+
+-- 6 <reset_pattern>
+function SVG.append_006(st, bf, xt) -- nothing to do
+end
+
+-- draw an horizontal line <hline> opcode
 -- 33 <x1: DIM> <x2: DIM> <y: DIM>
 function SVG.append_033(st, bf, xt, x1, x2, y)
     local lvl = st.ident_lvl
     local ident = string.rep("  ", lvl) -- a couple of spaces as indentation
     local mm = st.mm -- conversion ratio sp -> bp
     bf[#bf + 1] = string.format( -- <path> element
-        '%s<path d="M%0.6f %0.6fH%0.6f"\n',
-        ident, x1/mm, -y/mm, x2/mm
+        '%s<path d="M%0.6f %0.6fH %0.6f"\n', ident, x1/mm, -y/mm, x2/mm
     )
     local lw = st.line_width
     bf[#bf + 1] = string.format(
-        '%s  style="stroke:#000000;stroke-width:%0.6f"\n', 
-        ident, lw/mm
+        '%s  stroke="black" stroke-width="%0.6f"\n', ident, lw/mm
     )
+    local dash = st.dashpattern
+    if dash then
+        local t = {}
+        for _, d in ipairs(dash) do
+            t[#t + 1] = string.format("%0.6f", d/mm)
+        end
+        bf[#bf + 1] = string.format(
+            '%s  stroke-dasharray="%s"\n', ident, table.concat(t, " ")
+        )
+        local phase = st.dashphase
+        assert(phase >= 0)
+        if phase > 0 then
+            bf[#bf + 1] = string.format(
+                '%s  stroke-dashoffset="%0.6f"\n', ident, phase/mm
+            )
+        end
+    end
     bf[#bf + 1] = ident..'/>\n'
 end
 
@@ -82,14 +100,29 @@ function SVG.append_034(st, bf, xt, y1, y2, x)
     local ident = string.rep("  ", lvl) -- a couple of spaces as indentation
     local mm = st.mm -- conversion ratio sp -> mm
     bf[#bf + 1] = string.format( -- <path> element
-        '%s<path d="M%0.6f %0.6fV%0.6f"\n',
-        ident, x/mm, -y2/mm, -y1/mm
+        '%s<path d="M%0.6f %0.6f V%0.6f"\n', ident, x/mm, -y2/mm, -y1/mm
     )
     local lw = st.line_width
     bf[#bf + 1] = string.format(
-        '%s  style="stroke:#000000;stroke-width:%0.6f"\n',
-        ident, lw/mm
+        '%s  stroke="black" stroke-width="%0.6f"\n', ident, lw/mm
     )
+    local dash = st.dashpattern
+    if dash then
+        local t = {}
+        for _, d in ipairs(dash) do
+            t[#t + 1] = string.format("%0.6f", d/mm)
+        end
+        bf[#bf + 1] = string.format(
+            '%s  stroke-dasharray="%s"\n', ident, table.concat(t, " ")
+        )
+        local phase = st.dashphase
+        assert(phase >= 0)
+        if phase > 0 then
+            bf[#bf + 1] = string.format(
+                '%s  stroke-dashoffset="%0.6f"\n', ident, phase/mm
+            )
+        end
+    end
     bf[#bf + 1] = ident..'/>\n'
 end
 
@@ -124,10 +157,28 @@ function SVG.append_038_start(st, bf, xt, n, x1, y1)
     local lvl = st.ident_lvl
     local ident = string.rep("  ", lvl)
     local mm = st.mm -- conversion factor mm -> sp
-    bf[#bf + 1] = string.format(
-        '%s<g stroke="black" stroke-width="%0.6f" fill="none">\n',
+    local style = string.format(
+        '%s<g stroke="black" stroke-width="%0.6f" fill="none"',
         ident, st.line_width/mm
     )
+    local dash = st.dashpattern
+    if dash then
+        local t = {}
+        for _, d in ipairs(dash) do
+            t[#t + 1] = string.format("%0.6f", d/mm)
+        end
+        style = string.format(
+            '%s stroke-dasharray="%s"', style, table.concat(t, " ")
+        )
+        local phase = st.dashphase
+        assert(phase >= 0)
+        if phase > 0 then
+            style = string.format(
+                '%s stroke-dashoffset="%0.6f"', style, phase/mm
+            )
+        end
+    end
+    bf[#bf + 1] = style..'>\n'
     ident = ident .. "  "
     bf[#bf + 1] = string.format('%s<polyline points="%0.6f,%0.6f',
         ident, x1/mm, -y1/mm
@@ -146,6 +197,42 @@ function SVG.append_038_stop(st, bf, xt)
     local ident = string.rep("  ", lvl)
     st.ident_lvl = lvl
     bf[#bf + 1] = ident..'</g>\n' -- close the group
+end
+
+-- draw a rectangle
+-- 48 <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>
+function SVG.append_048(st, bf, xt, x1, y1, x2, y2)
+    local w = x2 - x1 -- rectangle width
+    assert(w > 0)
+    local h = y2 - y1 -- rectangle height
+    assert(h > 0)
+    local mm = st.mm -- conversion factor mm -> sp
+    local lvl = st.ident_lvl
+    local ident = string.rep("  ", lvl)
+    local fmt = '%s<rect x="%0.6f" y="%0.6f" width="%0.6f" height="%0.6f"'
+    bf[#bf + 1] = string.format(fmt, ident, x1/mm, -y2/mm, w/mm, h/mm)
+    local lw = st.line_width
+    bf[#bf + 1] = string.format(
+        '%s  fill="none" stroke="black" stroke-width="%0.6f"\n', ident, lw/mm
+    )
+    local dash = st.dashpattern
+    if dash then
+        local t = {}
+        for _, d in ipairs(dash) do
+            t[#t + 1] = string.format("%0.6f", d/mm)
+        end
+        bf[#bf + 1] = string.format(
+            '%s  stroke-dasharray="%s"\n', ident, table.concat(t, " ")
+        )
+        local phase = st.dashphase
+        assert(phase >= 0)
+        if phase > 0 then
+            bf[#bf + 1] = string.format(
+                '%s  stroke-dashoffset="%0.6f"\n', ident, phase/mm
+            )
+        end
+    end
+    bf[#bf + 1] = ident..'/>\n'
 end
 
 -- Text

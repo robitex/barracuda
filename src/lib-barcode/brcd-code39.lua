@@ -269,7 +269,7 @@ function Code39:_process_digit(n) --> elem, err
 end
 
 -- tx, ty is an optional translator vector
-function Code39:append_ga(canvas, tx, ty) --> canvas
+function Code39:_append_ga(canvas, tx, ty) --> x1, y1, x2, y2 -- bbox
     local code = self._code_data
     local archive = self._vbar_archive
     local q = assert(archive:get("*")) -- form the vbar queue, actually it is just a Vbar
@@ -289,9 +289,9 @@ function Code39:append_ga(canvas, tx, ty) --> canvas
     local h      = self.height
     local w      = xgap*(ns + 1) + xs -- (ns + 2)*xgap - interspace
     --
-    local x0     = (tx or 0) - ax * w
+    local x0     = tx - ax * w
     local x1     = x0 + w
-    local y0     = (ty or 0) - ay * h
+    local y0     = ty - ay * h
     local y1     = y0 + h
     assert(canvas:encode_vbar_queue(q, x0, y0, y1))
     -- bounding box setting
@@ -302,8 +302,8 @@ function Code39:append_ga(canvas, tx, ty) --> canvas
     -- if 0.15 * w > h then
         -- message("The height of the barcode is to small")
     -- end
+    assert(canvas:encode_enable_bbox())
     if self.text_enabled then -- human readable text
-        assert(canvas:encode_enable_bbox())
         local chars; if self.text_star then
             chars = {"*"}
             for _, c in ipairs(code) do
@@ -355,7 +355,7 @@ function Code39:append_ga(canvas, tx, ty) --> canvas
             assert(canvas:encode_Text(txt, xpos, ypos, tax, tay))
         end
     end
-    return canvas
+    return x0 - qz, y0, x1 + qz, y1
 end
 
 return Code39

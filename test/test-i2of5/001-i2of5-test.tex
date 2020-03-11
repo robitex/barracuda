@@ -4,7 +4,11 @@
 \newbox\mybox
 \nopagenumbers
 
-\directlua{barracuda = require "barracuda"}
+\directlua{
+barracuda = require "barracuda"
+local barcode = barracuda:barcode()
+barcode:set_param("debug_bbox_on", true)
+}
 
 Interleaved 2 of 5 encoder test.
 
@@ -15,7 +19,7 @@ local barcode = barracuda:barcode()
 
 local enc, err = barcode:new_encoder("i2of5"); assert(not err, err)
 local symbo, err = enc:from_uint(54654681); assert(not err, err)
-local canvas = barracuda:new_canvas(); symbo:append_ga(canvas)
+local canvas = barracuda:new_canvas(); symbo:draw(canvas)
 local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }
@@ -28,7 +32,7 @@ Test 2: one simple barcode with default parameter:
 local barcode = barracuda:barcode()
 local enc, err = barcode:enc_by_name("i2of5"); assert(not err, err)
 local symbo, err = enc:from_uint(1234567895); assert(not err, err)
-local canvas = barracuda:new_canvas(); symbo:append_ga(canvas)
+local canvas = barracuda:new_canvas(); symbo:draw(canvas)
 local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }
@@ -104,7 +108,7 @@ local barcode = barracuda:barcode()
 local enc, err = barcode:enc_by_name("i2of5"); assert(not err, err)
 local symbo, err = enc:from_uint(454473, {check_digit_policy="add"})
 assert(not err, err)
-local canvas = barracuda:new_canvas(); symbo:append_ga(canvas)
+local canvas = barracuda:new_canvas(); symbo:draw(canvas)
 local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }
@@ -118,7 +122,7 @@ local barcode = barracuda:barcode()
 local enc, err = barcode:enc_by_name("i2of5"); assert(not err, err)
 local symbo, err = enc:from_uint(74223, {check_digit_policy="add"})
 assert(not err, err)
-local canvas = barracuda:new_canvas(); symbo:append_ga(canvas)
+local canvas = barracuda:new_canvas(); symbo:draw(canvas)
 local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }
@@ -132,7 +136,7 @@ local barcode = barracuda:barcode()
 local enc, err = barcode:enc_by_name("i2of5"); assert(not err, err)
 local symbo, err = enc:from_uint(121891259, {check_digit_policy="verify"})
 assert(not err, err)
-local canvas = barracuda:new_canvas(); symbo:append_ga(canvas)
+local canvas = barracuda:new_canvas(); symbo:draw(canvas)
 local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }
@@ -146,7 +150,7 @@ local barcode = barracuda:barcode()
 local enc, err = barcode:enc_by_name("i2of5"); assert(not err, err)
 local symbo, err = enc:from_uint(747867239, {bearer_bars_enabled = true})
 assert(not err, err)
-local canvas = barracuda:new_canvas(); symbo:append_ga(canvas)
+local canvas = barracuda:new_canvas(); symbo:draw(canvas)
 local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }
@@ -160,7 +164,7 @@ local barcode = barracuda:barcode()
 local enc, err = barcode:enc_by_name("i2of5"); assert(not err, err)
 local symbo, err = enc:from_uint(986790868, {bearer_bars_enabled = true, bearer_bars_layout="frame"})
 assert(not err, err)
-local canvas = barracuda:new_canvas(); symbo:append_ga(canvas)
+local canvas = barracuda:new_canvas(); symbo:draw(canvas)
 local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }
@@ -174,7 +178,7 @@ local barcode = barracuda:barcode()
 local enc, err = barcode:enc_by_name("i2of5"); assert(not err, err)
 local symbo, err = enc:from_string("986790868", {bearer_bars_enabled = true, bearer_bars_layout="frame"})
 assert(not err, err)
-local canvas = barracuda:new_canvas(); symbo:append_ga(canvas)
+local canvas = barracuda:new_canvas(); symbo:draw(canvas)
 local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }

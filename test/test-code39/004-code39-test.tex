@@ -17,11 +17,11 @@ symbol, err = c39:from_uint(0, {text_hpos="center"})
 assert(not err, err)
 
 local canvas = barracuda:new_canvas()
-symbol:append_ga(canvas)
+symbol:draw(canvas)
 
 local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
-}\box\mybox
+}\bigskip\leavevmode\box\mybox
 
 \directlua{
 local c39, err = barracuda:barcode()
@@ -33,10 +33,9 @@ symbol, e = c39:from_uint(0123456789, {text_hpos="spaced",text_star=true})
 assert(not e, e)
 
 local canvas = barracuda:new_canvas()
-symbol:append_ga(canvas)
+symbol:draw(canvas)
 
 local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
-}\box\mybox
-
+}\bigskip\leavevmode\box\mybox
 \bye

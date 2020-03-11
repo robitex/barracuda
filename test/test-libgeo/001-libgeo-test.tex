@@ -10,36 +10,35 @@
     pt = tex.sp [[1pt]] % 1pt = 65536sp
 }
 
-Test 1: test Vbar\_archive object:
+Test 1: test Archive class and Vbar arithmetic:
 
-\smallskip
+\medskip
 \directlua{
     % retrive the Vbar class
-    local libgeo = barracuda._libgeo
+    local libgeo = barracuda:libgeo()
     local Vbar = libgeo.Vbar
     % create three Vbar objects
     local b1 = Vbar:from_int(22556, 2*pt)
     local b2 = Vbar:from_int(3134563, 2*pt)
     local b3 = Vbar:from_int(1111111, 2*pt)
-    % retrive the Vbar_archive class
-    local Vbar_archive = libgeo.Vbar_archive
+    % retrive the Archive class
+    local Archive = libgeo.Archive
     % create a new instance of an archive and insert vbars
-    local archive = Vbar_archive:new()
+    local archive = Archive:new()
     assert(archive:insert(b1, 1))
     assert(archive:insert(b2, 2))
     assert(archive:insert(b3, 3))
     % fill a queue (an array) two times
-    local queue = assert(archive:push_queue(1))
-    assert(archive:push_queue(2, queue, 20*pt))
-    assert(archive:push_queue(3, queue, 20*pt))
-    assert(archive:push_queue(1, queue, 10*pt))
-    assert(archive:push_queue(2, queue, 20*pt))
-    assert(archive:push_queue(3, queue, 20*pt))
+    local queue = assert(archive:get(1)) + 20*pt
+    queue = queue + assert(archive:get(2)) + 20*pt
+    queue = queue + assert(archive:get(3)) + 20*pt
+    queue = queue + assert(archive:get(1)) + 20*pt
+    queue = queue + assert(archive:get(2)) + 20*pt
+    queue = queue + assert(archive:get(3))
     % retrive a canvas instance
-    local gacanvas = barracuda._gacanvas
-    local ga = gacanvas:new()
+    local ga = barracuda:new_canvas()
     % draw the canvas with the driver component
-    assert(ga:encode_vbar_archive(queue, 0, 0, 30*pt))
+    assert(ga:encode_vbar_queue(queue, 0, 0, 30*pt))
     local driver = barracuda:get_driver()
     driver:ga_to_hbox(ga, [[mybox]])
 }A\box\mybox A

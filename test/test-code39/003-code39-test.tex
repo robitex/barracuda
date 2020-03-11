@@ -18,33 +18,35 @@ local ok, err = c39:set_param("text_vpos", "top")
 assert(ok, err)
 
 local canvas = barracuda:new_canvas()
-symbol:append_ga(canvas)
+symbol:draw(canvas)
 
 local ok, err = symbol:set_param("text_hpos", "center")
 assert(ok, err)
-symbol:append_ga(canvas, tex.sp "4.5cm")
+symbol:draw(canvas, tex.sp "4.5cm")
 
 local ok, err = symbol:set_param("text_hpos", "right")
 assert(ok, err)
-symbol:append_ga(canvas, tex.sp "9.0cm")
+symbol:draw(canvas, tex.sp "9.0cm")
 
 local ok, err = c39:set_param("text_vpos", "bottom")
 assert(ok, err)
 
 local ok, err = symbol:set_param("text_hpos", "left")
-symbol:append_ga(canvas, 0, tex.sp "-2.0cm")
+symbol:draw(canvas, 0, tex.sp "-2.0cm")
 
 local ok, err = symbol:set_param("text_hpos", "center")
 assert(ok, err)
-symbol:append_ga(canvas, tex.sp "4.5cm", tex.sp "-2.0cm")
+symbol:draw(canvas, tex.sp "4.5cm", tex.sp "-2.0cm")
 
 local ok, err = symbol:set_param("text_hpos", "right")
 assert(ok, err)
-symbol:append_ga(canvas, tex.sp "9.0cm", tex.sp "-2.0cm")
+symbol:draw(canvas, tex.sp "9.0cm", tex.sp "-2.0cm")
 
 local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
-}\box\mybox
+}
+\bigskip
+\leavevmode\box\mybox
 \bye
 
 

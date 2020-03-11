@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Barracuda package (https://github.com/robitex/barracuda) -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg"
+  version="1.1"
+  width="30.050000mm" height="20.000000mm"
+  viewBox="-0.025000 -20.000000 30.050000 20.000000"
+>
+  <path d="M0.000000 -5.000000H30.000000"
+    stroke="black" stroke-width="1.000000"
+    stroke-dasharray="2.000000"
+  />
+  <path d="M0.000000 -10.000000H30.000000"
+    stroke="black" stroke-width="1.000000"
+    stroke-dasharray="2.000000 4.000000"
+  />
+  <path d="M0.000000 -15.000000H30.000000"
+    stroke="black" stroke-width="1.000000"
+    stroke-dasharray="2.000000 2.000000 4.000000"
+    stroke-dashoffset="1.000000"
+  />
+  <path d="M0.000000 -20.000000V-0.000000"
+    stroke="black" stroke-width="0.050000"
+  />
+  <path d="M2.000000 -20.000000V-0.000000"
+    stroke="black" stroke-width="0.050000"
+  />
+  <path d="M4.000000 -20.000000V-0.000000"
+    stroke="black" stroke-width="0.050000"
+  />
+  <path d="M6.000000 -20.000000V-0.000000"
+    stroke="black" stroke-width="0.050000"
+  />
+  <path d="M8.000000 -20.000000V-0.000000"
+    stroke="black" stroke-width="0.050000"
+  />
+  <path d="M10.000000 -20.000000V-0.000000"
+    stroke="black" stroke-width="0.050000"
+  />
+  <path d="M12.000000 -20.000000V-0.000000"
+    stroke="black" stroke-width="0.050000"
+  />
+  <path d="M14.000000 -20.000000V-0.000000"
+    stroke="black" stroke-width="0.050000"
+  />
+  <path d="M16.000000 -20.000000V-0.000000"
+    stroke="black" stroke-width="0.050000"
+  />
+  <path d="M18.000000 -20.000000V-0.000000"
+    stroke="black" stroke-width="0.050000"
+  />
+  <path d="M20.000000 -20.000000V-0.000000"
+    stroke="black" stroke-width="0.050000"
+  />
+  <path d="M22.000000 -20.000000V-0.000000"
+    stroke="black" stroke-width="0.050000"
+  />
+  <path d="M24.000000 -20.000000V-0.000000"
+    stroke="black" stroke-width="0.050000"
+  />
+  <path d="M26.000000 -20.000000V-0.000000"
+    stroke="black" stroke-width="0.050000"
+  />
+  <path d="M28.000000 -20.000000V-0.000000"
+    stroke="black" stroke-width="0.050000"
+  />
+  <path d="M30.000000 -20.000000V-0.000000"
+    stroke="black" stroke-width="0.050000"
+  />
+  <g stroke="black" stroke-width="0.050000" fill="none" stroke-dasharray="1.000000" stroke-dashoffset="0.500000">
+    <polyline points="1.000000,-1.000000
+    29.000000,-1.000000
+    29.000000,-19.000000
+    1.000000,-19.000000
+    1.000000,-1.000000"/>
+  </g>
+</svg>
+

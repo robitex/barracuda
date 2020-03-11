@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Barracuda package (https://github.com/robitex/barracuda) -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg"
+  version="1.1"
+  width="74.497108mm" height="20.349904mm"
+  viewBox="-7.424961 -15.174920 74.497108 20.349904"
+>
+  <g stroke="black">
+    <path d="M0.247499 -12.699933V-0.000000" style="stroke-width:0.494997"/>
+    <path d="M1.237493 -12.699933V-0.000000" style="stroke-width:0.494997"/>
+  </g>
+  <g stroke="black">
+    <path d="M2.598736 -12.699933V-0.000000" style="stroke-width:1.237493"/>
+    <path d="M3.959979 -12.699933V-0.000000" style="stroke-width:0.494997"/>
+    <path d="M5.692470 -12.699933V-0.000000" style="stroke-width:0.494997"/>
+    <path d="M6.682465 -12.699933V-0.000000" style="stroke-width:0.494997"/>
+    <path d="M8.043708 -12.699933V-0.000000" style="stroke-width:1.237493"/>
+  </g>
+  <g stroke="black">
+    <path d="M10.518695 -12.699933V-0.000000" style="stroke-width:1.237493"/>
+    <path d="M12.251186 -12.699933V-0.000000" style="stroke-width:1.237493"/>
+    <path d="M13.612428 -12.699933V-0.000000" style="stroke-width:0.494997"/>
+    <path d="M15.344919 -12.699933V-0.000000" style="stroke-width:0.494997"/>
+    <path d="M16.334914 -12.699933V-0.000000" style="stroke-width:0.494997"/>
+  </g>
+  <g stroke="black">
+    <path d="M18.438653 -12.699933V-0.000000" style="stroke-width:1.237493"/>
+    <path d="M19.799896 -12.699933V-0.000000" style="stroke-width:0.494997"/>
+    <path d="M21.903635 -12.699933V-0.000000" style="stroke-width:1.237493"/>
+    <path d="M24.007374 -12.699933V-0.000000" style="stroke-width:0.494997"/>
+    <path d="M24.997368 -12.699933V-0.000000" style="stroke-width:0.494997"/>
+  </g>
+  <g stroke="black">
+    <path d="M25.987363 -12.699933V-0.000000" style="stroke-width:0.494997"/>
+    <path d="M27.719854 -12.699933V-0.000000" style="stroke-width:0.494997"/>
+    <path d="M28.709849 -12.699933V-0.000000" style="stroke-width:0.494997"/>
+    <path d="M30.071092 -12.699933V-0.000000" style="stroke-width:1.237493"/>
+    <path d="M32.546079 -12.699933V-0.000000" style="stroke-width:1.237493"/>
+  </g>
+  <g stroke="black">
+    <path d="M33.907322 -12.699933V-0.000000" style="stroke-width:0.494997"/>
+    <path d="M35.268564 -12.699933V-0.000000" style="stroke-width:1.237493"/>
+    <path d="M36.629807 -12.699933V-0.000000" style="stroke-width:0.494997"/>
+    <path d="M38.733546 -12.699933V-0.000000" style="stroke-width:1.237493"/>
+    <path d="M40.837285 -12.699933V-0.000000" style="stroke-width:0.494997"/>
+  </g>
+  <g stroke="black">
+    <path d="M42.198528 -12.699933V-0.000000" style="stroke-width:1.237493"/>
+    <path d="M43.559771 -12.699933V-0.000000" style="stroke-width:0.494997"/>
+    <path d="M45.292262 -12.699933V-0.000000" style="stroke-width:0.494997"/>
+    <path d="M46.282256 -12.699933V-0.000000" style="stroke-width:0.494997"/>
+    <path d="M47.643499 -12.699933V-0.000000" style="stroke-width:1.237493"/>
+  </g>
+  <g stroke="black">
+    <path d="M50.118486 -12.699933V-0.000000" style="stroke-width:1.237493"/>
+    <path d="M52.593473 -12.699933V-0.000000" style="stroke-width:1.237493"/>
+    <path d="M53.954716 -12.699933V-0.000000" style="stroke-width:0.494997"/>
+    <path d="M54.944711 -12.699933V-0.000000" style="stroke-width:0.494997"/>
+    <path d="M55.934706 -12.699933V-0.000000" style="stroke-width:0.494997"/>
+  </g>
+  <g stroke="black">
+    <path d="M58.038445 -12.699933V-0.000000" style="stroke-width:1.237493"/>
+    <path d="M59.399687 -12.699933V-0.000000" style="stroke-width:0.494997"/>
+  </g>
+  <rect x="-6.187467" y="-13.937427" width="72.022121" height="15.174920"    fill="none" stroke="black" stroke-width="2.474987"
+  />
+  <text x="29.823593" y="5.174984" font-family="Verdana" font-size="2.877000" text-anchor="middle">
+  (12) 34 56 78 90 12 31  </text>
+</svg>
+

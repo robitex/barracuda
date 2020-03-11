@@ -1,10 +1,11 @@
--- Copyright (C) 2020 Roberto Giacomelli
+% !TeX program = LuaTeX
+% Copyright (C) 2020 Roberto Giacomelli
 
+\directlua{
 local barracuda = require "barracuda"
 local barcode = barracuda:barcode()
-local c128, err = barcode:new_encoder("code128")
-assert(not err, err)
-
+local c128 = assert(barcode:new_encoder("code128"))
+print()
 print(c128._NAME)
 print(c128._VERSION)
 
@@ -15,18 +16,19 @@ for k, tp in ipairs(info.param) do
     print(k, tp.name, tp.value)
 end
 
-local symb = c128:from_string("123")
+local symb = c128:new("123")
 print("Symbol char list:")
-for _, c in ipairs(symb._code_data) do
+for _, c in ipairs(symb:get_code()) do
     print(c)
 end
 
 local canvas = barracuda:new_canvas()
 
-symb:append_ga(canvas)
+symb:draw(canvas)
 
--- driver library
+% driver library
 local drv = barracuda:get_driver()
 drv:save("svg", canvas, "c128-123")
-
+}
+\bye
 

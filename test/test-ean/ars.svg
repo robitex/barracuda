@@ -12,6 +12,14 @@
     <path d="M0.824996 -24.499871V-0.000000" style="stroke-width:0.329998"/>
   </g>
   <g stroke="black">
+    <path d="M15.344919 -24.499871V-0.000000" style="stroke-width:0.329998"/>
+    <path d="M16.004916 -24.499871V-0.000000" style="stroke-width:0.329998"/>
+  </g>
+  <g stroke="black">
+    <path d="M30.524839 -24.499871V-0.000000" style="stroke-width:0.329998"/>
+    <path d="M31.184836 -24.499871V-0.000000" style="stroke-width:0.329998"/>
+  </g>
+  <g stroke="black">
     <path d="M1.814990 -24.499871V-1.649991" style="stroke-width:0.989995"/>
     <path d="M2.969984 -24.499871V-1.649991" style="stroke-width:0.659997"/>
   </g>
@@ -36,10 +44,6 @@
     <path d="M14.354924 -24.499871V-1.649991" style="stroke-width:0.989995"/>
   </g>
   <g stroke="black">
-    <path d="M15.344919 -24.499871V-0.000000" style="stroke-width:0.329998"/>
-    <path d="M16.004916 -24.499871V-0.000000" style="stroke-width:0.329998"/>
-  </g>
-  <g stroke="black">
     <path d="M16.829911 -24.499871V-1.649991" style="stroke-width:0.659997"/>
     <path d="M17.819906 -24.499871V-1.649991" style="stroke-width:0.659997"/>
   </g>
@@ -62,10 +66,6 @@
   <g stroke="black">
     <path d="M28.379851 -24.499871V-1.649991" style="stroke-width:0.659997"/>
     <path d="M29.699844 -24.499871V-1.649991" style="stroke-width:0.659997"/>
-  </g>
-  <g stroke="black">
-    <path d="M30.524839 -24.499871V-0.000000" style="stroke-width:0.329998"/>
-    <path d="M31.184836 -24.499871V-0.000000" style="stroke-width:0.329998"/>
   </g>
   <text x="-3.629981" y="0.780007" font-family="Verdana" font-size="2.877000">
   9  </text>
@@ -106,5 +106,9 @@
   <tspan x="36.445645">2</tspan>
   <tspan x="39.453955">2</tspan>
   </text>
+  <rect x="-3.612342" y="-24.482232" width="47.154474" height="24.464593"    fill="none" stroke="black" stroke-width="0.035278"
+    stroke-dasharray="2.116667 1.058333"
+    stroke-dashoffset="1.058333"
+  />
 </svg>
 

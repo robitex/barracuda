@@ -5,7 +5,7 @@ Basic rules
 -----------
 
 + Every new version will be uploaded to CTAN network
-+ For each single task there will be a commit
++ For each single task there will be a single commit
 
 Hypothetical development task list:
 -----------------------------------
@@ -27,6 +27,7 @@ Hypothetical development task list:
 2020-__-__: [dev][barcode] new `preset` feature
 2020-__-__: [project][build] make a Lua script to easily create the CTAN upload
           : compressed files
+2020-__-__: [dev] statistical data on how many barcode symbols was printed
 
 Scheduled task list for Data Matrix 2D symbology implementation:
 ----------------------------------------------------------------
@@ -39,22 +40,20 @@ Scheduled task list for Data Matrix 2D symbology implementation:
 2020-__-__: [geo] grid vector object
 2020-__-__: [dev] init source file encoder for Data Matrix
 
-Development Planner:
-====================
+Ongoing Scheduler:
+==================
 -------------------------------------------------------------------------------
 2020-__-__: [milestone] version <v0.0.11> completed task/commit list
-2020-__-__: [doc] barcode symbologies reference
-2020-__-__: [dev][barcode] new `alias` feature
-2020-__-__: [dev][barcode] new `preset` feature
 2020-__-__: [test] update test files with recent changes
 2020-__-__: [dev][ean] fix the `ean:checksum()` to include ISBN and ISSN variant
 2020-__-__: [dev] control the method call on the right class
-2020-03-__: [code128] add hri
+2020-03-__: [code128] add human readeable text
 2020-03-__: [breaking change] refactor Text libgeo object
 2020-03-__: [doc] barcode symbologies reference
-2020-__-__: [dev] new `debug_draw_bbox` Barcode parameter
+2020-03-__: [barcode] new method input_code()
 -------------------------------------------------------------------------------
-2020-03-07:*[ga] new <dash-pattern> and <reset-pattern> opcodes
+2020-03-11:*[breaking change][barcode] new `draw()` method
+2020-03-07: [ga] new <dash-pattern> and <reset-pattern> opcodes
 2020-03-06: [doc] new section explains `Vbar`
 2020-03-02: [doc] add a chess example for `ga` stream
 

@@ -3,15 +3,10 @@
 -- Copyright (C) 2020 Roberto Giacomelli
 --
 -- Basic driver interface
--- drawing elementary vector shape
+-- drawing elementary vector graphic
 -- All dimensions are in scaled point (sp)
 
-local Driver = {
-    _VERSION     = "Driver v0.0.9",
-    _NAME        = "Driver",
-    _DESCRIPTION = "Driver for ga graphic assembler stream",
-}
-
+local Driver = {_classname = "Driver"}
 Driver.__index = Driver
 Driver._drv_instance = {} -- driver instances repository
 Driver.mm = 186467.98110236 -- conversion factor sp -> mm (millimeter)
@@ -25,10 +20,10 @@ Driver._drv_available_drv = { -- lowercase keys please
 
 function Driver:_get_driver(id_drv) --> object, err
     if type(id_drv) ~= "string" then
-        return nil, "[ArgErr] 'id_drv' is not a string"
+        return nil, "[ArgErr: id_drv] string expected"
     end
     if not self._drv_available_drv[id_drv] then
-        return nil, "[ArgErr] driver '"..id_drv.."' not found"
+        return nil, "[ArgErr: id_drv] driver '"..id_drv.."' not found"
     end
     local t_drv = self._drv_instance
     if t_drv[id_drv] then -- is the repo already loaded?
@@ -46,6 +41,8 @@ function Driver:_new_state() --> a new state
         line_width = 65781.76, -- line width 1bp (in scaled point sp)
         line_cap = 0, -- line cap style
         line_join = 0, -- line join style
+        dashpattern = nil, -- dash definition
+        dashphase = nil, -- dash phase definition
         gtext = false, -- text group off
         bb_on = true, -- bounding box checking activation
         bb_x1 = nil, -- bounding box coordinates in sp (nil means no data)
@@ -102,8 +99,8 @@ end
 -- ga ::= gaCanvas class | ga stream table array
 -- boxname ::= string
 function Driver:ga_to_hbox(ga, boxname) --> ok, err
-    if not type(ga) == "table" then
-        return false, "[ArgErr] 'ga' is not a table"
+    if type(ga) ~= "table" then
+        return false, "[ArgErr: ga] table expected"
     end
     local ga_stream; if ga._classname == "gaCanvas" then
         ga_stream = ga:get_stream()
@@ -167,24 +164,28 @@ Driver._opcode_v001 = {
     -- 5 <dash_pattern>, Dash pattern line style
     -- phase <len> n <qty> [bi <len>]+
     [5] = function (drv, st, pc, ga, bf, xt)
-        if not drv.append_005_start or not drv.append_005_dash or not drv.append_005_stop then
+        if not drv.append_005 then
             error("[InternalErr] unimplemented opcode 5 for "..drv._NAME)
         end
-        drv.append_005_start(st, bf, xt)
         local phase = ga[pc]; pc = pc + 1
         local n = ga[pc]; pc = pc + 1
         assert(n > 0, "[Err] dash pattern needs one length or more ("..n..")")
+        st.dashphase = phase
+        local dash = {}
         for i = pc, pc + n - 1 do
             local v = ga[i]
-            drv.append_005_dash(st, bf, xt, v)
+            dash[#dash + 1] = v
         end
-        drv.append_005_stop(st, bf, xt, phase)
+        st.dashpattern = dash
+        drv.append_005(st, bf, xt, phase, dash)
         return pc + n
     end,
     [6] = function (drv, st, pc, ga, bf, xt) -- 6 <reset_pattern>
         if not drv.append_006 then
             error("[InternalErr] unimplemented opcode 6 for "..drv._NAME)
         end
+        st.dashpattern = nil -- reset dash pattern array and phase
+        st.dashphase = nil
         drv.append_006(st, bf, xt)
         return pc
     end,
@@ -391,7 +392,7 @@ Driver._opcode_v001 = {
             end
         end
         if not drv.append_048 then
-            error("[InternalErr] unimplemented opcode 48 for "..drv._NAME)
+            error("[InternalErr] unimplemented opcode 48 for "..drv._drvname)
         end
         drv.append_048(st, bf, xt, x1, y1, x2, y2)
         return pc

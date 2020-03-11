@@ -30,7 +30,19 @@ barracuda:hbox("ean-issn+5", ars_issn.online.."00028", "mybox")
 
 \vskip10pt
 \leavevmode
-\directlua{barracuda:hbox("ean-issn", "1828-2350", "mybox")}
+\directlua{
+local barcode = barracuda:barcode()
+barcode:set_param("debug_bbox_on", true)
+barracuda:hbox("ean-issn", "1828-2350", "mybox")
+}
+\box\mybox
+
+\vskip10pt
+\leavevmode
+\directlua{
+barracuda:hbox("ean-issn+2", "1828-2350 [01] 22", "mybox")
+barracuda:save("ean-issn+2", "1828-2350 [01] 22", "ars")
+}
 \box\mybox
 
 \vskip10pt
@@ -43,15 +55,5 @@ barracuda:hbox("ean-issn+5", ars_issn.online.."00028", "mybox")
 \directlua{barracuda:hbox("ean-issn+5", "1828-2350 [01] 00028", "mybox")}
 \box\mybox
 
-\vskip10pt
-\leavevmode
-\directlua{
-barracuda:hbox("ean-issn+2", "1828-2350 [01] 22", "mybox")
-barracuda:save("ean-issn+2", "1828-2350 [01] 22", "ars")
-}
-\box\mybox
-
-
 \bye
-
 

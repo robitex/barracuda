@@ -1036,12 +1036,12 @@ fn_append_ga_variant["13"] = function (ean, canvas, tx, ty, ax, ay)
         queue_1 = queue_1 + assert(Codeset:get(code_seq[i-1], code[i]))
     end
     local bars_depth = mod * ean.bars_depth_factor
-    local w, h       = 95*mod, ean.height + bars_depth
-    local x0         = (tx or 0) - ax * w
-    local y0         = (ty or 0) - ay * h
-    local x1         = x0 + w
-    local y1         = y0 + h
-    local ys         = y0 + bars_depth
+    local w, h = 95*mod, ean.height + bars_depth
+    local x0   = tx - ax * w
+    local y0   = ty - ay * h
+    local x1   = x0 + w
+    local y1   = y0 + h
+    local ys   = y0 + bars_depth
     -- draw the symbol
     assert(canvas:encode_disable_bbox())
     assert(canvas:encode_vbar_queue(queue_0, x0, y0, y1))
@@ -1050,8 +1050,8 @@ fn_append_ga_variant["13"] = function (ean, canvas, tx, ty, ax, ay)
     local qzl = ean.quietzone_left_factor * mod
     local qzr = ean.quietzone_right_factor * mod
     assert(canvas:encode_set_bbox(x0 - qzl, y0, x1 + qzr, y1))
+    assert(canvas:encode_enable_bbox())
     if ean.text_enabled then -- human readable text
-        assert(canvas:encode_enable_bbox())
         local Text  = ean._libgeo.Text
         local txt_1 = Text:from_digit_array(code, 1,  1)
         local txt_2 = Text:from_digit_array(code, 2,  7)
@@ -1120,6 +1120,7 @@ fn_append_ga_variant["13"] = function (ean, canvas, tx, ty, ax, ay)
             assert(canvas:encode_Text(issn_txt, x_issn, y_issn, 0.5, 0))
         end
     end
+    return x0 - qzl, y0, x1 + qzr, y1
 end
 
 -- draw EAN8 symbol
@@ -1141,14 +1142,12 @@ fn_append_ga_variant["8"] = function (ean, canvas, tx, ty, ax, ay)
         q1 = q1 + assert(Codeset:get(cs58, code[i]))
     end
     local bars_depth = mod * ean.bars_depth_factor
-    local w, h       = 67*mod, ean.height + bars_depth
-    local x0         = (tx or 0) - ax * w
-    local y0         = (ty or 0) - ay * h
-    local x1         = x0 + w
-    local y1         = y0 + h
-    local xpos       = x0
-    local ys         = y0 + bars_depth
-    local s_width    = 7*mod
+    local w, h = 67*mod, ean.height + bars_depth
+    local x0   = tx - ax * w
+    local y0   = ty - ay * h
+    local x1   = x0 + w
+    local y1   = y0 + h
+    local ys   = y0 + bars_depth
     -- draw the symbol
     assert(canvas:encode_disable_bbox())
     assert(canvas:encode_vbar_queue(q0, x0, y0, y1))
@@ -1157,8 +1156,8 @@ fn_append_ga_variant["8"] = function (ean, canvas, tx, ty, ax, ay)
     local qzl = ean.quietzone_left_factor * mod
     local qzr = ean.quietzone_right_factor * mod
     assert(canvas:encode_set_bbox(x0 - qzl, y0, x1 + qzr, y1))
+    assert(canvas:encode_enable_bbox())
     if ean.text_enabled then -- human readable text
-        assert(canvas:encode_enable_bbox())
         local Text  = ean._libgeo.Text
         local t_1 = Text:from_digit_array(code, 1, 4)
         local t_2 = Text:from_digit_array(code, 5, 8)
@@ -1193,6 +1192,7 @@ fn_append_ga_variant["8"] = function (ean, canvas, tx, ty, ax, ay)
             assert(canvas:encode_polyline(p2))
         end
     end
+    return x0 - qzl, y0, x1 + qzr, y1
 end
 
 -- draw EAN5 add-on symbol
@@ -1221,8 +1221,8 @@ fn_append_ga_variant["5"] = function (ean, canvas, tx, ty, ax, ay, h)
     end
     local w = 47*mod
     h = h or ean.height
-    local x0 = (tx or 0) - ax * w
-    local y0 = (ty or 0) - ay * h
+    local x0 = tx - ax * w
+    local y0 = ty - ay * h
     local x1 = x0 + w
     local y1 = y0 + h
     -- draw the symbol
@@ -1232,8 +1232,8 @@ fn_append_ga_variant["5"] = function (ean, canvas, tx, ty, ax, ay, h)
     local qzl = ean.quietzone_left_factor * mod
     local qzr = ean.quietzone_right_factor * mod
     assert(canvas:encode_set_bbox(x0 - qzl, y0, x1 + qzr, y1))
+    assert(canvas:encode_enable_bbox())
     if ean.text_enabled then -- human readable text
-        assert(canvas:encode_enable_bbox())
         local Text = ean._libgeo.Text
         local txt  = Text:from_digit_array(code, i1, i2)
         local y_bl = y1 + ean.text_ygap_factor * mod
@@ -1258,6 +1258,7 @@ fn_append_ga_variant["5"] = function (ean, canvas, tx, ty, ax, ay, h)
             assert(canvas:encode_polyline(p))
         end
     end
+    return x0 - qzl, y0, x1 + qzr, y1
 end
 
 -- draw EAN2 symbol
@@ -1289,8 +1290,8 @@ fn_append_ga_variant["2"] = function (ean, canvas, tx, ty, ax, ay, h)
     local mod = ean.mod
     local w = 20*mod
     h = h or ean.height
-    local x0 = (tx or 0.0) - ax * w
-    local y0 = (ty or 0.0) - ay * h
+    local x0 = tx - ax * w
+    local y0 = ty - ay * h
     local x1 = x0 + w
     local y1 = y0 + h
     assert(canvas:encode_disable_bbox())
@@ -1299,8 +1300,8 @@ fn_append_ga_variant["2"] = function (ean, canvas, tx, ty, ax, ay, h)
     local qzl = ean.quietzone_left_factor * mod
     local qzr = ean.quietzone_right_factor * mod
     assert(canvas:encode_set_bbox(x0 - qzl, y0, x1 + qzr, y1))
+    assert(canvas:encode_enable_bbox())
     if ean.text_enabled then -- human readable text
-        assert(canvas:encode_enable_bbox())
         local Text  = ean._libgeo.Text
         local txt = Text:from_digit_array(code, i1, i1 + 1)
         local y_bl = y1 + ean.text_ygap_factor * mod
@@ -1325,6 +1326,7 @@ fn_append_ga_variant["2"] = function (ean, canvas, tx, ty, ax, ay, h)
             assert(canvas:encode_polyline(p))
         end
     end
+    return x0 - qzl, y0, x1 + qzr, y1
 end
 
 fn_append_ga_variant["13+5"] = function (ean, canvas, tx, ty, ax, ay)
@@ -1332,14 +1334,15 @@ fn_append_ga_variant["13+5"] = function (ean, canvas, tx, ty, ax, ay)
     local bars_depth = mod * ean.bars_depth_factor
     local h = ean.height + bars_depth
     local w = (142 + ean.addon_xgap_factor) * mod
-    local x0 = (tx or 0) - ax * w
-    local y0 = (ty or 0) - ay * h
+    local x0 = tx - ax * w
+    local y0 = ty - ay * h
     local x1 = x0 + w
     local fn_ga = ean._append_ga_variant
     local fn_1 = fn_ga["13"]
     local fn_2 = fn_ga["5"]
-    fn_1(ean, canvas, x0, y0, 0, 0)
-    fn_2(ean, canvas, x1, y0, 1, 0, 0.85 * h)
+    local p1x, p1y, _, p2y = fn_1(ean, canvas, x0, y0, 0, 0)
+    local _, _, p2x, _ = fn_2(ean, canvas, x1, y0, 1, 0, 0.85 * h)
+    return p1x, p1y, p2x, p2y
 end
 
 fn_append_ga_variant["13+2"] = function (ean, canvas, tx, ty, ax, ay)
@@ -1347,14 +1350,15 @@ fn_append_ga_variant["13+2"] = function (ean, canvas, tx, ty, ax, ay)
     local bars_depth = mod * ean.bars_depth_factor
     local h = ean.height + bars_depth
     local w = (115 + ean.addon_xgap_factor) * mod
-    local x0 = (tx or 0) - ax * w
-    local y0 = (ty or 0) - ay * h
+    local x0 = tx - ax * w
+    local y0 = ty - ay * h
     local x1 = x0 + w
     local fn_ga = ean._append_ga_variant
     local fn_1 = fn_ga["13"]
     local fn_2 = fn_ga["2"]
-    fn_1(ean, canvas, x0, y0, 0, 0)
-    fn_2(ean, canvas, x1, y0, 1, 0, 0.85 * h)
+    local p1x, p1y, _, p2y = fn_1(ean, canvas, x0, y0, 0, 0)
+    local _, _, p2x, _ = fn_2(ean, canvas, x1, y0, 1, 0, 0.85 * h)
+    return p1x, p1y, p2x, p2y
 end
 
 fn_append_ga_variant["8+5"] = function (ean, canvas, tx, ty, ax, ay)
@@ -1362,14 +1366,15 @@ fn_append_ga_variant["8+5"] = function (ean, canvas, tx, ty, ax, ay)
     local bars_depth = mod * ean.bars_depth_factor
     local h = ean.height + bars_depth
     local w = (114 + ean.addon_xgap_factor) * mod
-    local x0 = (tx or 0) - ax * w
-    local y0 = (ty or 0) - ay * h
+    local x0 = tx - ax * w
+    local y0 = ty - ay * h
     local x1 = x0 + w
     local fn_ga = ean._append_ga_variant
     local fn_1 = fn_ga["8"]
     local fn_2 = fn_ga["5"]
-    fn_1(ean, canvas, x0, y0, 0, 0)
-    fn_2(ean, canvas, x1, y0, 1, 0, 0.85 * h)
+    local p1x, p1y, _, p2y = fn_1(ean, canvas, x0, y0, 0, 0)
+    local _, _, p2x, _ = fn_2(ean, canvas, x1, y0, 1, 0, 0.85 * h)
+    return p1x, p1y, p2x, p2y
 end
 
 fn_append_ga_variant["8+2"] = function (ean, canvas, tx, ty, ax, ay)
@@ -1377,14 +1382,15 @@ fn_append_ga_variant["8+2"] = function (ean, canvas, tx, ty, ax, ay)
     local bars_depth = mod * ean.bars_depth_factor
     local h = ean.height + bars_depth
     local w = (87 + ean.addon_xgap_factor) * mod
-    local x0 = (tx or 0) - ax * w
-    local y0 = (ty or 0) - ay * h
+    local x0 = tx - ax * w
+    local y0 = ty - ay * h
     local x1 = x0 + w
     local fn_ga = ean._append_ga_variant
     local fn_1 = fn_ga["8"]
     local fn_2 = fn_ga["2"]
-    fn_1(ean, canvas, x0, y0, 0, 0)
-    fn_2(ean, canvas, x1, y0, 1, 0, 0.85 * h)
+    local p1x, p1y, _, p2y = fn_1(ean, canvas, x0, y0, 0, 0)
+    local _, _, p2x, _ = fn_2(ean, canvas, x1, y0, 1, 0, 0.85 * h)
+    return p1x, p1y, p2x, p2y
 end
 
 -- ISBN
@@ -1399,12 +1405,11 @@ fn_append_ga_variant["issn+2"] = fn_append_ga_variant["13+2"]
 -- Drawing into the provided channel geometrical data
 -- tx, ty is the optional translation vector
 -- the function return the canvas reference to allow call chaining
-function EAN:append_ga(canvas, tx, ty) --> canvas
+function EAN:_append_ga(canvas, tx, ty) --> bbox
     local var = self._variant
     local fn_append_ga = assert(self._append_ga_variant[var])
     local ax, ay = self.ax, self.ay
-    fn_append_ga(self, canvas, tx, ty, ax, ay)
-    return canvas
+    return fn_append_ga(self, canvas, tx, ty, ax, ay)
 end
 
 return EAN

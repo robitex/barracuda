@@ -28,35 +28,36 @@ the PDF output file.
 
 \newbox\mybox
 \directlua{
-    driver = require [[lib-driver.brcd-driver]] % global Lua variables
+    brcd = require "barracuda"
+    driver = brcd:get_driver() % global Lua variables
     pt = tex.sp [[1pt]] % 1pt = 65536sp
 }
 
 Let's start drawing an horizontal line 100pt long:
 \directlua{
-   local ga = {_data = {33, 0*pt, 100*pt, 0*pt}}
+   local ga = {33, 0*pt, 100*pt, 0*pt}
    driver:ga_to_hbox(ga, [[mybox]])
 }\box\mybox
 
 or two different parallel lines 24pt long:
 \directlua{
-   local ga = {_data = {33, 0*pt, 24*pt, 0*pt, 33, 0*pt, 24*pt, 5*pt}}
+   local ga = {33, 0*pt, 24*pt, 0*pt, 33, 0*pt, 24*pt, 5*pt}
    driver:ga_to_hbox(ga, [[mybox]])
 }\box\mybox
 
 and again two horizontal lines 10pt thick, touching a corner:
 \directlua{
-   local ga = {_data = {
+   local ga = {
        1,   10*pt,
        33, -24*pt,  0*pt, -5*pt,
        33,   0*pt, 24*pt,  5*pt,
-   }}
+   }
    driver:ga_to_hbox(ga, [[mybox]])
 }\box\mybox
 
 Several vertical lines with its horizontal limits:
 \directlua{
-   local ga = { _data = {
+   local ga = {
        34, -20*pt, 20*pt,  0*pt,
        34, -15*pt, 15*pt,  5*pt,
        34, -10*pt, 10*pt, 10*pt,
@@ -69,16 +70,16 @@ Several vertical lines with its horizontal limits:
         1, .05*pt,
        33,   0*pt, 40*pt, -20*pt,
        33,   0*pt, 40*pt,  20*pt,
-   }}
+   }
    driver:ga_to_hbox(ga, [[mybox]])
 }\box\mybox
 
 Finally a little rectangle:
 \directlua{
-   local ga = {_data = {
+   local ga = {
        1, 5*pt,
       48, 0*pt, 0*pt, 15*pt, 10*pt,
-   }}
+   }
    driver:ga_to_hbox(ga, [[mybox]])
 }\box\mybox
 
@@ -86,7 +87,7 @@ Finally a little rectangle:
 Test number 1: a vbar 2pt width, 20pt height:
 \directlua{
     % vbar: <36> y1 y2 <nbars> x1 w1 x2 w2 ... xn wn
-    local ga = {_data = {36, 0, 20*pt, 1, 0.0, 2*pt}}
+    local ga = {36, 0, 20*pt, 1, 0.0, 2*pt}
     driver:ga_to_hbox(ga, [[mybox]])
 }\box\mybox
 
@@ -98,7 +99,7 @@ Test number 2: ten vbars in a row equally spaced by 10pt:
         ga[i*2 + 5] = 5*pt + i*20*pt
         ga[i*2 + 6] = 10*pt
     end
-    driver:ga_to_hbox({_data = ga}, [[mybox]])
+    driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
 \bigskip
@@ -117,7 +118,7 @@ Test number 3: two series of vbars 10pt and 5pt large:
         ga[i*2 + 29] = 15*pt + i*20*pt
         ga[i*2 + 30] = 5*pt
     end
-    driver:ga_to_hbox({_data = ga}, [[mybox]])
+    driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
 \bigskip
@@ -132,7 +133,7 @@ Test number 4: a bunch of thin vertical bars (25):
         ga[i*2 + 5] = 1*pt + i*4*pt
         ga[i*2 + 6] = 2*pt
     end
-    driver:ga_to_hbox({_data = ga}, [[mybox]])
+    driver:ga_to_hbox(ga, [[mybox]])
 }\vrule A\box\mybox A\vrule
 
 \bigskip
@@ -155,7 +156,7 @@ Test number 5: two rows of a bunch of thin bars:
         ga[i*2 + 59] = 3*pt + i*4*pt
         ga[i*2 + 60] = 2*pt
     end
-    driver:ga_to_hbox({_data = ga}, [[mybox]])
+    driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
 \bigskip
@@ -181,7 +182,7 @@ Test number 6: staircase of Vbars (manually data definition):
      25*pt, % x
      10*pt, % w
     }
-    driver:ga_to_hbox({_data = ga}, [[mybox]])
+    driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
 \bigskip
@@ -219,7 +220,7 @@ Test number 7: vbars with spaced text, in three different rows:
     ga[52] = 71 % G
     ga[53] = 72 % H
     ga[54] = 0
-    driver:ga_to_hbox({_data = ga}, [[mybox]])
+    driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
 \bigskip
@@ -271,7 +272,7 @@ Test number 8: spaced text (checking the correct vertical alignment):
     ga[66] = 55 % 7
     ga[67] = 56 % 8
     ga[68] = 0
-    driver:ga_to_hbox({_data = ga}, [[mybox]])
+    driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
 \bigskip
@@ -323,7 +324,7 @@ Test number 9: spaced text, check correct vertical alignment:
     ga[66] = 55 % 7
     ga[67] = 56 % 8
     ga[68] = 0
-    driver:ga_to_hbox({_data = ga}, [[mybox]])
+    driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
 \bigskip
@@ -356,7 +357,7 @@ Test number 10: two centered texts aligned to the baseline:
     ga[23] =  56 % 8
     ga[24] =  57 % 9
     ga[25] =   0
-    driver:ga_to_hbox({_data = ga}, [[mybox]])
+    driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
 \bigskip
@@ -368,9 +369,8 @@ In fact, all the previous tests are rebuild with the ga-canvas library.
 
 Test 1: a vbar 2pt width, 20pt height:
 \directlua{
-    gacanvas = require "lib-geo.brcd-gacanvas"
-    local ga = gacanvas:new()
-    local vbar = {_yline = {0.0, 2*pt}}
+    local ga = brcd:new_canvas()
+    local vbar = {0.0, 2*pt}
     assert(ga:encode_vbar(vbar, 0.0, 0.0, 20*pt)) % x, w
     driver:ga_to_hbox(ga, [[mybox]])
 }\box\mybox
@@ -378,13 +378,12 @@ Test 1: a vbar 2pt width, 20pt height:
 \bigskip
 Test 2: ten vbars equally spaced by 10pt:
 \directlua{
-    local ga = gacanvas:new()
-    local data = {}
+    local ga = brcd:new_canvas()
+    local bars = {}
     for i = 0, 9 do
-        data[i*2 + 1] =  5*pt + i*20*pt % x
-        data[i*2 + 2] = 10*pt           % w
+        bars[i*2 + 1] =  5*pt + i*20*pt % x
+        bars[i*2 + 2] = 10*pt           % w
     end
-    local bars = {_yline = data}
     assert(ga:encode_vbar(bars, 0.0, 0.0, 10*pt))
     driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
@@ -402,9 +401,9 @@ Test 3: two series of vbars 10pt and 5pt large:
         b2[i*2 + 1] = i*20*pt
         b2[i*2 + 2] = 5*pt
     end
-    local ga = gacanvas:new()
-    assert(ga:encode_vbar({_yline=b1}, 0.0, 0.0, 10*pt))
-    assert(ga:encode_vbar({_yline=b2}, 10.0*pt, 2.5*pt, 7.5*pt))
+    local ga = brcd:new_canvas()
+    assert(ga:encode_vbar(b1, 0.0, 0.0, 10*pt))
+    assert(ga:encode_vbar(b2, 10.0*pt, 2.5*pt, 7.5*pt))
     driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
 
@@ -416,8 +415,8 @@ Test 4: a bunch of thin bars:
         b[i*2 + 1] = 1*pt + i*4*pt
         b[i*2 + 2] = 2*pt
     end
-    local ga = gacanvas:new()
-    assert(ga:encode_vbar({_yline=b}, 0.0, 5*pt, 25*pt))
+    local ga = brcd:new_canvas()
+    assert(ga:encode_vbar(b, 0.0, 5*pt, 25*pt))
     driver:ga_to_hbox(ga, [[mybox]])
 }\vrule{ }\box\mybox{ }\vrule
 
@@ -429,8 +428,7 @@ Test 5: two levels of a bunch of thin bars:
         b[i*2 + 1] = i*4*pt
         b[i*2 + 2] = 2*pt
     end
-    local b = {_yline=b}
-    local ga = gacanvas:new()
+    local ga = brcd:new_canvas()
     assert(ga:encode_vbar(b, 0.0, 5*pt, 25*pt))
     assert(ga:encode_vbar(b, 2*pt, 25*pt, 45*pt, b))
     driver:ga_to_hbox(ga, [[mybox]])
@@ -439,8 +437,8 @@ Test 5: two levels of a bunch of thin bars:
 \bigskip
 Test number 6: staircase of bars (manual insertion of data):
 \directlua{
-    local b = {_yline={0.0, 10*pt}}
-    local ga = gacanvas:new()
+    local b = {0.0, 10*pt}
+    local ga = brcd:new_canvas()
     assert(ga:encode_vbar(b, 0.0, 0.0, 20*pt))
     assert(ga:encode_vbar(b, 10*pt, 20*pt, 40*pt))
     assert(ga:encode_vbar(b, 20*pt, 40*pt, 60*pt))
@@ -450,13 +448,12 @@ Test number 6: staircase of bars (manual insertion of data):
 \bigskip
 Test number 7: vbars with spaced text, all in three rows:
 \directlua{
-    local b = {}
+    local vb = {}
     for i = 0,7 do
-        b[i*2+1] = i*10*pt
-        b[i*2+2] = 5*pt
+        vb[i*2+1] = i*10*pt
+        vb[i*2+2] = 5*pt
     end
-    local vb = {_yline=b}
-    local ga = gacanvas:new()
+    local ga = brcd:new_canvas()
     assert(ga:encode_vbar(vb, 0.0, 0.0, 20*pt))
     assert(ga:encode_vbar(vb, 0.0, 30*pt, 50*pt))
     local txt = {codepoint = {
@@ -481,8 +478,7 @@ Test 8: spaced text, check correct vertical alignment:
         b[i*2+1] = i*10*pt
         b[i*2+2] = 2*pt
     end
-    b = {_yline=b}
-    local ga = gacanvas:new()
+    local ga = brcd:new_canvas()
     assert(ga:encode_vbar(b, 0.0, 0.0, 20*pt))
     assert(ga:encode_vbar(b, 0.0, 40*pt, 60*pt))
     local c = { codepoint = {
@@ -518,8 +514,7 @@ Test number 9: spaced text, check correct vertical alignment:
         b[i*2+1] = i*10*pt
         b[i*2+2] = 8*pt
     end
-    b = {_yline = b}
-    local ga = gacanvas:new()
+    local ga = brcd:new_canvas()
     assert(ga:encode_vbar(b, 0.0, 0.0, 20*pt))
     assert(ga:encode_vbar(b, 0.0, 40*pt, 60*pt))
     local c = { codepoint = {
@@ -562,7 +557,7 @@ Test number 10: two centered texts and baseline aligned:
         56, % 8
         57, % 9
     }}
-    local ga = gacanvas:new()
+    local ga = brcd:new_canvas()
     assert(ga:encode_Text(n, 0, 0, 0.5, 0))
     local a = { codepoint = {
         65, % A
@@ -588,7 +583,7 @@ Test number 11: two centered texts aligned:
         56, % 8
         57, % 9
     }}
-    local ga = gacanvas:new()
+    local ga = brcd:new_canvas()
     assert(ga:encode_Text(n, 0, 0, 0.5, 1))
     local a = { codepoint = {
         65, % A
@@ -615,7 +610,7 @@ Test number 12: text\_xwidth opcode:
         56, % 8
         57, % 9
     }}
-    local ga = gacanvas:new()
+    local ga = brcd:new_canvas()
     assert(ga:encode_Text_xwidth(n, 0, tex.sp "5cm", 0, 0))
     driver:ga_to_hbox(ga, [[mybox]])
 }\vrule\box\mybox\vrule
@@ -639,7 +634,7 @@ Test number 13: text\_xwidth with different size:
         56, % 8
         57, % 9
     }}
-    local ga = gacanvas:new()
+    local ga = brcd:new_canvas()
     %                           (txt, x1, x2, ypos, ay) --> ok, err
     assert(ga:encode_Text_xwidth(n, tex.sp "0mm", tex.sp "50mm", 0, 0))
     assert(ga:encode_Text_xwidth(n, tex.sp "5mm", tex.sp "45mm", tex.sp "3mm", 0))
@@ -660,9 +655,8 @@ Test number 14: place bars and text as text\_xwidth:
         b[i*2 + 1] = i*12*pt
         b[i*2 + 2] = 0.4*pt
     end
-    b = {_yline = b}
     local n = {codepoint = { 48, 49, 50, 51, 52, 53, 54, 55, 56, 57,}}
-    local ga = gacanvas:new()
+    local ga = brcd:new_canvas()
     %                    (vbar, x0, y1, y2) --> ok, err
     assert(ga:encode_vbar(b, 0.0,  0*pt, 25*pt))
     %                    (txt, x1, x2, ypos, ay) --> ok, err
@@ -677,10 +671,9 @@ Test number 14: place bars and text as text\_xwidth:
         b[i*2 + 1] = i*12*pt
         b[i*2 + 2] = 0.2*pt
     end
-    b = {_yline = b}
     local n = { 48, 49, 50, 51, string.byte([[x]]), 53, 54, 55, 56,}
     n = {codepoint = n}
-    local ga = gacanvas:new()
+    local ga = brcd:new_canvas()
     %                    x0,    y1,    y2, bars
     assert(ga:encode_vbar(b, 0.0,  0*pt, 25*pt))
     assert(ga:encode_vbar(b, 0.0, 32*pt, 42*pt))
@@ -694,7 +687,7 @@ Test number 15: place text\_xwidth when text is only two chars long:
 
 \directlua{
     local n = {codepoint = { 48, 56,}} % 0 and 8
-    local ga = gacanvas:new()
+    local ga = brcd:new_canvas()
     %                   (txt, x1, x2, ypos, ay) --> ok, err
     assert(ga:encode_Text_xwidth(n, 0*pt, 32*pt, 25*pt, 0))
     driver:ga_to_hbox(ga, [[mybox]])

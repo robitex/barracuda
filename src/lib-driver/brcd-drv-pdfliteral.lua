@@ -6,17 +6,12 @@
 -- All dimensions are in scaled point (sp)
 -- ga LuaTeX Driver (native implementation node+pdfliteral)
 
--- class for drawing elementary geometric elements
-local PDFnative = {
-    _VERSION     = "PDFnative v0.0.4",
-    _NAME        = "PDFnative",
-    _DESCRIPTION = "A LuaTeX native pdfliteral driver for ga graphic stream",
-}
-
 local tex = assert(tex, "This require a Lua powered TeX engine")
 local node = assert(node, "This require a Lua powered TeX engine")
 local font = assert(font, "This require a Lua powered TeX engine")
 
+-- class for drawing elementary geometric elements
+local PDFnative = {_drvname = "PDFnative"}
 PDFnative.ext = "txt" -- file extension
 PDFnative.buf_sep = "\n" -- separation string for buffer concat
 
@@ -128,23 +123,13 @@ function PDFnative.append_003(st, bf, xt, j)
 end
 
 -- 5 dash_pattern
-function PDFnative.append_005_start(st, bf, xt)
-    st.dash_array = {}
-end
-function PDFnative.append_005_dash(st, bf, xt, a)
-    local array = st.dash_array
-    array[#array + 1] = a
-end
-function PDFnative.append_005_stop(st, bf, xt, phase)
-    local array = st.dash_array; st.dash_array = nil
-    local t = {"["}
+function PDFnative.append_005(st, bf, xt, phase, dash_array)
     local bp = st.bp -- conversion factor bp -> sp
-    for _, a in ipairs(array) do
-        t[#t + 1] = string.format("%0.6f", a/bp)
-        t[#t + 1] = " "
+    local t = {}
+    for _, d in ipairs(dash_array) do
+        t[#t + 1] = string.format("%0.6f", d/bp)
     end
-    t[#t] = string.format("] %0.6f d", phase/bp)
-    bf[#bf + 1] = table.concat(t)
+    bf[#bf + 1] = string.format("[%s] %0.6f d",table.concat(t, " "), phase/bp)
 end
 
 -- 6 reset_pattern

@@ -109,7 +109,7 @@ function Barracuda:save(treename, data, filename, id_drv, opt)
         assert(ok, err)
     end
     local canvas = self:new_canvas()
-    symb:append_ga(canvas)
+    symb:draw(canvas)
     local driver = self:get_driver()
     id_drv = id_drv or "svg"
     local ok, err = driver:save(id_drv, canvas, filename)
@@ -149,7 +149,7 @@ function Barracuda:hbox(treename, data, box_name, opt)
         assert(ok, err)
     end
     local canvas = self:new_canvas()
-    symb:append_ga(canvas)
+    symb:draw(canvas)
     local driver = self:get_driver()
     local ok, err = driver:ga_to_hbox(canvas, box_name)
     assert(ok, err)

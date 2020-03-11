@@ -295,7 +295,7 @@ local symb, err_symb = ean13:from_string("8006194056290") -- step 4
 assert(symb, err_symb)
 
 local canvas = barracuda:new_canvas() -- step 5
-symb:append_ga(canvas) -- step 6
+symb:draw(canvas) -- step 6
 
 local driver = barracuda:get_driver() -- step 7
 local ok, err_out = driver:save("svg", canvas, "my_barcode") -- step 8
@@ -656,11 +656,11 @@ OpCode & Mnemonic key & Graphic property & Operands\\
    &&& 0: Miter join\\
    &&& 1: Round join\\
    &&& 2: Bevel join\\
- 5 & dash\_pattern & Dash pattern line style & p <len> n <qty> bi <len>\\
+ 5 & dash\_pattern & Dash pattern line style & p <len> n <qty> [bi <len>]+\\
    &&& p: phase lenght\\
    &&& n: number of array element\\
    &&& bi: dash array lenght\\
- 6 & reset\_pattern & Set the continous line style & -\\
+ 6 & reset\_pattern & Set the solid line style & -\\
 \midrule
 29 & enable\_bbox & Compute bounding box & -\\
 30 & disable\_bbox & Do not compute bounding box & -\\
@@ -688,20 +688,20 @@ OpCode & Mnemonic key & Graphic object & Operands\\
 \multicolumn{4}{l}{\textbf{Group of bars}}\\
 OpCode & Mnemonic key & Graphic object & Operands\\
 \midrule
-36 & vbar & Vertical bars & y1 <coord> y2 <coord> b <qty> xi wi <bars>\\
+36 & vbar & Vertical bars & y1 <coord> y2 <coord> b <qty> [xi wi <bars>]+\\
    & & & y1: bottom y-coord\\
    & & & y2: top y-coord\\
    & & & b: number of bars\\
    & & & xi: axis x-coord of bars number i\\
    & & & wi: width of bars number i\\
-37 & hbar & Horizontal bars & x1 <coord> x2 <coord> b <qty> yi wi <bars>\\
+37 & hbar & Horizontal bars & x1 <coord> x2 <coord> b <qty> [yi wi <bars>]+\\
    & & & unimplemented\\
 \midrule
-38 & polyline & Opened polyline & n <qty> xi yi <points>\\
+38 & polyline & Opened polyline & n <qty> [xi yi <points>]+\\
    & & & n: number of points\\
    & & & xi: x-coord of point i\\
    & & & yi: y-coord of point i\\
-39 & c\_polyline & Closed polyline & n <qty> xi yi <points>\\
+39 & c\_polyline & Closed polyline & n <qty> [xi yi <points>]\\
    & & & unimplemented\\
 \bottomrule
 \end{tabular}
@@ -731,16 +731,16 @@ OpCode & Mnemonic key & Graphic object & Operands\\
 OpCode & Mnemonic key & Graphic object/Operands\\
 \midrule
 130 & text & A text with several glyphs\\
-    & & \ttfamily ax <abs> ay <abs> xpos ypos <point> c <chars>\\
+    & & \ttfamily ax <abs> ay <abs> xpos ypos <point> [c <chars>]+\\
 \midrule
 131 & text\_xspaced & A text with glyphs equally spaced on its vertical axis\\
-    & & \ttfamily x1 <coord> xgap <len> ay <abs> ypos <coord> c <chars>\\
+    & & \ttfamily x1 <coord> xgap <len> ay <abs> ypos <coord> [c <chars>]+\\
 \midrule
 132 & text\_xwidth & Glyphs equally spaced on vertical axis between two x coordinates\\
     & & \ttfamily ay <abs> x1 <coord> x2 <coord> y <coord> c <chars>\\
 \midrule
-140 & \_text\_group & Texts on the same baseline \\
-& & \ttfamily ay <abs> y <coord> n <qty> xi <coord> ai <abs> ci <chars> \\
+140 & \_text\_group & Texts on the same baseline\\
+& & \ttfamily ay <abs> y <coord> n <qty> [xi <coord> ai <abs> ci <chars>]+\\
 & & unimplemented\\
 \bottomrule
 \end{tabular}

@@ -3,11 +3,7 @@
 -- Copyright (C) 2020 Roberto Giacomelli
 -- Please see LICENSE.TXT for any legal information about present software
 
-local Barcode = {
-    _VERSION     = "Barcode v0.0.9",
-    _NAME        = "Barcode",
-    _DESCRIPTION = "Barcode abstract class",
-}
+local Barcode = {_classname = "Barcode"}
 Barcode.__index = Barcode
 
 -- barcode_type/submodule name
@@ -24,6 +20,7 @@ Barcode._encoder_instances = {} -- encoder instances repository
 Barcode._super_par_order = {
     "ax",
     "ay",
+    "debug_bbox_on",
 }
 Barcode._super_par_def = {}
 local pardef = Barcode._super_par_def
@@ -36,7 +33,7 @@ pardef.ax = {
     default = 0.0,
     unit = "sp", -- scaled point
     isReserved = false,
-    fncheck = function (self, ax, _) --> boolean, err
+    fncheck = function (_self, ax, _) --> boolean, err
         if ax >= 0.0 and ax <= 1.0 then return true, nil end
         return false, "[OutOfRange] 'ax' out of [0, 1] interval"
     end,
@@ -46,9 +43,24 @@ pardef.ay = {
     default = 0.0,
     unit = "sp", -- scaled point
     isReserved = false,
-    fncheck = function (self, ay, _) --> boolean, err
+    fncheck = function (_self, ay, _) --> boolean, err
         if ay >= 0.0 and ay <= 1.0 then return true, nil end
         return false, "[OutOfRange] 'ay' out of [0, 1] interval"
+    end,
+}
+
+-- debug only purpose
+-- enable/disable bounding box drawing of symbols
+Barcode.debug_bbox_on = false
+pardef.debug_bbox_on = {
+    default    = false,
+    isReserved = false,
+    fncheck    = function (_self, flag, _) --> boolean, err
+        if type(flag) == "boolean" then
+            return true, nil
+        else
+            return false, "[TypeErr] not a boolean value"
+        end
     end,
 }
 
@@ -372,6 +384,7 @@ function Barcode:from_string(symb, opt) --> object, err
     end
     -- build the barcode object
     local o = {
+        _classname = "Encoder",
         _code_data = chars, -- array of chars
         _code_len = len, -- symbol lenght
     }
@@ -446,6 +459,7 @@ function Barcode:from_uint(n, opt) --> object, err
     end
     -- build the barcode object
     local o = {
+        _classname = "Encoder",
         _code_data = digits, -- array of digits
         _code_len = i, -- symbol lenght
     }
@@ -585,12 +599,17 @@ function Barcode:info() --> table
     return info
 end
 
--- return the code being represented as a string
--- or nil if the method is called from Barcode abstract class
-function Barcode:get_code() --> string|nil
-    local code = self._code_data
-    if code then
-        return table.concat(code)
+-- return internal code representation
+function Barcode:get_code() --> array
+    if self._classname == "Encoder" then
+        local code = self._code_data
+        local res = {}
+        for _, c in ipairs(code) do
+            res[#res + 1] = c
+        end
+        return res
+    else
+         error("[Err: get_code()] abstract class calling not allowed")
     end
 end
 
@@ -600,8 +619,8 @@ function Barcode:get_param(id) --> value, err
     if type(id) ~= "string" then
         return nil, "[ArgErr] 'id' must be a string"
     end
-    local pardef = self._par_def
-    if not pardef[id] then
+    local par_def = self._par_def
+    if not par_def[id] then
         return nil, "[Err] Parameter '"..id.."' doesn't exist"
     end
     local res = assert(self[id], "[InternalErr] parameter value unreachable")
@@ -658,6 +677,34 @@ function Barcode:set_param(arg1, arg2) --> boolean, err
         self[p] = v
     end
     return true, nil
+end
+
+-- canvas is a gaCanvas object
+-- tx, ty is an optional point to place symbol local origin on the canvas plane
+function Barcode:draw(canvas, tx, ty) --> canvas, err
+    if canvas._classname ~= "gaCanvas" then
+        return nil, "[OOP] object 'gaCanvas' expected"
+    end
+    local class = self._classname
+    if class == "Barcode" then
+        error("[OOP] method 'draw' must be called on an Encoder object")
+    end
+    assert(class == "Encoder")
+    local ga_fn = assert(
+        self._append_ga,
+        "[InternalErr] unimplemented '_append_ga' method"
+    )
+    local x1, y1, x2, y2 = ga_fn(self, canvas, tx or 0, ty or 0)
+    if self.debug_bbox_on == true then
+        local bp = 65781.76
+        local w = bp/10 -- 0.1bp
+        local w2 = w/2
+        assert(canvas:encode_linewidth(w))
+        assert(canvas:encode_dash_pattern(3*bp, 6*bp, 3*bp)) -- (phase=3bp, [6bp 3bp])
+        assert(canvas:encode_rect(x1+w2, y1+w2, x2-w2, y2-w2))
+        assert(canvas:encode_reset_pattern())
+    end
+    return canvas
 end
 
 return Barcode

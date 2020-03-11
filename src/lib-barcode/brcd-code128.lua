@@ -303,7 +303,7 @@ end
 -- Drawing into the provided channel the geometrical barcode data
 -- tx, ty is the optional translator vector
 -- the function return the canvas reference to allow call chaining
-function Code128:append_ga(canvas, tx, ty) --> canvas
+function Code128:_append_ga(canvas, tx, ty) --> bbox
     local data = self._enc_data
     local Repo = self._vbar_archive
     local queue = self._libgeo.Vbar_queue:new()
@@ -316,8 +316,8 @@ function Code128:append_ga(canvas, tx, ty) --> canvas
     local ns = #data + 1
     local w = (11*ns + 2) * xdim -- total symbol width
     local ax, ay = self.ax, self.ay
-    local x0 = (tx or 0) - ax * w
-    local y0 = (ty or 0) - ay * h
+    local x0 = tx - ax * w
+    local y0 = ty - ay * h
     local x1 = x0 + w
     local y1 = y0 + h
     -- drawing the symbol
@@ -327,7 +327,8 @@ function Code128:append_ga(canvas, tx, ty) --> canvas
     local qz = self.quietzone_factor * xdim
     -- { xmin, ymin, xmax, ymax }
     assert(canvas:encode_set_bbox(x0 - qz, y0, x1 + qz, y1))
-    return canvas
+    assert(canvas:encode_enable_bbox())
+    return x0 - qz, y0, x1 + qz, y1
 end
 
 return Code128

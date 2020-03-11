@@ -33,7 +33,7 @@ end
 print()
 
 local canvas = barracuda:new_canvas()
-symb:append_ga(canvas)
+symb:draw(canvas)
 
 -- native driver
 local drv = barracuda:get_driver()

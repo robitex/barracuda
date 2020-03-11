@@ -13,6 +13,6 @@ local symbol, err = c39:from_string("ABC000Z")
 assert(not err, err)
 
 local canvas = barracuda:new_canvas()
-symbol:append_ga(canvas)
+symbol:draw(canvas)
 
 driver:save("svg", canvas, "test-code39")

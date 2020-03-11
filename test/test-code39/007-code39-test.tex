@@ -8,7 +8,7 @@
 barracuda = require "barracuda"
 local c39 = assert(
     barracuda:barcode()
-             :new_encoder("code39")
+             :new_encoder("code39", {debug_bbox_on = true})
 )
 
 local bars = c39:new {
@@ -24,7 +24,7 @@ local canvas = barracuda:new_canvas()
 local tx, ty = 0, 0
 local dh = tex.sp "40pt"
 for _, b in ipairs(bars) do
-    b:append_ga(canvas, tx, ty)
+    b:draw(canvas, tx, ty)
     ty = ty + dh
 end
 
@@ -33,7 +33,7 @@ drv:ga_to_hbox(canvas, "mybox")
 }
 
 Test 1: check Barcode recursive costructor new():
-
+\bigskip
 \leavevmode\box\mybox
 \bye
 
