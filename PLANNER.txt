@@ -50,9 +50,9 @@ Ongoing Scheduler:
 2020-03-__: [code128] add human readeable text
 2020-03-__: [breaking change] refactor Text libgeo object
 2020-03-__: [doc] barcode symbologies reference
-2020-03-__: [barcode] new method input_code()
 -------------------------------------------------------------------------------
-2020-03-11:*[breaking change][barcode] new `draw()` method
+2020-03-13:*[barcode] new method get_code() and get_hri()
+2020-03-11: [breaking change][barcode] new `draw()` method
 2020-03-07: [ga] new <dash-pattern> and <reset-pattern> opcodes
 2020-03-06: [doc] new section explains `Vbar`
 2020-03-02: [doc] add a chess example for `ga` stream

@@ -16,14 +16,13 @@ Test 1: one simple barcode with default parameters:
 
 \directlua{
 local barcode = barracuda:barcode()
-
 local enc, err = barcode:new_encoder("i2of5"); assert(not err, err)
 local symbo, err = enc:from_uint(54654681); assert(not err, err)
 local canvas = barracuda:new_canvas(); symbo:draw(canvas)
 local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
-}
-\vrule A\vrule\box\mybox \vrule A\vrule
+}%
+input code 54654681: \vrule A\vrule\box\mybox \vrule A\vrule
 
 \bigskip
 Test 2: one simple barcode with default parameter:
@@ -35,8 +34,8 @@ local symbo, err = enc:from_uint(1234567895); assert(not err, err)
 local canvas = barracuda:new_canvas(); symbo:draw(canvas)
 local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
-}
-\vrule A\vrule\box\mybox \vrule A\vrule
+}%
+input code 1234567895: \vrule A\vrule\box\mybox \vrule A\vrule
 
 % check digit tests
 
@@ -111,8 +110,8 @@ assert(not err, err)
 local canvas = barracuda:new_canvas(); symbo:draw(canvas)
 local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
-}
-\vrule A\vrule\box\mybox \vrule A\vrule
+}%
+input code 454473: \vrule A\vrule\box\mybox \vrule A\vrule
 
 \bigskip
 Test 4: a second simple barcode with check digit automatically added:
@@ -125,8 +124,8 @@ assert(not err, err)
 local canvas = barracuda:new_canvas(); symbo:draw(canvas)
 local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
-}
-\vrule A\vrule\box\mybox \vrule A\vrule
+}%
+input code 74223: \vrule A\vrule\box\mybox \vrule A\vrule
 
 \bigskip
 Test 5: a symbol with native check digits:
@@ -139,8 +138,8 @@ assert(not err, err)
 local canvas = barracuda:new_canvas(); symbo:draw(canvas)
 local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
-}
-\vrule A\vrule\box\mybox \vrule A\vrule
+}%
+input code 121891259: \vrule A\vrule\box\mybox \vrule A\vrule
 
 \bigskip
 Test 6: bearer bars please:
@@ -148,13 +147,13 @@ Test 6: bearer bars please:
 \directlua{
 local barcode = barracuda:barcode()
 local enc, err = barcode:enc_by_name("i2of5"); assert(not err, err)
-local symbo, err = enc:from_uint(747867239, {bearer_bars_enabled = true})
+local symbo, err = enc:from_string("747867239", {bearer_bars_enabled = true})
 assert(not err, err)
 local canvas = barracuda:new_canvas(); symbo:draw(canvas)
 local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
-}
-\vrule A\vrule\box\mybox \vrule A\vrule
+}%
+input string "747867239": \vrule A\vrule\box\mybox \vrule A\vrule
 
 \bigskip
 Test 7: bearer bars all around the symbol:
@@ -167,8 +166,8 @@ assert(not err, err)
 local canvas = barracuda:new_canvas(); symbo:draw(canvas)
 local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
-}
-\vrule A\vrule\box\mybox \vrule A\vrule
+}%
+input code 986790868: \vrule A\vrule\box\mybox \vrule A\vrule
 
 \bigskip
 Test 8: bearer bars all around the symbol (with string costructor):
@@ -181,8 +180,8 @@ assert(not err, err)
 local canvas = barracuda:new_canvas(); symbo:draw(canvas)
 local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
-}
-\vrule A\vrule\box\mybox \vrule A\vrule
+}%
+input string "986790868": \vrule A\vrule\box\mybox \vrule A\vrule
 
 That's all folks!
 

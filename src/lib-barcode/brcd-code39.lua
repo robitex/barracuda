@@ -251,26 +251,27 @@ function Code39:_ensure_symbol(c)
 end
 
 -- overriding Barcode method
-function Code39:_process_char(c) --> elem, err
+function Code39:_process_char(c) --> elem_code, elem_text, err
     local symb_def = self._symb_def
     if not symb_def[c] then
         local fmt = "[ArgErr] '%s' is not a valid Code 39 symbol"
-        return nil, string.format(fmt, c)
+        return nil, nil, string.format(fmt, c)
     end
     self:_ensure_symbol(c)
-    return c, nil
+    return c, nil, nil
 end
 
 -- overriding Barcode method
-function Code39:_process_digit(n) --> elem, err
+function Code39:_process_digit(n) --> elem_code, elem_text, err
     local c = string.char(n + 48)
     self:_ensure_symbol(c)
-    return c, nil
+    return c, nil, nil
 end
 
 -- tx, ty is an optional translator vector
 function Code39:_append_ga(canvas, tx, ty) --> x1, y1, x2, y2 -- bbox
     local code = self._code_data
+    local ns = #code -- number of chars inside the symbol
     local archive = self._vbar_archive
     local q = assert(archive:get("*")) -- form the vbar queue, actually it is just a Vbar
     local dx = self.interspace
@@ -283,7 +284,6 @@ function Code39:_append_ga(canvas, tx, ty) --> x1, y1, x2, y2 -- bbox
     local ax, ay = self.ax, self.ay
     local mod    = self.module
     local ratio  = self.ratio
-    local ns     = self._code_len -- number of chars inside the symbol
     local xs     = mod*(6 + 3*ratio)
     local xgap   = xs + dx
     local h      = self.height

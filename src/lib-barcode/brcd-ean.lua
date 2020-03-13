@@ -520,7 +520,6 @@ end
 
 local function isbn_parse_state() --> parse state
     return {
-        isbncode = {},
         is_space = false,
         is_dash = false,
         isbn_len = 0,
@@ -529,49 +528,48 @@ end
 
 -- group char for readibility '-' or ' '
 -- char won't be inserted in the top isbn code
-local function isbn_process_char(_, c, parse_state) --> elem, err
-    local code = parse_state.isbncode
+local function isbn_process_char(_, c, parse_state) --> elem_code, elem_text, err
     local isbn_len = parse_state.isbn_len
     if c == "-" then
         if isbn_len == 0 then
-            return nil, "[ArgErr] an initial dash is not allowed"
+            return nil, nil, "[ArgErr] an initial dash is not allowed"
         end
         if parse_state.is_dash then
-            return nil, "[ArgErr] two consecutive dash char found"
+            return nil, nil, "[ArgErr] found two consecutive dash"
         end
         parse_state.is_dash = true
-        return nil, nil
+        return nil, c, nil
     elseif c == " " then
         if isbn_len == 0 then
-            return nil, "[ArgErr] an initial space is not allowed"
+            return nil, nil, "[ArgErr] an initial space is not allowed"
         end
-        parse_state.is_space = true
-        return nil, nil
+        if parse_state.is_space then
+            return nil, nil, nil
+        else
+            parse_state.is_space = true
+            return nil, c, nil
+        end
     elseif c == "X" then -- ISBN-10 checksum for 10
-        code[#code + 1] = c
         isbn_len = isbn_len + 1
         parse_state.isbn_len = isbn_len
         if isbn_len ~= 10 then
-            return nil, "[ArgErr] found a checksum 'X' in a wrong position"
+            return nil, nil, "[ArgErr] found a checksum 'X' in a wrong position"
         end
-        return 10, nil
+        return 10, c, nil
     else -- c is at this point eventually a digit
         local n = string.byte(c) - 48
         if n < 0 or n > 9 then
-            return nil, "[ArgErr] found a not digit or a not grouping char"
+            return nil, nil, "[ArgErr] found a not digit or a not group char"
         end
         if parse_state.is_dash then -- close a group
-            code[#code + 1] = "-"
             parse_state.is_dash = false
             parse_state.is_space = false
         elseif parse_state.is_space then
-            code[#code + 1] = " "
             parse_state.is_space = false
         end
-        code[#code + 1] = c
         isbn_len = isbn_len + 1
         parse_state.isbn_len = isbn_len
-        return n, nil
+        return n, c, nil
     end
 end
 
@@ -579,7 +577,8 @@ end
 -- parsed
 local function isbn_finalize(enc, parse_state) --> ok, err
     local var = enc._variant
-    local code_len = enc._code_len
+    local code_data = enc._code_data
+    local code_len = #code_data
     local isbn_len = parse_state.isbn_len
     local l1, l2
     if var == "isbn" then
@@ -588,7 +587,7 @@ local function isbn_finalize(enc, parse_state) --> ok, err
         elseif isbn_len == 13 then
             l1 = 13
         else
-            return false, "[ArgErr] unsuitable ISBN code length"
+            return false, "[ArgErr] wrong ISBN code length of "..isbn_len
         end
         assert(l1 == code_len)
     elseif var == "isbn+5" then
@@ -598,7 +597,7 @@ local function isbn_finalize(enc, parse_state) --> ok, err
         elseif isbn_len == 18 then
             l1, l2 = 13, 5
         else
-            return false, "[ArgErr] unsuitable ISBN+5 code length"
+            return false, "[ArgErr] wrong ISBN+5 code length of "..isbn_len
         end
         assert(l1 + l2 == code_len)
     elseif var == "isbn+2" then
@@ -608,13 +607,12 @@ local function isbn_finalize(enc, parse_state) --> ok, err
         elseif isbn_len == 15 then
             l1, l2 = 13, 2
         else
-            return false, "[ArgErr] unsuitable ISBN+2 code length"
+            return false, "[ArgErr] wrong ISBN+2 code length of "..isbn_len
         end
         assert(l1 + l2 == code_len)
     else
         error("[InternalErr] unexpected ISBN variant code")
     end
-    local code_data = enc._code_data
     local isbn_auto = false
     if l1 == 10 then -- isbn 10 to 13 conversion
         local ck = isbn_checksum(code_data)
@@ -635,7 +633,7 @@ local function isbn_finalize(enc, parse_state) --> ok, err
             return false, "[ArgErr] unmatched ISBN 13 checksum"
         end
     end
-    local isbncode = parse_state.isbncode
+    local isbncode = enc._code_text
     if l2 then -- nils the add-on digits
         local i = #isbncode
         while l2 > 0 do
@@ -660,7 +658,6 @@ local function isbn_finalize(enc, parse_state) --> ok, err
         return false, "[ArgErr] too many groups found in the ISBN code"
     end
     if g > 0 then isbn_auto = true end
-    enc._isbncode = isbncode
     enc._isbntxt_on = isbn_auto
     return true, nil
 end
@@ -703,72 +700,72 @@ end
 
 -- ISSN dddd-dddx[dd] or 13-long array
 -- spaces is always ignored
-local function issn_process_char(enc, c, parse_state) --> elem, err
+local function issn_process_char(enc, c, parse_state) --> e_data, e_txt, err
     local addon_len = enc._addon_len
     -- `edition variant` input code part
     if c == " " then
-        return nil, nil -- ignore all spaces
+        return nil, nil, nil -- ignore all spaces
     end
     if parse_state.is_group_close then
         if addon_len then
             if parse_state.addon_len == enc._addon_len then
-                return nil, "[ArgErr] too many chars in the ISSN input code"
+                return nil, nil, "[ArgErr] too many chars in the ISSN input code"
             end
             local n, e = to_n(c)
             if e then
-                return nil, "[ArgErr] non digit char after a edition variant group"
+                return nil, nil, "[ArgErr] non digit char after an edition variant group"
             end
             parse_state.addon_len = parse_state.addon_len + 1
-            return n, nil
+            return n, n, nil
         else
-            return nil, "[ArgErr] too many chars in the ISSN input code"
+            return nil, nil, "[ArgErr] too many chars in the ISSN input code"
         end
     end
     -- code part
     if c == "-" then
         if parse_state.is_dash then
-            return nil, "[ArgErr] two or more dash char in the input code"
+            return nil, nil, "[ArgErr] two or more dash chars in the input code"
         end
         if parse_state.code_len ~= 4 then
-            return nil, "[ArgErr] incorrect position for a dash sign"
+            return nil, nil, "[ArgErr] incorrect position for a dash sign"
         end
         parse_state.is_dash = true
-        return nil, nil
+        return nil, c, nil
     elseif c == "[" then -- two digits edition variant group opening
         if parse_state.code_len ~= 8 then
-            return nil, "[ArgErr] not a 8 digits long code for the ISSN input"
+            return nil, nil, "[ArgErr] not a 8-digits long code for the ISSN input"
         end
         parse_state.is_group_open = true
-        return nil, nil
+        return nil, nil, nil
     elseif c == "]" then -- two digits edition variant closing
         if not parse_state.is_group_open then
-            return nil, "[ArgErr] found a ']' without a '['"
+            return nil, nil, "[ArgErr] found a ']' without an opened '['"
         end
         if parse_state.ed_var_len ~= 2 then
-            return nil, "[ArgErr] edition variant group must be two digits long"
+            return nil, nil, "[ArgErr] edition variant group must be two digits long"
         end
         parse_state.is_group_open = false
         parse_state.is_group_close = true
-        return nil, nil
+        return nil, nil, nil
     elseif c == "X" then -- 8th ISSN checksum digit
         if parse_state.code_len ~= 7 then
-            return nil, "[ArgErr] incorrect position for checksum digit 'X'"
+            return nil, nil, "[ArgErr] incorrect position for checksum digit 'X'"
         end
         parse_state.code_len = 8
-        return 10, nil
-    else -- at this point 'c' can be only a digit
+        return 10, c, nil
+    else -- at this point 'c' may be only a digit
         local n, e = to_n(c)
         if e then
-            return nil, "[ArgErr] found a non digit in code part"
+            return nil, nil, "[ArgErr] found a non digit in code part"
         end
         if parse_state.is_group_open then
             if parse_state.ed_var_len == 2 then
-                return nil, "[ArgErr] group digits are more than two"
+                return nil, nil, "[ArgErr] group digits are more than two"
             end
             parse_state.ed_var_len = parse_state.ed_var_len + 1
             local t = parse_state.ed_var_arr
             t[#t + 1] = n
-            return nil, nil
+            return nil, c, nil
         end
         if parse_state.is_dash then
             if addon_len then
@@ -776,29 +773,29 @@ local function issn_process_char(enc, c, parse_state) --> elem, err
                     parse_state.code_len = parse_state.code_len + 1
                 else
                     if parse_state.addon_len == addon_len then
-                        return nil, "[ArgErr] too many digits for a 8 + "..addon_len.." ISSN input code"
+                        return nil, nil, "[ArgErr] too many digits for a 8 + "..addon_len.." ISSN input code"
                     end
                     parse_state.addon_len = parse_state.addon_len + 1
                 end
             else
                 if parse_state.code_len == 8 then
-                    return nil, "[ArgErr] too many digits found for a 8 digits long ISSN input code"
+                    return nil, nil, "[ArgErr] too many digits found for a 8 digits long ISSN input code"
                 end
                 parse_state.code_len = parse_state.code_len + 1
             end
         else
             if addon_len then
                 if parse_state.code_len == (13 + addon_len) then
-                    return nil, "[ArgErr] too many digits in ISSN input code"
+                    return nil, nil, "[ArgErr] too many digits in ISSN input code"
                 end
             else
                 if parse_state.code_len == 13 then
-                    return nil, "[ArgErr] too many digits in a 13 digits long ISSN input code"
+                    return nil, nil, "[ArgErr] too many digits in a 13 digits long ISSN input code"
                 end
             end
             parse_state.code_len = parse_state.code_len + 1
         end
-        return n, nil
+        return n, n, nil
     end
 end
 
@@ -853,7 +850,7 @@ local function issn_finalize(enc, parse_state) --> ok, err
         return false, "[ArgErr] unclosed edition variant group in ISSN input code"
     end
     local data = enc._code_data
-    local code_len = enc._code_len
+    local code_len = #data
     local addon_len = enc._addon_len
     local main_len = code_len - (addon_len or 0)
     if main_len == 8 then
@@ -893,12 +890,12 @@ local function basic_finalize(enc) --> ok, err
     local l1 = enc._main_len
     local l2 = enc._addon_len
     local ok_len = l1 + (l2 or 0)
-    local symb_len = enc._code_len
+    local data = enc._code_data
+    local symb_len = #data
     if symb_len ~= ok_len then
         return false, "[ArgErr] not a "..ok_len.."-digit long array"
     end
     if enc._is_last_checksum then -- is the last digit ok?
-        local data = enc._code_data
         local ck = checksum_8_13(data, l1 - 1)
         if ck ~= data[l1] then
             return false, "[Err] wrong checksum digit"
@@ -1093,7 +1090,7 @@ fn_append_ga_variant["13"] = function (ean, canvas, tx, ty, ax, ay)
             end
         end
         if istxt then
-            local isbn = assert(ean._isbncode, "[InternalErr] ISBN text not found")
+            local isbn = assert(ean._code_text, "[InternalErr] ISBN text not found")
             local descr = {"I", "S", "B", "N", " ",}
             for _, d in ipairs(isbn) do
                 descr[#descr + 1] = d

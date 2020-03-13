@@ -1,7 +1,7 @@
 % !TeX program = LuaLaTeX
 % Copyright (C) 2020 Roberto Giacomelli
 
-% test file: make a Code39 barcodes in a LaTeX document
+% test file: make Code39 barcodes in a LaTeX document
 
 \documentclass{article}
 \usepackage{barracuda}
@@ -10,6 +10,17 @@
 A\barracuda{code39}{123QWE}A
 
 B\barracuda[text_vpos='top']{code39}{123QWE}B
+
+%\barracudasetup[option]{ treename }
+
+\directlua{
+local barracuda = require "barracuda"
+local barcode = barracuda:barcode()
+local code39 = assert(barcode:enc_by_name("code39"))
+assert(code39:set_param("debug_bbox_on", true))
+}\bigskip
+
+A\barracuda{code39}{123QWE}A
+
+B\barracuda[text_vpos='top']{code39}{123QWE}B
 \end{document}
-
-

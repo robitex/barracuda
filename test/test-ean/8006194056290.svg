@@ -12,6 +12,14 @@
     <path d="M0.824996 -24.499871V-0.000000" style="stroke-width:0.329998"/>
   </g>
   <g stroke="black">
+    <path d="M15.344919 -24.499871V-0.000000" style="stroke-width:0.329998"/>
+    <path d="M16.004916 -24.499871V-0.000000" style="stroke-width:0.329998"/>
+  </g>
+  <g stroke="black">
+    <path d="M30.524839 -24.499871V-0.000000" style="stroke-width:0.329998"/>
+    <path d="M31.184836 -24.499871V-0.000000" style="stroke-width:0.329998"/>
+  </g>
+  <g stroke="black">
     <path d="M2.309988 -24.499871V-1.649991" style="stroke-width:0.659997"/>
     <path d="M3.134984 -24.499871V-1.649991" style="stroke-width:0.329998"/>
   </g>
@@ -36,10 +44,6 @@
     <path d="M14.519924 -24.499871V-1.649991" style="stroke-width:0.659997"/>
   </g>
   <g stroke="black">
-    <path d="M15.344919 -24.499871V-0.000000" style="stroke-width:0.329998"/>
-    <path d="M16.004916 -24.499871V-0.000000" style="stroke-width:0.329998"/>
-  </g>
-  <g stroke="black">
     <path d="M16.994911 -24.499871V-1.649991" style="stroke-width:0.989995"/>
     <path d="M18.314904 -24.499871V-1.649991" style="stroke-width:0.329998"/>
   </g>
@@ -62,10 +66,6 @@
   <g stroke="black">
     <path d="M28.544850 -24.499871V-1.649991" style="stroke-width:0.989995"/>
     <path d="M29.864843 -24.499871V-1.649991" style="stroke-width:0.329998"/>
-  </g>
-  <g stroke="black">
-    <path d="M30.524839 -24.499871V-0.000000" style="stroke-width:0.329998"/>
-    <path d="M31.184836 -24.499871V-0.000000" style="stroke-width:0.329998"/>
   </g>
   <text x="-3.629981" y="0.780007" font-family="Verdana" font-size="2.877000">
   8  </text>

@@ -64,8 +64,6 @@ pardef.debug_bbox_on = {
     end,
 }
 
--- Barcode.bbox_to_quietzone -- under assessment
-
 -- Barcode methods
 
 -- extract id from an encoder 'tree name'
@@ -310,7 +308,7 @@ function Barcode:new_encoder(treename, opt) --> object, err
 end
 
 -- retrive an encoder object already created
--- 'trename' is the special identifier of the encoder
+-- 'treename' is the special identifier of the encoder
 function Barcode:enc_by_name(treename) --> <encoder object>, <err>
     -- argument checking
     local _family, _variant, _enc_name, err = parse_treename(treename)
@@ -328,9 +326,12 @@ end
 -- base methods common to all the encoders
 
 -- for numeric only simbology
-function Barcode:_check_char(c, parse_state) --> elem, err
+-- elem_code : encoded char
+-- elem_text : human readable char
+-- err : error description
+function Barcode:_check_char(c, parse_state) --> elem_code, elem_text, err
     if type(c) ~= "string" or #c ~= 1 then
-        return nil, "[InternalErr] invalid char"
+        return nil, nil, "[InternalErr] invalid char"
     end
     local process_char = self._process_char
     if process_char then
@@ -338,23 +339,23 @@ function Barcode:_check_char(c, parse_state) --> elem, err
     end
     local n = string.byte(c) - 48
     if n < 0 or n > 9 then
-        return nil, "[ArgErr] found a not digit char"
+        return nil, nil, "[ArgErr] found a not digit char"
     end
-    return n, nil
+    return n, nil, nil
 end
 --
-function Barcode:_check_digit(n, parse_state) --> elem, err
+function Barcode:_check_digit(n, parse_state) --> elem_code, elem_text, err
     if type(n) ~= "number" then
-        return nil, "[ArgErr] not a number"
+        return nil, nil, "[ArgErr: n] not a number"
     end
     local process_digit = self._process_digit
     if process_digit then
         return process_digit(self, n, parse_state)
     end
     if n < 0 or n > 9 then
-        return nil, "[ArgErr] not a digit"
+        return nil, nil, "[ArgErr: n] not a digit"
     end
-    return n, nil
+    return n, nil, nil
 end
 
 -- not empty string --> Barcode object
@@ -365,8 +366,8 @@ function Barcode:from_string(symb, opt) --> object, err
     if #symb == 0 then
         return nil, "[ArgErr] 'symb' is an empty string"
     end
-    local chars = {}
-    local len = 0
+    local chars_code = {}
+    local chars_text
     local parse_state
     if self._init_parse_state then
         parse_state = self:_init_parse_state()
@@ -374,19 +375,24 @@ function Barcode:from_string(symb, opt) --> object, err
         parse_state = {}
     end
     for c in string.gmatch(symb, ".") do
-        local elem, err = self:_check_char(c, parse_state)
+        local elem_code, elem_text, err = self:_check_char(c, parse_state)
         if err then
             return nil, err
-        elseif elem then
-            chars[#chars+1] = elem
-            len = len + 1
+        else
+            if elem_code then
+                chars_code[#chars_code + 1] = elem_code
+            end
+            if elem_text then
+                chars_text = chars_text or {}
+                chars_text[#chars_text + 1] = elem_text
+            end
         end
     end
     -- build the barcode object
     local o = {
-        _classname = "Encoder",
-        _code_data = chars, -- array of chars
-        _code_len = len, -- symbol lenght
+        _classname = "BarcodeSymbol",
+        _code_data = chars_code, -- array of chars
+        _code_text = chars_text,
     }
     setmetatable(o, self)
     if opt ~= nil then
@@ -420,48 +426,58 @@ function Barcode:from_uint(n, opt) --> object, err
     if opt ~= nil and type(opt) ~= "table" then
         return nil, "[ArgErr] 'opt' is not a table"
     end
-    local digits = {}
+    local digits_code = {}
+    local digits_text
     local parse_state
     if self._init_parse_state then
         parse_state = self:_init_parse_state()
     else
         parse_state = {}
     end
-    local i = 0
     if n == 0 then
-        local elem, err = self:_check_digit(0, parse_state)
+        local elem_code, elem_text, err = self:_check_digit(0, parse_state)
         if err then
             return nil, err
         end
-        if elem then
-            digits[1] = elem
-            i = 1
+        if elem_code then
+            digits_code[1] = elem_code
+        end
+        if elem_text then
+            digits_text = {elem_text}
         end
     else
         while n > 0 do
             local d = n % 10
-            local elem, err = self:_check_digit(d, parse_state)
+            local elem_code, elem_text, err = self:_check_digit(d, parse_state)
             if err then
                 return nil, err
             end
-            if elem then
-                i = i + 1
-                digits[i] = elem
+            if elem_code then
+                digits_code[#digits_code + 1] = elem_code
+            end
+            if elem_text then
+                digits_text = digits_text or {}
+                digits_text[#digits_text + 1] = elem_text
             end
             n = (n - d) / 10
         end
-        for k = 1, i/2  do -- reverse the array
-            local d = digits[k]
-            local h = i - k + 1
-            digits[k] = digits[h]
-            digits[h] = d
+        local rev_array = function (a)
+            local len = #a
+            for k = 1, len/2 do -- reverse the array
+                local h = len - k + 1
+                a[k], a[h] = a[h], a[k]
+            end
+        end
+        rev_array(digits_code)
+        if digits_text then
+            rev_array(digits_text)
         end
     end
     -- build the barcode object
     local o = {
-        _classname = "Encoder",
-        _code_data = digits, -- array of digits
-        _code_len = i, -- symbol lenght
+        _classname = "BarcodeSymbol",
+        _code_data = digits_code, -- array of digits
+        _code_text = digits_text, -- array of human readable information
     }
     setmetatable(o, self)
     if opt ~= nil then
@@ -601,7 +617,7 @@ end
 
 -- return internal code representation
 function Barcode:get_code() --> array
-    if self._classname == "Encoder" then
+    if self._classname == "BarcodeSymbol" then
         local code = self._code_data
         local res = {}
         for _, c in ipairs(code) do
@@ -609,7 +625,22 @@ function Barcode:get_code() --> array
         end
         return res
     else
-         error("[Err: get_code()] abstract class calling not allowed")
+         error("[Err: OOP] 'BarcodeSymbol' only method")
+    end
+end
+
+-- human readable interpretation hri or nil
+function Barcode:get_hri() --> array|nil
+    if self._classname == "BarcodeSymbol" then
+        local code = self._code_text
+        if code == nil then return nil end
+        local res = {}
+        for _, c in ipairs(code) do
+            res[#res + 1] = c
+        end
+        return res
+    else
+         error("[Err: OOP] 'BarcodeSymbol' only method")
     end
 end
 
@@ -683,13 +714,13 @@ end
 -- tx, ty is an optional point to place symbol local origin on the canvas plane
 function Barcode:draw(canvas, tx, ty) --> canvas, err
     if canvas._classname ~= "gaCanvas" then
-        return nil, "[OOP] object 'gaCanvas' expected"
+        return nil, "[Err: OOP] object 'gaCanvas' expected"
     end
     local class = self._classname
     if class == "Barcode" then
-        error("[OOP] method 'draw' must be called on an Encoder object")
+        error("[Err: OOP] method 'draw' must be called on an Encoder object")
     end
-    assert(class == "Encoder")
+    assert(class == "BarcodeSymbol")
     local ga_fn = assert(
         self._append_ga,
         "[InternalErr] unimplemented '_append_ga' method"
@@ -700,7 +731,8 @@ function Barcode:draw(canvas, tx, ty) --> canvas, err
         local w = bp/10 -- 0.1bp
         local w2 = w/2
         assert(canvas:encode_linewidth(w))
-        assert(canvas:encode_dash_pattern(3*bp, 6*bp, 3*bp)) -- (phase=3bp, [6bp 3bp])
+        -- dashed style: phase = 3bp, dash pattern = 6bp 3bp
+        assert(canvas:encode_dash_pattern(3*bp, 6*bp, 3*bp))
         assert(canvas:encode_rect(x1+w2, y1+w2, x2-w2, y2-w2))
         assert(canvas:encode_reset_pattern())
     end

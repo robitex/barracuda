@@ -1,10 +1,11 @@
--- Copyright (C) 2020 Roberto Giacomelli
--- test Code 39 encoder
+%-- Copyright (C) 2020 Roberto Giacomelli
+%-- test Code 39 encoder
 
+\directlua{
 local barracuda = require "barracuda"
 
 for k, v in pairs(barracuda) do
-    print(k,v)
+    print(k, v)
 end
 
 local barcode = barracuda:barcode()
@@ -19,7 +20,6 @@ local info = c39:info()
 
 print("encoder name = ", info.name)
 print("description = ", info.description)
-
 for k, tp in ipairs(info.param) do
     print(k, tp.name, tp.value)
 end
@@ -27,15 +27,12 @@ end
 local symb = c39:from_string("123")
 
 print("print internal representation of chars")
-for _, c in ipairs(symb._code_data) do
-    print(c)
-end
-print()
+print(table.concat(symb:get_code(), " "))
+print("end")
+assert(symb:get_hri() == nil)
 
 local canvas = barracuda:new_canvas()
 symb:draw(canvas)
-
--- native driver
-local drv = barracuda:get_driver()
-
-for _, code in ipairs(canvas._data) do print(code) end
+% canvas:prettyprint_ga()
+}
+\bye

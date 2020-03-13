@@ -269,17 +269,18 @@ end
 
 -- Code 128 internal functions used by Barcode costructors
 
-function Code128:_process_char(c) --> char, err
+function Code128:_process_char(c) --> char_code, char_text, err
     local b = string.byte(c)
     if b > 127 then
         local fmt = "[unimplemented] the '%d' is an ASCII extented char"
         return nil, string.format(fmt, c)
     end
-    return b, nil
+    return b, c, nil
 end
 
-function Code128:_process_digit(n) --> digit, err
-    return n + 48, nil
+function Code128:_process_digit(n) --> digit_code, char_text, err
+    local res = n + 48
+    return res, string.char(res), nil
 end
 
 function Code128:_finalize() --> ok, err

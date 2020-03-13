@@ -21,6 +21,11 @@ print("Symbol char list:")
 for _, c in ipairs(symb:get_code()) do
     print(c)
 end
+print("Symbol hri char list:")
+for _, c in ipairs(symb:get_hri()) do
+    print(c)
+end
+
 
 local canvas = barracuda:new_canvas()
 

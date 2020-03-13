@@ -404,7 +404,6 @@ end
 
 local function itf14_parse_state()
     return {
-        itf14_code = {},
         is_space = false,
         is_popen = false,
         itf14_len = 0,
@@ -412,43 +411,41 @@ local function itf14_parse_state()
 end
 
 -- group char for readibility '(' or ')' or ' '
-local function itf14_process_char(_, c, parse_state) --> elem, err
-    local code = parse_state.itf14_code
-    local itf14_len = parse_state.itf14_len
+local function itf14_process_char(_, c, parse_state) --> e_data, e_text, err
+    local len14 = parse_state.itf14_len
     -- parsing
     if c == " " then
-        if itf14_len == 0 then -- ignore initial spaces
-            return nil, nil
+        if (len14 == 0) or (len14 == 14) then -- ignore initial or final spaces
+            return nil, nil, nil
         end
-        parse_state.is_space = true
-        return nil, nil
+        if parse_state.is_space then -- ignore more than one consecutive space
+            return nil, nil, nil
+        else
+            parse_state.is_space = true
+            return nil, c, nil
+        end
     elseif c == "(" then
         if parse_state.is_popen then
-            return nil, "[Err] a parenthesis is already opened"
+            return nil, nil, "[Err] a parenthesis is already opened"
         end
         parse_state.is_popen = true
-        code[#code + 1] = c
-        return nil, nil
+        return nil, c, nil
     elseif c == ")" then
         if not parse_state.is_popen then
-            return nil, "[Err] found a closing parenthesis without an opening one"
+            return nil, nil, "[Err] found a closing parenthesis without an opening one"
         end
         parse_state.is_popen = false
-        code[#code + 1] = c
-        return nil, nil
+        return nil, c, nil
     else -- c is at this point eventually a digit
         local n = string.byte(c) - 48
         if n < 0 or n > 9 then
             return nil, "[ArgErr] found a not digit or a not grouping char"
         end
         if parse_state.is_space then
-            code[#code + 1] = " "
             parse_state.is_space = false
         end
-        code[#code + 1] = c
-        itf14_len = itf14_len + 1
-        parse_state.itf14_len = itf14_len
-        return n, nil
+        parse_state.itf14_len = len14 + 1
+        return n, c, nil
     end
 end
 
@@ -491,18 +488,18 @@ local function itf14_finalize(enc, parse_state) --> ok, err
     end
     -- check digit action
     local policy = enc.check_digit_policy
-    local slen = enc._code_len
     local digits = enc._code_data
+    local slen = #digits
     local is_add
     if policy == "verify" then
         if slen ~= 14 then
-            return nil, "[DataErr] incorrect input lenght of "..slen..
+            return false, "[DataErr] incorrect input lenght of "..slen..
                 " respect to 14 (checksum policy 'verify')" 
         end
         is_add = false
     elseif policy == "add" then
         if slen ~= 13 then
-            return nil, "[DataErr] incorrect input lenght of "..slen..
+            return false, "[DataErr] incorrect input lenght of "..slen..
                 " respect to 13 (checksum policy 'add')" 
         end
         is_add = true
@@ -512,7 +509,7 @@ local function itf14_finalize(enc, parse_state) --> ok, err
         elseif slen == 13 then
             is_add = true
         else
-            return nil, "[DataErr] incorrect input lenght of "..slen..
+            return false, "[DataErr] incorrect input lenght of "..slen..
                 " respect to the current policy '"..policy.."'"
         end
     else
@@ -520,23 +517,23 @@ local function itf14_finalize(enc, parse_state) --> ok, err
     end
     assert(type(is_add) == "boolean")
     local cs = checkdigit(digits, 13, enc.check_digit_method)
-    if is_add then -- add final checkdigit
+    if is_add then -- add the final checkdigit
         digits[14] = cs
-        enc._code_len = 14
+        local dtxt = enc._code_text
+        if dtxt then
+            local len = #dtxt
+            local last = dtxt[len]
+            if last == " " then
+                dtxt[len] = cs
+            else
+                dtxt[len + 1] = cs
+            end
+        end
     else -- check only the final digit
         if cs ~= digits[14] then
             return false, "[DataErr] last digit is not equal to checksum"
         end
     end
-    local hri = parse_state.itf14_code
-    if #hri == 0 then -- input code was a number
-        for i, n in ipairs(digits) do
-            hri[i] = string.char(n + 48)
-        end
-    elseif is_add then
-        hri[#hri + 1] = string.char(cs + 48)
-    end
-    enc._code_data_hri = hri -- human readable interpretation
     return true, nil
 end
 
@@ -544,13 +541,13 @@ end
 local function basic_finalize(enc) --> ok, err
     -- check digit action
     local policy = enc.check_digit_policy
-    local slen = enc._code_len
-    local is_even = (slen % 2 == 0)
     local digits = enc._code_data
+    local slen = #digits
+    local is_even = (slen % 2 == 0)
+
     if policy == "none" then
         if not is_even then
             rshift(digits) -- add a heading zero for padding
-            slen = slen + 1
         end
     elseif policy == "add" then
         if is_even then
@@ -571,7 +568,6 @@ local function basic_finalize(enc) --> ok, err
     else
         return false, "[InternalError] wrong enum value"
     end
-    enc._code_len = slen
     return true, nil
 end
 
@@ -650,7 +646,11 @@ function ITF:_append_ga(canvas, tx, ty) --> bbox
         local Text = self._libgeo.Text
         local t
         if self._variant == "ITF14" then
-            t = Text:from_chars(self._code_data_hri)
+            local code = self._code_text
+            if code == nil then
+                code = self._code_data
+            end
+            t = Text:from_chars(code)
         else
             t = Text:from_digit_array(self._code_data)
         end
