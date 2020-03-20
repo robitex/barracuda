@@ -1,5 +1,5 @@
 % !TeX program = LuaLaTeX
-% Copyright (C) 2020 Roberto Giacomelli
+% Copyright (C) 2019-2020 Roberto Giacomelli
 % Barracuda manual, main TeX source file
 
 \documentclass[11pt,a4paper]{article}
@@ -27,18 +27,19 @@ pdfinfo={
     Title={The Barracuda manual},
     Subject={Barcode printing package},
     Author={Roberto Giacomelli},
-    Keywords={Barcode EAN Code128 Lua}
+    Keywords={Barcode EAN Code128 ITF14 Lua}
 }}
-
+\definecolor{CodeBlue}{rgb}{0.05,0.05,0.80}
 \setmainfont{Libertinus Serif}
 \setmonofont[Scale=0.82]{Fira Mono}
 \fvset{
     fontsize=\small,
     labelposition=topline,
+    formatcom=\color{black},
 }
 \geometry{
-    left=32mm,
-    right=40mm,
+    left=38mm,
+    right=28mm,
     top=22mm,
     bottom=28mm
 }
@@ -55,10 +56,9 @@ pdfinfo={
 Welcome to the \brcd{} software project devoted to barcode printing.
 
 This manual shows you how to print barcodes in your \TeX{} documents and how to
-export such graphic content to an external file, using \brcd{}.
+export such graphic content to an external file.
 
-\brcd{} is written in Lua programming language and is free software released
-under the GPL 2 License.%
+\brcd{} is written in Lua and is free software released under the GPL 2 License.
 }
 
 \tableofcontents
@@ -81,7 +81,8 @@ So far, \brcd{} supported symbologies are as the following:
 \item Code 39,
 \item Code 128,
 \item EAN family (ISBN, ISSN, EAN 8, EAN 13, and the add-ons EAN 2 and EAN 5),
-\item ITF 2of5, interleaved Two of Five ((ITF14, i2of5 general)).
+\item ITF 2of5, interleaved Two of Five (ITF14, i2of5 in general),
+\item UPC-A.
 \end{itemize}
 
 The package provides different output graphic format. At the moment they are:
@@ -107,7 +108,7 @@ symbology and methods description to change the \emph{module} width of a EAN-13
 barcode. It's also detailed how the Lua code works internally and how to
 implement a barcode symbology not already included in the package.
 
-The plan of the manual is (but some sections are not completed yet):
+The manual plan is:
 \begin{description}
 \item[Part 1:] Getting started
 \begin{itemize}
@@ -121,15 +122,15 @@ The plan of the manual is (but some sections are not completed yet):
 	\item \brcd{} \LaTeX{} package \( \to \) \pageref{secLaTeXPkg}
 \end{itemize}
 
-\item[Part 3:] Barcode Reference and Parameters
+\item[Part 3:] Barcode Reference
 \begin{itemize}
-	\item encoder identification rule \( \to \) \pageref{secEncName}
 	\item barcode symbologies reference \( \to \) \pageref{secBcRef}
 \end{itemize}
 
-\item[Part 4:] Advanced Work with \brcd{}
+\item[Part 4:] Developer zone
 \begin{itemize}
 	\item Lua framework description \( \to \) \pageref{secFramework}
+    \item encoder identification rule \( \to \) \pageref{secEncName}
 	\item API reference \( \to \) \pageref{secAPI}
 	\item \code{ga} specification \( \to \) \pageref{secGA}
 \end{itemize}
@@ -159,10 +160,11 @@ level macros. A minimal knowledge of the \LaTeX{} format is obviously required.
 
 Here is a collection of useful learning resources:
 \begin{description}
-\item[Lua:] to learn Lua the main reference is the book called PIL, Programming
-in Lua from one of the language's Author Roberto Ierusalimschy.
-\item[\LaTeX:] \dots
-\item[Lua\TeX:] \dots
+\item[Lua:] to learn Lua the main reference is the book called PIL that stands
+for Programming in Lua from one of the language's Author Roberto Ierusalimschy.
+\item[Lua\TeX:] the typesetting engine manual can be opened running the
+\code{texdoc} utility in a terminal session, typing \code{luatex} as the sole
+argument.
 \end{description}
 
 
@@ -174,7 +176,7 @@ code processed by a command line program with a Lua interpreter.
 
 The paradigm of \brcd{} is the Object Oriented Programming. Generally speaking
 every object must be created with a function called \emph{costructor} and every
-action must be run calling a \emph{method} of it.
+action must be run calling an object \emph{method}.
 
 In this section you'll take a taste of \brcd{} coding in three different
 execution context: a Lua script, a Lua\TeX{} document and a \LaTeX{} source file
@@ -361,18 +363,33 @@ Every macro \verb=\barracuda= typesets a barcode symbol with the encoder defined
 in the first argument, encoding data defined by the second.
 
 
-\section{Barcode parameters}
-\label{secBarcodeReference}
-
-\subsection{Encoder treename}
-\label{secEncName}
-
-TODO
-
-\subsection{Barcode Reference}
+\section{Barcode Reference}
 \label{secBcRef}
 
-TODO
+\directlua{
+    local barcode = barracuda:barcode()
+    local info = barcode:info()
+    local param = info.param
+    
+}
+
+Common options and parameters are defined 
+
+For each barcode symbologies this section reports parameters and optional
+methods of it.
+
+\subsection{Code39}
+\label{secCode39}
+
+\code{Code39} is one of the oldest symbologies ever created. It does not include
+any checksum digit and the only encodable characters are digits, uppercase
+letters and a few symbol like \code{+} or \code{\$}.
+
+
+
+\subsection{Code128}
+\label{secCode128}
+
 
 \section{Developer zone}
 
@@ -399,7 +416,15 @@ The basic idea is getting faster encoders, for which the user may set up
 paramenters at any level: barcode abstract class, encoder globally, down to a
 single symbol object.
 
-The Barcode class is completely indipendent from the ouput driver and viceversa.
+The Barcode class is completely indipendent from the output driver and viceversa.
+
+
+\subsection{Encoder Treename}
+\label{secEncName}
+
+In \brcd{} in order to draw a barcode symbol it's necessary to create an
+\code{Encoder} object
+
 
 \subsection{API reference of Lua modules}
 \label{secAPI}

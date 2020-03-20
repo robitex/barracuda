@@ -66,7 +66,7 @@ function Barracuda:get_driver() --> Driver object
     return self._lib_driver
 end
 
-function Barracuda:new_canvas() --> driver
+function Barracuda:new_canvas() --> canvas
     local gacanvas = self._gacanvas
     return gacanvas:new()
 end

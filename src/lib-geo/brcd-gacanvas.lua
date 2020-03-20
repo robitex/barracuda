@@ -4,6 +4,8 @@
 
 local gaCanvas = {_classname = "gaCanvas"}
 gaCanvas.__index = gaCanvas
+gaCanvas.mm = 186467.98110236 -- conversion factor sp -> mm (millimeter)
+gaCanvas.bp = 65781.76 -- conversion factor sp -> bp (big point)
 
 -- ga specification: see the file ga-grammar.pdf in the doc directory
 

@@ -1,0 +1,43 @@
+% !TeX program = LuaTeX
+% Copyright (C) 2020 Roberto Giacomelli
+
+\newbox\mybox
+\nopagenumbers
+
+UPC encoder test.
+
+Test 1: one simple barcode UPC-A with default parameter:
+
+\directlua{
+barracuda = require "barracuda"
+local barcode = barracuda:barcode()
+barcode:set_param("debug_bbox_on", true)
+local upca, err = barcode:new_encoder("upc-A")
+assert(not err, err)
+
+local symbo, err = upca:from_string("042100005264")
+assert(not err, err)
+
+local canvas = barracuda:new_canvas()
+symbo:draw(canvas)
+
+local drv = barracuda:get_driver()
+drv:ga_to_hbox(canvas, "mybox")
+}
+\vrule A\box\mybox A\vrule
+
+\bigskip\directlua{
+local barcode = barracuda:barcode()
+barcode:set_param("debug_bbox_on", false)
+local upca = assert(barcode:enc_by_name("upc-A"))
+
+local symbo = assert(upca:new("012345678905"))
+
+local canvas = barracuda:new_canvas()
+symbo:draw(canvas)
+
+local drv = barracuda:get_driver()
+drv:ga_to_hbox(canvas, "mybox")
+}\leavevmode\box\mybox
+\bye
+

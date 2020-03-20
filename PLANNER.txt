@@ -18,7 +18,6 @@ Hypothetical development task list:
 20__-__-__: [dev] proportional options
 20__-__-__: [dev] a number parameter can be a string? unit measure...
 20__-__-__: [prj] a command line program to print barcodes
-20__-__-__: [dev] UPC support
 20__-__-__: [dev] make optional file name in all the Driver methods
 20__-__-__: [prj] test l3build for testing and CTAN files packaging
 20__-__-__: [dev] load barcode parameters from an external file
@@ -28,6 +27,7 @@ Hypothetical development task list:
 2020-__-__: [project][build] make a Lua script to easily create the CTAN upload
           : compressed files
 2020-__-__: [dev] statistical data on how many barcode symbols was printed
+2020-__-__: [upc] UPC-E barcode symbology
 
 Scheduled task list for Data Matrix 2D symbology implementation:
 ----------------------------------------------------------------
@@ -43,15 +43,18 @@ Scheduled task list for Data Matrix 2D symbology implementation:
 Ongoing Scheduler:
 ==================
 -------------------------------------------------------------------------------
-2020-__-__: [milestone] version <v0.0.11> completed task/commit list
+2020-__-__: [milestone] version 0.1
 2020-__-__: [test] update test files with recent changes
 2020-__-__: [dev][ean] fix the `ean:checksum()` to include ISBN and ISSN variant
 2020-__-__: [dev] control the method call on the right class
 2020-03-__: [code128] add human readeable text
 2020-03-__: [breaking change] refactor Text libgeo object
+2020-03-__: [project] adhere to semver specification
+2020-03-__: [doc] API reference
 2020-03-__: [doc] barcode symbologies reference
 -------------------------------------------------------------------------------
-2020-03-13:*[barcode] new method get_code() and get_hri()
+2020-03-20:*[upc] new UPC-A barcode symbology
+2020-03-13: [barcode] new method get_code() and get_hri()
 2020-03-11: [breaking change][barcode] new `draw()` method
 2020-03-07: [ga] new <dash-pattern> and <reset-pattern> opcodes
 2020-03-06: [doc] new section explains `Vbar`

@@ -25,6 +25,7 @@ So far, the barcode symbologies supported by the package are:
 - Code 128
 - Interleaved 2 of 5 (ITF14, i2of5 general)
 - EAN family (ISBN, ISSN, EAN8, EAN13, and the add-ons EAN5 and EAN2)
+- UPC-A
 
 Other 1D encoding symbology will be eventually added to the project, then it
 will be the turn of 2D barcode types like Datamatrix, QRCode or PDF417.
@@ -89,4 +90,4 @@ program.
 Please, for more legal details refer to LICENSE.txt file or visit the web page
 <https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>
 
-Copyright (C) 2020 Roberto Giacomelli
+Copyright (C) 2019-2020 Roberto Giacomelli

@@ -345,11 +345,17 @@ function Polyline:new() --> <Polyline>
     return o
 end
 
--- append a new point with absolute coordinates
+-- get a clone of points' coordinates
 function Polyline:get_points()
-    return self._n, self._point
+    local res = {}
+    local p = self._point
+    for i, c in ipairs(p) do
+        res[i] = c
+    end
+    return self._n, res
 end
 
+-- append a new point with absolute coordinates
 function Polyline:add_point(x, y)
     assert(type(x) == "number", "Invalid type for x-coordinate")
     assert(type(y) == "number", "Invalid type for y-coordinate")

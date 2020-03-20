@@ -12,6 +12,7 @@ Barcode._available_enc = {-- keys must be lowercase
     code128 = "lib-barcode.brcd-code128", -- Code128
     ean     = "lib-barcode.brcd-ean",     -- EAN family (ISBN, EAN8, etc)
     i2of5   = "lib-barcode.brcd-i2of5",   -- Interleaved 2 of 5
+    upc     = "lib-barcode.brcd-upc",     -- UPC
 }
 Barcode._builder_instances = {} -- encoder builder instances repository
 Barcode._encoder_instances = {} -- encoder instances repository
@@ -302,7 +303,8 @@ function Barcode:new_encoder(treename, opt) --> object, err
         end
     end
     if enc._config then -- this must be called after the parameter definition
-        enc:_config()
+        local ok, err = enc:_config()
+        if not ok then return nil, err end
     end
     return enc, nil
 end
@@ -501,9 +503,9 @@ end
 function Barcode:new(code) --> object, err
     local t = type(code)
     if t == "string" then
-        return self:from_string(code), nil
+        return self:from_string(code)
     elseif t == "number" then
-        return self:from_uint(code), nil
+        return self:from_uint(code)
     elseif t == "table" then
         local res = {}
         for _, c in ipairs(code) do
@@ -600,13 +602,13 @@ function Barcode:info() --> table
         description = self._DESCRIPTION,
         param       = {},
     }
-    local tpar   = info.param
+    local tpar = info.param
     for _, pdef in self:param_ord_iter() do
-        local id   = pdef.pname
+        local id = pdef.pname
         local def = pdef.pdef
         tpar[#tpar + 1] = {
             name       = id,
-            descr      = nil, -- TODO:
+            descr      = def.descr,
             value      = self[id],
             isReserved = def.isReserved,
             unit       = def.unit,
