@@ -11,18 +11,36 @@ gaCanvas.bp = 65781.76 -- conversion factor sp -> bp (big point)
 
 -- gaCanvas constructor
 function gaCanvas:new() --> object
-    local o = {
-        _v    = 100, -- version of the ga format
-        _data = {}, -- ga stream array
-        linewidth = nil, -- graphic state fields
-        linecap = nil,
-        linejoin = nil,
-        dash_pattern = nil,
-        dash_phase = nil,
-        enable_bbox = nil,
-    }
+    local drv = assert(self._driver_class)
+    -- graphic state fields returned by Driver:default_style() method
+    -- linewidth
+    -- linecap
+    -- linejoin
+    -- dashpattern
+    -- dashphase
+    local o = assert(drv:default_style()) -- initial graphic state
+    o._version = 100  -- version of the ga format
+    o._data = {} -- ga stream array
+    o.bb_on = true
     setmetatable(o, self)
     return o
+end
+
+-- save graphic data in an external file with the 'id_drv' format
+-- id_drv::= string, specific driver output identifier
+-- filename ::= string, file name
+-- ext ::= string, file extension (optional, default SVG)
+function gaCanvas:save(id_drv, filename, ext) --> ok, err
+    local driver = self._driver_class
+    return driver:save(id_drv, self, filename, ext)
+end
+
+-- insert a ga drawing in a TeX hbox
+-- PDFnative only function
+-- boxname ::= string
+function gaCanvas:ga_to_hbox(boxname) --> ok, err
+    local driver = self._driver_class
+    return driver:ga_to_hbox(self, boxname)
 end
 
 -- return a clone of the <ga> stream array
@@ -155,7 +173,7 @@ end
 -- checking the bounding box from now on
 -- opcode: <29>
 function gaCanvas:encode_enable_bbox() --> ok, err
-    self.enable_bbox = true
+    self.bb_on = true
     local data = self._data
     data[#data + 1] = 29
     return true, nil
@@ -164,7 +182,7 @@ end
 -- Stop checking the bounding box
 -- opcode: <30>
 function gaCanvas:encode_disable_bbox() --> ok, err
-    self.enable_bbox = false
+    self.bb_on = false
     local data = self._data
     data[#data + 1] = 30
     return true, nil

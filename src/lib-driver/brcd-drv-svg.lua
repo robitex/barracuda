@@ -53,6 +53,14 @@ end
 function SVG.append_001(st, bf, xt, w) -- nothing to do
 end
 
+-- 2 <enum: u8>; set line cap style
+function SVG.append_002(st, bf, xt, cap) -- nothing to do
+end
+
+-- 3 <enum: u8>; set line join style
+function SVG.append_003(st, bf, xt, j) -- nothing to do
+end
+
 -- 5 <dash_pattern>
 function SVG.append_005(st, bf, xt) -- nothing to do
 end
@@ -70,7 +78,7 @@ function SVG.append_033(st, bf, xt, x1, x2, y)
     bf[#bf + 1] = string.format( -- <path> element
         '%s<path d="M%0.6f %0.6fH %0.6f"\n', ident, x1/mm, -y/mm, x2/mm
     )
-    local lw = st.line_width
+    local lw = st.linewidth
     bf[#bf + 1] = string.format(
         '%s  stroke="black" stroke-width="%0.6f"\n', ident, lw/mm
     )
@@ -102,7 +110,7 @@ function SVG.append_034(st, bf, xt, y1, y2, x)
     bf[#bf + 1] = string.format( -- <path> element
         '%s<path d="M%0.6f %0.6f V%0.6f"\n', ident, x/mm, -y2/mm, -y1/mm
     )
-    local lw = st.line_width
+    local lw = st.linewidth
     bf[#bf + 1] = string.format(
         '%s  stroke="black" stroke-width="%0.6f"\n', ident, lw/mm
     )
@@ -159,7 +167,7 @@ function SVG.append_038_start(st, bf, xt, n, x1, y1)
     local mm = st.mm -- conversion factor mm -> sp
     local style = string.format(
         '%s<g stroke="black" stroke-width="%0.6f" fill="none"',
-        ident, st.line_width/mm
+        ident, st.linewidth/mm
     )
     local dash = st.dashpattern
     if dash then
@@ -211,7 +219,7 @@ function SVG.append_048(st, bf, xt, x1, y1, x2, y2)
     local ident = string.rep("  ", lvl)
     local fmt = '%s<rect x="%0.6f" y="%0.6f" width="%0.6f" height="%0.6f"'
     bf[#bf + 1] = string.format(fmt, ident, x1/mm, -y2/mm, w/mm, h/mm)
-    local lw = st.line_width
+    local lw = st.linewidth
     bf[#bf + 1] = string.format(
         '%s  fill="none" stroke="black" stroke-width="%0.6f"\n', ident, lw/mm
     )

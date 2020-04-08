@@ -160,10 +160,9 @@ end
 
 -- config function called at the moment of encoder construction
 function UPC:_config() --> ok, err
-    local vars = self._id_variant
-    local v = self._variant
-    if not vars[v] then
-        return nil, "[Err] no variant identifier in the encoder treename"
+    local variant = self._variant
+    if not variant then
+        return false, "[Err] variant is mandatory for the UPC family"
     end
     local Vbar = self._libgeo.Vbar -- Vbar class
     local Vbar_archive = self._libgeo.Archive -- Archive class

@@ -303,8 +303,8 @@ function Barcode:new_encoder(treename, opt) --> object, err
         end
     end
     if enc._config then -- this must be called after the parameter definition
-        local ok, err = enc:_config()
-        if not ok then return nil, err end
+        local ok, e = enc:_config()
+        if not ok then return nil, e end
     end
     return enc, nil
 end

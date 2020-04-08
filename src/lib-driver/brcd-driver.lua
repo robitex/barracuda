@@ -18,6 +18,7 @@ Driver._drv_available_drv = { -- lowercase keys please
     svg  = "lib-driver.brcd-drv-svg",
 }
 
+-- id_drv is specific driver identifier as a string
 function Driver:_get_driver(id_drv) --> object, err
     if type(id_drv) ~= "string" then
         return nil, "[ArgErr: id_drv] string expected"
@@ -36,22 +37,54 @@ function Driver:_get_driver(id_drv) --> object, err
     end
 end
 
-function Driver:_new_state() --> a new state
+function Driver:default_style() --> new table as default graphic init state
     return {
-        line_width = 65781.76, -- line width 1bp (in scaled point sp)
-        line_cap = 0, -- line cap style
-        line_join = 0, -- line join style
+        linewidth = 65781.76, -- line width 1bp (in scaled point sp)
+        linecap = 0, -- line cap style
+        linejoin = 0, -- line join style
         dashpattern = nil, -- dash definition
         dashphase = nil, -- dash phase definition
-        gtext = false, -- text group off
-        bb_on = true, -- bounding box checking activation
-        bb_x1 = nil, -- bounding box coordinates in sp (nil means no data)
-        bb_y1 = nil,
-        bb_x2 = nil,
-        bb_y2 = nil,
-        mm = self.mm, -- conversion factor sp -> mm (millimeter)
-        bp = self.bp, -- conversion factor sp -> bp (big point)
     }
+end
+
+function Driver:_new_state() --> a new state
+    local st = self:default_style()
+    st.bb_on = true -- bounding box checking is active
+    st.gtext = false -- text group off
+    st.bb_x1 = nil -- bounding box coordinates in sp (nil means no data)
+    st.bb_y1 = nil
+    st.bb_x2 = nil
+    st.bb_y2 = nil
+    st.mm = self.mm -- conversion factor sp -> mm (millimeter)
+    st.bp = self.bp -- conversion factor sp -> bp (big point)
+    return st
+end
+
+function Driver:_ga_init_style(drv, st, bf, xt)
+    local op_fn = self._opcode_v001
+    -- linewidth
+    if not drv.append_001 then
+        error("[InternalErr] unimplemented opcode 1 for "..drv._drvname)
+    end
+    local w = st.linewidth
+    drv.append_001(st, bf, xt, w)
+  -- linecap    
+    if not drv.append_002 then
+        error("[InternalErr] unimplemented opcode 2 for "..drv._drvname)
+    end
+    local linecap = st.linecap
+    drv.append_002(st, bf, xt, linecap)
+    -- line join style    
+    if not drv.append_003 then
+        error("[InternalErr] unimplemented opcode 3 for "..drv._drvname)
+    end
+    local join = st.linejoin
+    drv.append_003(st, bf, xt, join)
+    -- dash pattern (reset)
+    if not drv.append_006 then
+        error("[InternalErr] unimplemented opcode 6 for "..drv._drvname)
+    end
+    drv.append_006(st, bf, xt)
 end
 
 function Driver:_ga_process(drv, ga_stream, st, bf, xt)
@@ -81,6 +114,8 @@ function Driver:save(id_drv, ga, filename, ext) --> ok, err
     -- init
     local state = self:_new_state()
     local buf, txt_buf = drv.init_buffer(state) -- a new buffer and text_buffer
+    -- send every defualt style parameter to the special driver
+    self:_ga_init_style(drv, state, buf, txt_buf)
     -- processing
     self:_ga_process(drv, ga_stream, state, buf, txt_buf)
     -- buffer finalizing
@@ -114,13 +149,14 @@ function Driver:ga_to_hbox(ga, boxname) --> ok, err
     -- init process
     local state = self:_new_state()
     local buf, txt_buf = drv.init_buffer(state) -- a new buffer and text_buffer
+    -- send every defualt style parameter to the special driver
+    self:_ga_init_style(drv, state, buf, txt_buf)
     -- processing
     self:_ga_process(drv, ga_stream, state, buf, txt_buf)
     -- finalizing
     drv.close_buffer(state, buf, txt_buf) -- finalize the istruction sequence
     -- build hbox
-    local ok, err = drv.hboxcreate(boxname, state, buf, txt_buf)
-    return ok, err
+    return drv.hboxcreate(boxname, state, buf, txt_buf)
 end
 
 
@@ -137,27 +173,22 @@ end
 Driver._opcode_v001 = {
     [1] = function (drv, st, pc, ga, bf, xt) -- 1 <W: dim>; set line width
         local w = ga[pc]
-        st.line_width = w
-        if not drv.append_001 then
-            error("[InternalErr] unimplemented opcode 1 for "..drv._NAME)
-        end
+        st.linewidth = w
         drv.append_001(st, bf, xt, w)
         return pc + 1
     end,
     [2] = function (drv, st, pc, ga, bf, xt) -- 2 <e: u8>; set line cap style
         local style = ga[pc]
-        st.line_cap = style
+        st.linecap = style
         if not drv.append_002 then
-            error("[InternalErr] unimplemented opcode 2 for "..drv._NAME)
+            error("[InternalErr] unimplemented opcode 2 for "..drv._drvname)
         end
         drv.append_002(st, bf, xt, style)
         return pc + 1
     end,
     [3] = function (drv, st, pc, ga, bf, xt) -- 3 <e: u8>; set line join style
         local join = ga[pc]
-        if not drv.append_003 then
-            error("[InternalErr] unimplemented opcode 3 for "..drv._NAME)
-        end
+        st.linejoin = join
         drv.append_003(st, bf, xt, join)
         return pc + 1
     end,
@@ -165,7 +196,7 @@ Driver._opcode_v001 = {
     -- phase <len> n <qty> [bi <len>]+
     [5] = function (drv, st, pc, ga, bf, xt)
         if not drv.append_005 then
-            error("[InternalErr] unimplemented opcode 5 for "..drv._NAME)
+            error("[InternalErr] unimplemented opcode 5 for "..drv._drvname)
         end
         local phase = ga[pc]; pc = pc + 1
         local n = ga[pc]; pc = pc + 1
@@ -182,7 +213,7 @@ Driver._opcode_v001 = {
     end,
     [6] = function (drv, st, pc, ga, bf, xt) -- 6 <reset_pattern>
         if not drv.append_006 then
-            error("[InternalErr] unimplemented opcode 6 for "..drv._NAME)
+            error("[InternalErr] unimplemented opcode 6 for "..drv._drvname)
         end
         st.dashpattern = nil -- reset dash pattern array and phase
         st.dashphase = nil
@@ -222,7 +253,7 @@ Driver._opcode_v001 = {
         local x2 = ga[pc]; pc = pc + 1
         local  y = ga[pc]; pc = pc + 1
         if st.bb_on then -- eventually update bbox
-            local hw  = st.line_width/2
+            local hw  = st.linewidth/2
             local by1 = y - hw
             local by2 = y + hw
             if st.bb_x1 == nil then
@@ -238,7 +269,7 @@ Driver._opcode_v001 = {
             end
         end
         if not drv.append_033 then
-            error("[InternalErr] unimplemented opcode 33 for "..drv._NAME)
+            error("[InternalErr] unimplemented opcode 33 for "..drv._drvname)
         end
         drv.append_033(st, bf, xt, x1, x2, y)
         return pc
@@ -249,7 +280,7 @@ Driver._opcode_v001 = {
         local y2 = ga[pc]; pc = pc + 1
         local x  = ga[pc]; pc = pc + 1
         if st.bb_on then -- eventually update the figure's bounding box
-            local hw  = st.line_width/2
+            local hw  = st.linewidth/2
             local bx1 = x - hw
             local bx2 = x + hw
             if st.bb_x1 == nil then
@@ -265,7 +296,7 @@ Driver._opcode_v001 = {
             end
         end
         if not drv.append_034 then
-            error("[InternalErr] unimplemented opcode 34 for "..drv._NAME)
+            error("[InternalErr] unimplemented opcode 34 for "..drv._drvname)
         end
         drv.append_034(st, bf, xt, y1, y2, x)
         return pc
@@ -376,7 +407,7 @@ Driver._opcode_v001 = {
         local y2 = ga[pc]; pc = pc + 1
         -- check the bounding box only if the flag is true
         if st.bb_on then
-            local hw = st.line_width/2
+            local hw = st.linewidth/2
             local bx1, bx2 = x1 - hw, x2 + hw
             local by1, by2 = y1 - hw, y2 + hw
             if st.bb_x1 == nil then

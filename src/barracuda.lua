@@ -34,12 +34,17 @@ local Barracuda = {
 }
 
 -- essential sub-module loading
-Barracuda._libgeo   = require "lib-geo.brcd-libgeo"      -- basic vectorial objects
+Barracuda._libgeo   = require "lib-geo.brcd-libgeo"      -- basic vector objects
 Barracuda._gacanvas = require "lib-geo.brcd-gacanvas"    -- ga stream library
 Barracuda._barcode  = require "lib-barcode.brcd-barcode" -- barcode abstract class
+Barracuda._lib_driver = require "lib-driver.brcd-driver" -- abstract driver class
 
 local Barcode = Barracuda._barcode
 Barcode._libgeo = Barracuda._libgeo
+
+-- a reference to Driver class for gaCancas class
+local canvas = Barracuda._gacanvas
+canvas._driver_class = Barracuda._lib_driver
 
 -- return a reference of Barcode abstract class
 function Barracuda:barcode() --> <Barcode class>
@@ -60,9 +65,6 @@ end
 
 -- where we place the output driver library
 function Barracuda:get_driver() --> Driver object
-    if not self._lib_driver then
-        self._lib_driver = require "lib-driver.brcd-driver"
-    end
     return self._lib_driver
 end
 
@@ -72,7 +74,6 @@ function Barracuda:new_canvas() --> canvas
 end
 
 -- high level barcode functions
--- only default options
 -- panic on error
 
 -- save barcode as a graphic external file

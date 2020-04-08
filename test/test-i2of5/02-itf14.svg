@@ -68,5 +68,9 @@
   />
   <text x="29.823593" y="5.174984" font-family="Verdana" font-size="2.877000" text-anchor="middle">
   (12) 34 56 78 90 12 31  </text>
+  <rect x="-7.407322" y="-15.157281" width="74.461830" height="17.614629"    fill="none" stroke="black" stroke-width="0.035278"
+    stroke-dasharray="2.116667 1.058333"
+    stroke-dashoffset="1.058333"
+  />
 </svg>
 

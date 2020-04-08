@@ -909,7 +909,7 @@ end
 function EAN:_config() --> ok, err
     local variant = self._variant
     if not variant then
-        return false, "[Err] variant is mandatory for EAN family"
+        return false, "[Err] variant is mandatory for the EAN family"
     end
     local plus = variant:find("+")
     local v1

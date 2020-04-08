@@ -10,6 +10,7 @@
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{tikz}
+\usepackage{tcolorbox}
 \usepackage{hyperref}
 
 \newcolumntype{C}{>{\ttfamily}c}
@@ -20,6 +21,21 @@
 % special macro for manual typesetting
 \input{barracuda-manual-tool}
 
+\tcbuselibrary{skins}
+\tcbset{
+    sharpish corners,
+    drop shadow=gray!75,
+    bottom=-5pt,
+    left=5pt,
+    boxrule=1.2pt,
+    titlerule=0.8pt,
+    colback=blue!10!white,
+    colbacktitle=blue!10!white,
+    coltitle=black,
+    bicolor,colbacklower=white,
+    righthand width=80pt
+}
+
 \hypersetup{
 hidelinks,
 linktoc = all,
@@ -27,7 +43,7 @@ pdfinfo={
     Title={The Barracuda manual},
     Subject={Barcode printing package},
     Author={Roberto Giacomelli},
-    Keywords={Barcode EAN Code128 ITF14 Lua}
+    Keywords={Barcode EAN UPC Code128 ITF14 Lua}
 }}
 \definecolor{CodeBlue}{rgb}{0.05,0.05,0.80}
 \setmainfont{Libertinus Serif}
@@ -366,12 +382,7 @@ in the first argument, encoding data defined by the second.
 \section{Barcode Reference}
 \label{secBcRef}
 
-\directlua{
-    local barcode = barracuda:barcode()
-    local info = barcode:info()
-    local param = info.param
-    
-}
+
 
 Common options and parameters are defined 
 
@@ -640,8 +651,8 @@ produce a more fast execution and the figure will get the bounding box computed
 until that instruction. The \code{<set\_bbox>} operation imposes a minimal
 bounding box comparing to the current figure dimensions.
 
-The initial bounding box is simply an empty figure. As a conseguence, different
-strategies can be used to optimize runtime execution, such as in the previuos
+The initial bounding box is simply an empty figure. As a consequence, different
+strategies can be used to optimize runtime execution, such as in the previous
 code example, where bounding box is always disabled and it is set up at the last
 \code{canvas} method call. More often than not, we know the bounding box of the
 barcode symbol including quiet zones.
@@ -779,7 +790,7 @@ called \code{Vbar} and is defined by a flat array of pair numbers sequence: the
 first one is the x-coordinate of the bar while the second is its width.
 
 For instance, consider a \code{Vbar} of three bars for which width is a
-multiple of the fixed lenght called \code{mod}, defined by the array and fugure
+multiple of the fixed length called \code{mod}, defined by the array and figure
 showed below:
 \begin{Verbatim}
 -- {     x1,    w1,      x2,    w2,     x3,     w3}
@@ -816,9 +827,9 @@ represents the sequence of black and white bars with the rule that the single
 digit is the width module multiplier. So, the previous \code{Vbar} can be
 defined by 32111 with module equals to 2 mm.
 
-The class \code{Vbar} of module \code{libgeo} has several costructors one of
-which is \code{from\_int()}. Its arguments are the multipler integer
-\code{ngen}, the module lenght \code{mod} and the optional boolean flag
+The class \code{Vbar} of module \code{libgeo} has several constructors one of
+which is \code{from\_int()}. Its arguments are the multiplier integer
+\code{ngen}, the module length \code{mod} and the optional boolean flag
 \code{is\_bar}, true if the first bar is black (default to true):
 \begin{Verbatim}
 b = Vbar:from_int(32111, 2*mm)
@@ -921,9 +932,14 @@ Lua\TeX{}.
 
 \subsubsection{Example number 1}
 
-Suppose we want to draw a simple rectangle. In the \code{ga} reference at
+Suppose we want to draw a simple rectangle. In the \code{ga} reference of
 section~\ref{secGAtabref} there is a dedicated instruction \code{<rect>}.
 Let's give it a try:
+
+\begin{tcolorbox}[
+    title={Example 1: dealing with raw \code{ga} stream},
+    sidebyside,
+]
 \begin{Verbatim}
 % !TeX program = LuaTeX
 \newbox\mybox
@@ -937,33 +953,27 @@ Let's give it a try:
 }\leavevmode\box\mybox
 \bye
 \end{Verbatim}
-
-Dealing with low level \code{ga} stream is not necessary. We can use a
-\code{gaCanvas} object:
-\begin{Verbatim}
-% !TeX program = LuaTeX
-\newbox\mybox
+\tcblower
 \directlua{
     local barracuda = require "barracuda"
     local pt = 65536
     local side = 36*pt
-    local canvas = barracuda:new_canvas()
-    canvas:encode_rect(0, 0, 2*side, side)
+    local ga = {48, 0, 0, 2*side, side}
     local drv = barracuda:get_driver()
-    drv:ga_to_hbox(canvas, "mybox")
-}\leavevmode\box\mybox
-\bye
+    drv:ga_to_hbox(ga, "mybox")
+}\box\mybox
+\end{tcolorbox}
+
+Dealing with low level \code{ga} stream is not necessary. We can use a
+\code{gaCanvas} object:
+\begin{Verbatim}
+...
+local canvas = barracuda:new_canvas()
+canvas:encode_rect(0, 0, 2*side, side)
+canvas:ga_to_hbox("mybox")
+...
 \end{Verbatim}
 
-In both cases the drawing looks like: \directlua{
-    local barracuda = require "barracuda"
-    local pt = 65536
-    local side = 36*pt
-    local canvas = barracuda:new_canvas()
-    canvas:encode_rect(0, 0, 2*side, side)
-    local drv = barracuda:get_driver()
-    drv:ga_to_hbox(canvas, "mybox")
-}\box\mybox
 
 \subsubsection{Example number 2}
 

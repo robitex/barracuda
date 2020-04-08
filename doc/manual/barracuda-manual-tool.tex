@@ -35,10 +35,15 @@
     end
 }}
 
-\newcommand{\brcdParTab}[1]{\directlua{
-    local oid = [=[#1]=]
+\newcommand{\brcdparametertab}[1]{\directlua{
+    local enc_id = [=[#1]=]
     local t = {}
     tex.print()
+
+    local barcode = barracuda:barcode()
+    local info = barcode:info()
+    local param = info.param
+    
 }}
 
 \endinput
