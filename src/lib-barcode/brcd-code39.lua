@@ -50,7 +50,7 @@ pardef.module = {
     -- with label or form design.
     -- The module width (width of narrow element) should be at least 7.5 mils
     -- or 0.1905mm (a mil is 1/1000 inch).
-    default    = 7.5 * 0.0254 * 186467, -- 7.5 mils (sp) unit misure,
+    default    = 10 * 0.0254 * 186467, -- 7.5 mils (sp) unit misure,
     unit       = "sp", -- scaled point
     isReserved = true,
     fncheck    = function (self, mod, _) --> boolean, err

@@ -25,12 +25,12 @@
 \tcbset{
     sharpish corners,
     drop shadow=gray!75,
-    bottom=-5pt,
+    halign lower=center,
     left=5pt,
     boxrule=1.2pt,
     titlerule=0.8pt,
-    colback=blue!10!white,
-    colbacktitle=blue!10!white,
+    colback=green!10!white,
+    colbacktitle=green!10!white,
     coltitle=black,
     bicolor,colbacklower=white,
     righthand width=80pt
@@ -64,6 +64,8 @@ pdfinfo={
 \title{the \code{barracuda} manual\\[1ex]
 \small \url{https://github.com/robitex/barracuda}}
 \date{\small Date \brcdkey{date} --- Version \brcdkey{version} --- Beta stage}
+
+\newbox\mybox
 
 \begin{document}
 \maketitle
@@ -109,10 +111,10 @@ The package provides different output graphic format. At the moment they are:
 
 The name \brcd{} is an assonance to the name Barcode. I started the project back
 in 2016 for getting barcode in my \TeX{} generated PDF documents, studying the
-Lua\TeX{} technology such as direct \emph{pdfliteral node} creation.
+Lua\TeX{} technology such as direct \emph{pdfliteral} node creation.
 
-At the moment \brcd{} is in \emph{beta} stage. In this phase the Lua API can
-change respect to the result of development research.
+At the moment \brcd{} is in \emph{beta} stage. In this phase the Lua API may
+change respect to the result of development activity.
 
 
 \subsection{Manual Content}
@@ -145,7 +147,7 @@ The manual plan is:
 
 \item[Part 4:] Developer zone
 \begin{itemize}
-	\item Lua framework description \( \to \) \pageref{secFramework}
+	\item the Lua framework \( \to \) \pageref{secFramework}
     \item encoder identification rule \( \to \) \pageref{secEncName}
 	\item API reference \( \to \) \pageref{secAPI}
 	\item \code{ga} specification \( \to \) \pageref{secGA}
@@ -179,8 +181,10 @@ Here is a collection of useful learning resources:
 \item[Lua:] to learn Lua the main reference is the book called PIL that stands
 for Programming in Lua from one of the language's Author Roberto Ierusalimschy.
 \item[Lua\TeX:] the typesetting engine manual can be opened running the
-\code{texdoc} utility in a terminal session, typing \code{luatex} as the sole
-argument.
+\code{texdoc} utility in a terminal window of your system, typing the command:
+\begin{Verbatim}
+$ texdoc luatex
+\end{Verbatim}
 \end{description}
 
 
@@ -190,77 +194,107 @@ argument.
 The starting point to work with \brcd{} is always a plain text file with some
 code processed by a command line program with a Lua interpreter.
 
-The paradigm of \brcd{} is the Object Oriented Programming. Generally speaking
-every object must be created with a function called \emph{costructor} and every
-action must be run calling an object \emph{method}.
-
 In this section you'll take a taste of \brcd{} coding in three different
 execution context: a Lua script, a Lua\TeX{} document and a \LaTeX{} source file
 using the macro package \code{barracuda.sty} providing an high level interface
-to Lua code.
+to the Lua library.
 
 High level package like \code{barracuda.sty} make to write Lua code unnecessary.
-It will be always possible return to Lua code in order to resolve complex
+It will be always possible to return to Lua code in order to resolve complex
 barcode requirements.
 
 
 \subsubsection{A Lua script}
 
-As a practical example to produce an EAN~13 barcode, open a text editor of your
+The paradigm of \brcd{} is the Object Oriented Programming. Generally speaking
+every library object must be created with a function called \emph{constructor}
+and every action on it must be run calling an object \emph{method}.
+
+In Lua a constructor or even a method call syntax it's a little bit different
+from the usual form because we have to use the \emph{colon notation}:
+\begin{BVerbatim}
+object:method(args)
+\end{BVerbatim}
+
+As a practical example, to produce an EAN~13 barcode, open a text editor of your
 choice on an empty file and save it as \code{first-run.lua} with the content of
 the following two lines of code:
-\medskip
-\begin{Verbatim}[label=\footnotesize\code{first-run.lua}]
+\begin{tcolorbox}[
+    title={\code{first-run.lua}}
+]
+\begin{BVerbatim}
 local barracuda = require "barracuda"
 barracuda:save("ean-13", "8006194056290", "my_barcode", "svg")
-\end{Verbatim}
+\end{BVerbatim}
+\end{tcolorbox}
 
 What you have done is to write a \emph{script}. If you have installed a Lua
 interpreter along with \brcd{}, open a terminal and run it with the command:
-\begin{Verbatim}
+\begin{BVerbatim}
 $ lua first-run.lua
-\end{Verbatim}
+\end{BVerbatim}
 
-You will see in the same directory of your script, appearing a new file called
+In the same directory of your script you will see a new one called
 \code{my\_barcode.svg} with the drawing:
 \begin{center}
 \includegraphics{image/8006194056290}
 \end{center}
 
-Coming back to the script first of all, it's necessary to load the library
-\brcd{} with the standard Lua function \code{require()} that returns an
-object---more precisely a reference to a table where are stored all the
-package machinery.
+Coming back to the script, the first statement loads the library \brcd{} with
+the standard Lua function \code{require()} that returns an object---more
+precisely a reference to a table where are stored all the package machinery.
 
 With the second line of code, an EAN~13 barcode is saved as
 \code{my\_barcode.svg} using the method \code{save()} of the \brcd{} object. The
-\code{save()} method takes in order the barcode symbology identifier called
-\emph{treename}, an argument as a string or as a whole number that represents
-data to be encoded, the output file name and the optional output format. With a
-fifth optional argument we can pass options to the barcode encoder as a Lua
-table.
+\code{save()} method takes four mandatory argumetns: the barcode symbology
+identifier called \emph{treename}, an argument as a string or as a whole number
+that represents data to be encoded, the output file name and the optional output
+format. With a fifth optional argument we can pass options to the barcode
+encoder as a Lua table in the \code{option=value} format.
 
-Each encoder has an own identifier called treename explained at
-section~\ref{secEncName}. In short, in \brcd{} we can build more encoders of the
-same symbology with different parameters.
+In more detail, thanks to treename identifier explained at
+section~\ref{secEncName} is possible to build more encoders of the same
+symbology each with a different set of parameters.
+
+It's also possible to run a Lua script with \code{texlua}, the Lua interpreter
+improved with certain Lua\TeX{} libraries delivered by any modern \TeX{}
+distribution. \code{texlua} saves you to install Lua if you are a \TeX{} user.
+
+The command to run \code{first-run.lua} is the same as before, just a
+substitution of the name \code{lua} with \code{texlua}, but an adjustment is
+required if we want to run the script with \TeX{} delivered \brcd{} library
+leaving untouched the system outside \code{texmf}.
+
+An alternative path searching procedure consists to find the main file of
+\brcd{} with an internal Lua\TeX{} library called \code{kpse}:
+\begin{Verbatim}
+-- texlua script
+kpse.set_program_name("luatex")
+local path_to_brcd = kpse.find_file("barracuda", "lua")
+local barracuda = dofile(path_to_brcd)
+barracuda:save("ean-13", "8006194056290", "my_barcode", "svg")
+\end{Verbatim}
 
 
 \subsubsection{A Lua\TeX{} source file}
 
 \brcd{} can also runs with Lua\TeX{} and any others Lua powered \TeX{}
-engines. The source file is a bit difference respect to the previuos script: the
+engines. The source file is a bit difference respect to the previous script: the
 Lua code lives inside the argument of a \verb=\directlua= primitive, moreover we
-must use an horizontal box register as output destination.
-\begin{Verbatim}
+must use an horizontal box register as the output destination.
+\begin{tcolorbox}[
+    title={\code{first-run.tex}: Lua\TeX{} version}
+]
+\begin{BVerbatim}
 % !TeX program = LuaTeX
 \newbox\mybox
 \directlua{
-	local require "barracuda"
-	barracuda:hbox("ean-13", "8006194056290", "mybox")
+    local require "barracuda"
+    barracuda:hbox("ean-13", "8006194056290", "mybox")
 }\leavevmode\box\mybox
 \bye
-\end{Verbatim}
-
+\end{BVerbatim}
+\end{tcolorbox}
 The method \code{hbox()} works only with Lua\TeX{}. It takes three\footnote{A
 fourth argment is optional as a table with user defined barcode parameters.}
 arguments: encoder \emph{treename}, encoding data as a string, the \TeX{}
@@ -269,68 +303,100 @@ horizontal box name.
 
 \subsubsection{A Lua\LaTeX{} source file}
 
-\LaTeX{} working minimal example would be:
-\begin{Verbatim}
+A \LaTeX{} working minimal example would be:
+\begin{tcolorbox}[
+    sidebyside,
+    title={\code{first-run.tex}: Lua\LaTeX{} version},
+    righthand width=120pt
+]
+\begin{BVerbatim}
 % !TeX program = LuaLaTeX
 \documentclass{article}
 \usepackage{barracuda}
 \begin{document}
 \barracuda{ean-13}{8006194056290}
 \end{document}
-\end{Verbatim}
+\end{BVerbatim}
+\tcblower\ttfamily
+\hfill\barracuda{ean-13}{8006194056290}\hfill\hbox{}
+\end{tcolorbox}
 
 
 \subsection{A more deep look}
 
 \brcd{} is designed to be modular and flexible. For example it is possible to
-draw different barcodes on the same canvas or tune barcode parameters. 
+draw different barcodes on the same canvas or tuning barcode parameters. 
 
-The main workflow to draw a barcode object reveals more details on internal
-structure. In fact, to draw an EAN~13 barcode we must do at least the following
-steps:
-\begin{enumerate}
-\item load the library,
-\item get a reference to the \code{Barcode} abstract class,
-\item build an \code{ean} encoder of the variant \code{13},
-\item build an EAN~13 symbol passing data to a costructor,
-\item get a reference to a new canvas object,
-\item draw barcode on the canvas object,
-\item get a reference of the driver object,
-\item print the graphic material saving an external \code{svg} file.
-\end{enumerate}
+The low level workflow to draw a barcode object reveals more details on the
+internal architecture. In fact, we must do at least the following steps divided
+into three phases:
+\begin{description}
+\item[a.1] load the library,
+\item[a.2] get a reference to the \code{Barcode} abstract class,
+\item[a.3] build an encoder,
+\item[a.4] build a symbol passing data to an encoder's constructor,
+\item[b.1] get a reference to a new canvas object,
+\item[b.2] draw barcode on the canvas object,
+\item[c.1] load the driver,
+\item[c.2] print the figure as an external \code{svg} file.
+\end{description}
 
-Following that step by step procedure the corresponding code is translated in
-the next listing:
-\begin{Verbatim}
--- lua script
-local barracuda = require "barracuda" -- step 1
-local barcode = barracuda:barcode() -- step 2
+In the phase \textbf{a} a barcode symbols is created, then in phase \textbf{b}
+a canvas object is filled with graphic elements, and finally in the phase
+\textbf{c} the canvas is send to the driver output channel.
 
-local ean13, err_enc = barcode:new_encoder("ean-13") -- step 3
+Following the procedure step by step, the resulting code is as the following
+listing, where the encoder is EAN variant 13:
+\begin{tcolorbox}
+\begin{BVerbatim}
+-- a lua script
+local barracuda = require "barracuda" -- step a.1
+local barcode = barracuda:barcode()   -- step a.2
+local ean13, err_enc = barcode:new_encoder("ean-13")      -- step a.3
 assert(ean13, err_enc)
-
-local symb, err_symb = ean13:from_string("8006194056290") -- step 4
+local symb, err_symb = ean13:from_string("8006194056290") -- step a.4
 assert(symb, err_symb)
 
-local canvas = barracuda:new_canvas() -- step 5
-symb:draw(canvas) -- step 6
+local canvas = barracuda:new_canvas() -- step b.1
+symb:draw(canvas) -- step b.2
 
-local driver = barracuda:get_driver() -- step 7
-local ok, err_out = driver:save("svg", canvas, "my_barcode") -- step 8
+local drv = barracuda:get_driver() -- step c.1
+local ok, err_out = drv:save("svg", canvas, "my_barcode") -- step c.2
+assert(ok, err_out)
+\end{BVerbatim}
+\end{tcolorbox}
+
+Anyway, more abstract methods allow the user to write a more compact code. For
+instance, phase \textbf{b} can be fuse with \textbf{c}, because a \code{canvas}
+object include internally a reference to the driver object:
+\begin{Verbatim}
+-- phase b + c
+local canvas = barracuda:new_canvas() -- step bc.1
+symb:draw(canvas) -- step bc.2
+local ok, err_out = canvas:save("svg", "my_barcode") -- step bc.3
 assert(ok, err_out)
 \end{Verbatim}
 
-Late the manual will give objects and methods references at
+An high level method provide as we have been seen before, a way to unify phases:
+\begin{Verbatim}
+-- unique phase version
+local require "barracuda"
+barracuda:save("ean-13", "8006194056290", "my_barcode", "svg")
+\end{Verbatim}
+
+Low level code offers more control while high level programming is quite
+compact. Late in the manual you will find the objects and methods reference at
 section~\ref{secAPI}.
 
 
-\subsection{Installing}
+\subsection{Installing \brcd}
 \label{secInstall}
 
 \subsubsection{Installing for Lua}
 
 Manually copy \code{src} folder content to a suitable directory of your system
 that is reachable to the system Lua interpreter.
+
 
 \subsubsection{Installing for TeX Live}
 
@@ -341,18 +407,20 @@ for \emph{installed} key in the output of the command:
 $ tlmgr show barracuda
 \end{Verbatim}
 
-If `barracuda` is not present, run the command:
+If \brcd{} is reported as not installed, run the command:
 \begin{Verbatim}
 $ tlmgr install barracuda
 \end{Verbatim}
 
-If you have installed TeX Live via Linux OS repository try your distribution's
-package management system running a software update.
+If you have installed TeX Live via your Linux repository, try your
+distribution's package manager an update or check for optional packages not yet
+installed.
 
-It's also possible to install the package manually:
+It's also possible to install \brcd{} manually with these steps:
 \begin{enumerate}
-\item Grab the sources from CTAN or \url{https://github.com/robitex/barracuda}.
-\item Unzip it at the root of one or your TDS trees (local or personal).
+\item Grab the sources from CTAN or from the official repository
+\url{https://github.com/robitex/barracuda}.
+\item Unzip it at the root of one of your TDS trees (local or personal).
 \item You may need to update some filename database after this, see your \TeX{}
 distribution's manual for details.
 \end{enumerate}
@@ -362,18 +430,25 @@ distribution's manual for details.
 \label{secLaTeXPkg}
 
 The \LaTeX{} package delivered with \brcd{} is still under an early stage of
-development. The only macro available is \verb=\barracuda[option]{encoder}{data}=.
-A simple example is the following source file for Lua\LaTeX{}:
-\begin{Verbatim}
+development. The only macro available is
+\verb=\barracuda[option]{encoder}{data}=. A simple example is the following
+source file for Lua\LaTeX{}:
+\begin{tcolorbox}[sidebyside]
+\begin{BVerbatim}
 % !TeX program = LuaLaTeX
 \documentclass{article}
 \usepackage{barracuda}
 \begin{document}
 \leavevmode
-\barracuda{code39}{123ABC}\\
-\barracuda{code128}{123ABC}
+\barracuda{code128}{123ABC}\\[2ex]
+\barracuda[text_star=true]{code39}{123ABC}
 \end{document}
-\end{Verbatim}
+\end{BVerbatim}
+\tcblower
+\leavevmode
+\barracuda{code128}{123ABC}\\[2ex]
+\barracuda[text_star=true]{code39}{123ABC}
+\end{tcolorbox}
 
 Every macro \verb=\barracuda= typesets a barcode symbol with the encoder defined
 in the first argument, encoding data defined by the second.
@@ -382,19 +457,72 @@ in the first argument, encoding data defined by the second.
 \section{Barcode Reference}
 \label{secBcRef}
 
+\begin{figure}
+\centering
+\begin{tikzpicture}
+\ttfamily
+\draw (-20mm, -20mm) rectangle (20mm, 20mm);
+\end{tikzpicture}
+\caption{Barcode class hierarchy.}
+\label{figBarcodeHierarchy}
+\end{figure}
+
+\subsection{Common, Global and Local Barcode Options}
+
+Every barcode encoder inherits from \code{Barcode} abstract class methods and
+options. If we change its option values, the changes will be global for all the
+encoders except if the encoder has not an own local option overwritten before.
+
+The same schema applying also for encoder and the barcode symbols build apart
+from it. Every symbol inherits methods and options from its encoder.
+
+Such three levels option system is designed to allow the user to set up option
+not only in a certain point in the tree object, but also any time in the code.
+When changes are accepted by an object they become valid for that time on.
+
+The architecture of barcode classes is shown in more details in
+figure~\ref{figBarcodeHierarchy}. At the top of the hierarchy there is the
+\code{Barcode} class. It's an abstract class in the sense that no symbols can be
+printed by that class.
+
+At an intermediate level we found a \code{Builder} with an instance of one of
+its \code{Encoder} class. When we call method \code{new\_encoder()} provided by
+\code{Barcode} class, what really happen is the loading of the \code{Builder} if
+not just loaded before, that is the actual library of the specific simbology,
+and a linked \code{Encoder} object incorporates its own options.
+
+At the last level are placed the symbol instances derived both from the
+\code{Builder} and \code{Encoder}, the first provides methods while the second
+provides option values. Only these objects are printable in a barcode graphic.
+
+Common options of \code{Barcode} are the following:
+\begin{center}
+\begin{tabular}{cccl}
+\toprule
+Option Id & Type & Default & Description\\
+\midrule
+\code{ax} & numeric & 0 & Relative x-coordinate for insertion point of the barcode symbol\\
+\code{ay} & numeric & 0 & Relative y-coordinate for insertion point of the barcode symbol\\
+\code{debug\_bbox\_on} & boolean & \code{false} & Draw symbol bounding box with a thin dashed line\\
+\bottomrule
+\end{tabular}
+\end{center}
 
 
-Common options and parameters are defined 
 
-For each barcode symbologies this section reports parameters and optional
+
+
+For each barcode symbologies the next section reports parameters and optional
 methods of it.
 
 \subsection{Code39}
 \label{secCode39}
 
-\code{Code39} is one of the oldest symbologies ever created. It does not include
+\code{Code39} is one of the oldest symbologies ever invented. It doesn't include
 any checksum digit and the only encodable characters are digits, uppercase
 letters and a few symbol like \code{+} or \code{\$}.
+
+
 
 
 
@@ -402,16 +530,23 @@ letters and a few symbol like \code{+} or \code{\$}.
 \label{secCode128}
 
 
+
+% devzone color setup
+\tcbset{
+    colback=blue!10!white,
+    colbacktitle=blue!10!white,
+}
+
 \section{Developer zone}
 
 \subsection{The Barracuda Framework}
 \label{secFramework}
 
-The \brcd{} package framework consists in indipendent modules: a barcode class
+The \brcd{} package framework consists in independent modules: a barcode class
 hierarchy encoding a text into a barcode symbology; a geometrical library called
-\code{libgeo} modelling several graphic objects; an encoding library for the
+\code{libgeo} modeling several graphic objects; an encoding library for the
 \code{ga} format (graphic assembler) and several driver to \emph{print} a
-\code{ga} stream into a file or in a \TeX{} hbox register.
+\code{ga} stream into a file or in a \TeX{} \code{hbox} register.
 
 To implement a barcode encoder you have to write a component called
 \emph{encoder} defining every parameters and implementing the encoder builder,
@@ -424,10 +559,28 @@ instances of the same encoder for a single barcode type, with its own parameter
 set.
 
 The basic idea is getting faster encoders, for which the user may set up
-paramenters at any level: barcode abstract class, encoder globally, down to a
+parameters at any level: barcode abstract class, encoder globally, down to a
 single symbol object.
 
-The Barcode class is completely indipendent from the output driver and viceversa.
+The Barcode class is completely independent from the output driver and vice
+versa.
+
+
+\subsection{Error Management}
+
+Functions in Lua may return more than one parameters. \brcd{} methods takes
+advantage by this feature for the error management. In fact, \brcd{} as a
+library, remind the responsibility to the caller in order to choose what to do
+in case an error is reported.
+
+When a method may fail depending on the correctness of the input, it returns two
+parameters alternatively valid: the first is the expected result while the
+second is the error description.
+
+This behavior perfectly match the arguments required by the \code{assert()}
+built-in function.
+
+
 
 
 \subsection{Encoder Treename}
@@ -512,25 +665,29 @@ following code:
 ; f64 floating point 64 bit number
 \end{Verbatim}
 
-Every \code{<instruction>} changes the graphic state, for instance the current
-line width, or defines a graphic object, depending on the \code{opcode} value.
-Every coordinate or dimension must be expressed as \emph{scaled point}, the
+
+Every \code{<instruction>} changes the graphic state---for instance the current
+line width---or defines a graphic object, depending on the \code{opcode} value.
+Coordinates or dimensions must be expressed as \emph{scaled point}, the
 basic unit of measure of \TeX{} equivalent to \( 1/65536\, \)pt.
 
-For example, the \code{opcode} for the \code{<linewidth>} operation is 1, while
-for the \code{<hline>} operation is 33. An horizontal line 6pt width from the
+
+\subsubsection{Hard coded an horizontal line}
+
+The \code{opcode} for the \code{linewidth} operation is 1, while
+for the \code{hline} operation is 33. An horizontal line 6pt width from the
 point (0pt, 0pt) to the point (32pt, 0pt) is represented by this \code{ga}
 stream:
 \begin{Verbatim}
 1 393216 33 0 2097152 0
 \end{Verbatim}
 
-Introducing \code{<mnemonic code>} in \code{<opcode>} place and separate the
+Introducing \code{mnemonic opcode} in \code{opcode} places and separate the
 operations in a multiline fashion, the same sequence become more readable and
 more similar to an assembler listing:
 \begin{Verbatim}
-<linewidth> 393216
-<hline> 0 2097152 0
+linewidth 393216   ; set line width to 393216sp
+hline 0 2097152 0  ; draw hline x1 x2 y
 \end{Verbatim}
 
 To prove and visualize the meaning of the stream, we can simply use the native
@@ -547,23 +704,22 @@ graphic driver of \brcd{} compiling this Lua\TeX{} source file:
 \bye
 \end{Verbatim}
 
-The result is: \newbox\mybox
-\directlua{
+The result is:\directlua{
 local ga = {1, 393216, 33, 0, 2097152, 0}
 local drv = barracuda:get_driver()
 drv:ga_to_hbox(ga, "mybox")
 }\box\mybox
 
-A more abstract way to write a \code{ga} stream consists in the \code{gacanvas}
+A more abstract way to write a \code{ga} stream is provided by the \code{gacanvas}
 class of the module \code{libgeo}. Every operation has been mapped to a method
-named \code{encode\_<mnemonic\_opcode>()}:
+named \code{encode\_<opcode>()}:
 \begin{Verbatim}
 % !TeX program = LuaTeX
 \newbox\mybox
 \directlua{
     local barracuda = require "barracuda"
     local canvas = barracuda:new_canvas()
-    local pt = 65536
+    local pt = canvas.pt
     canvas:encode_linewidth(6*pt)
     canvas:encode_hline(0, 32*pt, 0)
     local drv = barracuda:get_driver()
@@ -577,53 +733,22 @@ named \code{encode\_<mnemonic\_opcode>()}:
 \bye
 \end{Verbatim}
 
-\begin{figure}
-\caption{A drawing example that shows how to manually set up the bounding box of
-the figure, keeping automatic computation disabled for more fast stream
-processing.}
-\label{figSquare}
-\directlua{
-    local barracuda = require "barracuda"
-    local canvas = barracuda:new_canvas()
-    local pt = 65536
-    local side = 16*pt
-    local s = side/2 - 1.5*pt
-    local l = side/2 - 2*pt
-    local dim = 5
-    canvas:encode_linewidth(1*pt)
-    canvas:encode_disable_bbox()
-    for c = 0, dim do
-        for r = 0, dim do
-            local x, y = c*side, r*side
-            canvas:encode_hline(x-l, x+l, y-s)
-            canvas:encode_hline(x-l, x+l, y+s)
-            canvas:encode_vline(y-l, y+l, x-s)
-            canvas:encode_vline(y-l, y+l, x+s)
-        end
-    end
-    local b1 = -s - 0.5*pt
-    local b2 = dim*side + s + 0.5*pt
-    canvas:encode_set_bbox(b1, b1, b2, b2)
-    local drv = barracuda:get_driver()
-    drv:ga_to_hbox(canvas, "mybox")
-}\hfill\box\mybox\hfill{}
-\end{figure}
-
 The stream is printed beside the drawing in the output PDF file. Therefore the
 same \code{ga} stream can also generate a different output, for instance a SVG
 file. For this purpose execute the \code{save()} method of the \code{Driver}
-class (the drawing is showed in figure~\ref{figSquare}):
-\begin{Verbatim}
+class (the drawing is showed side-by-side the listing):
+\begin{tcolorbox}[sidebyside]
+\begin{BVerbatim}
 % !TeX program = LuaTeX
 \newbox\mybox
 \directlua{
     local barracuda = require "barracuda"
     local canvas = barracuda:new_canvas()
-    local pt = 65536
+    local pt = canvas.pt
     local side = 16*pt
     local s = side/2 - 1.5*pt
     local l = side/2 - 2*pt
-    local dim = 5
+    local dim = 4
     canvas:encode_linewidth(1*pt)
     canvas:encode_disable_bbox()
     for c = 0, dim do
@@ -638,20 +763,44 @@ class (the drawing is showed in figure~\ref{figSquare}):
     local b1 = -s - 0.5*pt
     local b2 = dim*side + s + 0.5*pt
     canvas:encode_set_bbox(b1, b1, b2, b2)
-    local drv = barracuda:get_driver()
-    drv:ga_to_hbox(canvas, "mybox")
-    drv:save("svg", canvas, "grid")
+    canvas:ga_to_hbox("mybox")
+    canvas:save("svg", "grid")
 }\leavevmode\box\mybox
 \bye
-\end{Verbatim}
+\end{BVerbatim}
+\tcblower
+\directlua{
+    local canvas = barracuda:new_canvas()
+    local pt = canvas.pt
+    local side = 16*pt
+    local s = side/2 - 1.5*pt
+    local l = side/2 - 2*pt
+    local dim = 4 
+    canvas:encode_linewidth(1*pt)
+    canvas:encode_disable_bbox()
+    for c = 0, dim do
+        for r = 0, dim do
+            local x, y = c*side, r*side
+            canvas:encode_hline(x-l, x+l, y-s)
+            canvas:encode_hline(x-l, x+l, y+s)
+            canvas:encode_vline(y-l, y+l, x-s)
+            canvas:encode_vline(y-l, y+l, x+s)
+        end
+    end
+    local b1 = -s - 0.5*pt
+    local b2 = dim*side + s + 0.5*pt
+    canvas:encode_set_bbox(b1, b1, b2, b2)
+    canvas:ga_to_hbox("mybox")
+}\hfill\box\mybox\hfill{}
+\end{tcolorbox}
 
 An automatic process updates the bounding box of the figure meanwhile the stream
 is read instruction after instruction. The \code{<disable\_bbox>} operation
 produce a more fast execution and the figure will get the bounding box computed
-until that instruction. The \code{<set\_bbox>} operation imposes a minimal
-bounding box comparing to the current figure dimensions.
+until that instruction. The \code{<set\_bbox>} operation imposes a
+bounding box in comparison to the current figure one.
 
-The initial bounding box is simply an empty figure. As a consequence, different
+The initial bounding box is simply empty. As a consequence, different
 strategies can be used to optimize runtime execution, such as in the previous
 code example, where bounding box is always disabled and it is set up at the last
 \code{canvas} method call. More often than not, we know the bounding box of the
@@ -819,8 +968,8 @@ drv:ga_to_hbox(canvas, "mybox")
 \end{tikzpicture}
 \end{center}
 
-For clearness, to the drawing were added gray vertical grid stepping one module
-and white dashed lines at every bar axis.
+For clearness, to the drawing were added a gray vertical grid stepping one
+module and white dashed lines at every vbar axis.
 
 Spaces between bars can be seen as white bars. In fact, an integer number can
 represents the sequence of black and white bars with the rule that the single
@@ -877,60 +1026,61 @@ encoded in a \code{ga} stream with the method \code{encode\_vbar\_queue()}. The
 method arguments' are the same needed to encode a \code{Vbar}: an axis position
 \( x_0 \) and the two y-coordinates bound \( y_1 \) and \( y_2 \).
 
-A \code{VbarQueue} code example is the following (in the drawing some graphical
-aid has been added: a vertical grid marks the module wide step and light colored
-bars mark the space added between two \code{Vbar}s):
-\begin{Verbatim}
+A \code{VbarQueue} code example is the following:
+\begin{tcolorbox}
+\begin{BVerbatim}
 % !TeX program = LuaTeX
 \newbox\mybox
 \directlua{
     local barracuda = require "barracuda"
     local Vbar = barracuda:libgeo().Vbar
-    local drv = barracuda:get_driver()
-    local mm = drv.mm
+    local canvas = barracuda:new_canvas()
+    local mm = canvas.mm
     local mod = 2 * mm
     local queue = Vbar:from_int(32111, mod)
     for _, ngen in ipairs {131, 21312, 11412} do
         queue = queue + mod + Vbar:from_int(ngen, mod)
     end
-    local canvas = barracuda:new_canvas()
     canvas:encode_vbar_queue(queue, 0, 0, 25*mm)
-    drv:ga_to_hbox(canvas, "mybox")
+    canvas:ga_to_hbox "mybox"
 }\leavevmode\box\mybox
 \bye
-\end{Verbatim}
-
+\end{BVerbatim}
+\tcblower
 \directlua{
-    local barracuda = require "barracuda"
     local Vbar = barracuda:libgeo().Vbar
-    local drv = barracuda:get_driver()
-    local mm = drv.mm
+    local canvas = barracuda:new_canvas()
+    local mm = canvas.mm
     local mod = 2 * mm
     local queue = Vbar:from_int(32111, mod)
     for _, ngen in ipairs {131, 21312, 11412} do
         queue = queue + mod + Vbar:from_int(ngen, mod)
     end
-    local canvas = barracuda:new_canvas()
     canvas:encode_vbar_queue(queue, 0, 0, 25*mm)
-    drv:ga_to_hbox(canvas, "mybox")
+    canvas:ga_to_hbox "mybox"
 }
+\hfill
 \begin{tikzpicture}
-\fill[orange!50!white] (16mm, -2mm) rectangle (18mm, 28mm); %
-\fill[orange!50!white] (28mm, -2mm) rectangle (30mm, 28mm); %
-\fill[orange!50!white] (48mm, -2mm) rectangle (50mm, 28mm); %
+\fill[orange!50!white] (16mm, -3mm) rectangle (18mm, 28mm); %
+\fill[orange!50!white] (28mm, -3mm) rectangle (30mm, 28mm); %
+\fill[orange!50!white] (48mm, -3mm) rectangle (50mm, 28mm); %
 \foreach \i in {0,2,...,68}
-\draw[help lines] (\i mm, -2mm) -- (\i mm, 28mm);
+\draw[help lines] (\i mm, -3mm) -- (\i mm, 28mm);
 \node at (34mm, 12.5mm) {\box\mybox};
 \end{tikzpicture}
+\hfill\hbox{}
 
+\footnote{Respect to the showed code some graphical helps has been added: a
+vertical grid marks the module wide steps and light colored bars mark the
+space added between two \code{Vbar}s.}
+\end{tcolorbox}
 
-\subsection{\code{ga} code examples}
+\subsection{\code{ga} programming}
 
-To support a better understanding and provide some \code{ga} stream examples,
-this section discusses some code examples, each of which must be compiled with
-Lua\TeX{}.
+To provide a better learning experience several \code{ga} stream examples is
+discussed, each of which must be compiled with Lua\TeX{}.
 
-\subsubsection{Example number 1}
+\subsubsection{Example 1: a rectangle}
 
 Suppose we want to draw a simple rectangle. In the \code{ga} reference of
 section~\ref{secGAtabref} there is a dedicated instruction \code{<rect>}.
@@ -940,22 +1090,20 @@ Let's give it a try:
     title={Example 1: dealing with raw \code{ga} stream},
     sidebyside,
 ]
-\begin{Verbatim}
+\begin{BVerbatim}
 % !TeX program = LuaTeX
 \newbox\mybox
 \directlua{
     local barracuda = require "barracuda"
     local pt = 65536
-    local side = 36*pt
-    local ga = {48, 0, 0, 2*side, side}
+    local ga = {48, 0, 0, 72*pt, 36*pt}
     local drv = barracuda:get_driver()
     drv:ga_to_hbox(ga, "mybox")
 }\leavevmode\box\mybox
 \bye
-\end{Verbatim}
+\end{BVerbatim}
 \tcblower
 \directlua{
-    local barracuda = require "barracuda"
     local pt = 65536
     local side = 36*pt
     local ga = {48, 0, 0, 2*side, side}
@@ -964,18 +1112,18 @@ Let's give it a try:
 }\box\mybox
 \end{tcolorbox}
 
-Dealing with low level \code{ga} stream is not necessary. We can use a
-\code{gaCanvas} object:
+Dealing with low level \code{ga} stream is not necessary. We can use more safely
+a \code{gaCanvas} object running its \code{encode\_rect()} method:
 \begin{Verbatim}
 ...
 local canvas = barracuda:new_canvas()
-canvas:encode_rect(0, 0, 2*side, side)
-canvas:ga_to_hbox("mybox")
+assert(canvas:encode_rect(0, 0, 2*side, side))
+assert(canvas:ga_to_hbox("mybox"))
 ...
 \end{Verbatim}
 
 
-\subsubsection{Example number 2}
+\subsubsection{Example 2: a chessboard}
 
 A more complex drawing is a chessboard. Let's begin to draw a single cell with a
 square 1cm wide:
@@ -984,82 +1132,86 @@ square 1cm wide:
 \newbox\mybox
 \directlua{
     local barracuda = require "barracuda"
-    local drv = barracuda:get_driver()
-    local mm = drv.mm
-    local s, t = 10*mm, 2*mm
     local canvas = barracuda:new_canvas()
+    local mm = canvas.mm
+    local s, t = 7.5*mm, 1.5*mm
     canvas:encode_linewidth(t)
-    canvas:encode_rect(t/2, t/2, s-t/2, s-t/2)
-    drv:ga_to_hbox(canvas, "mybox")
+    assert(canvas:encode_rect(t/2, t/2, s-t/2, s-t/2))
+    assert(canvas:ga_to_hbox("mybox"))
 }\leavevmode\box\mybox
 \bye
 \end{Verbatim}
 
-and repeat the game for the chess grid:
-\begin{Verbatim}
+Then repeat the game for the entire grid:
+\begin{tcolorbox}
+\begin{BVerbatim}
 % !TeX program = LuaTeX
 \newbox\mybox
 \directlua{
     local barracuda = require "barracuda"
-    local drv = barracuda:get_driver()
-    local mm = drv.mm
-    local s, t = 10*mm, 2*mm
     local canvas = barracuda:new_canvas()
-    canvas:encode_linewidth(t)
+    local mm = canvas.mm
+    local s, t = 6*mm, 1*mm
+    assert(canvas:encode_linewidth(t))
     for row = 1, 5 do
         for col = 1, 5 do
             local l = (row + col)/2
             if l == math.floor(l) then
-                local x = (col - 1) * s
-                local y = (row - 1) *s
-                canvas:encode_rect(x+t/2, y+t/2, x+s-t/2, y+s-t/2)
+                local x = (col - 1)*s
+                local y = (row - 1)*s
+                local x1, y1 = x + t/2, y + t/2
+                local x2, y2 = x + s - t/2, y + s - t/2
+                assert(canvas:encode_rect(x1, y1, x2, y2))
             end
         end
     end
     drv:ga_to_hbox(canvas, "mybox")
 }\leavevmode\box\mybox
 \bye
-\end{Verbatim}
-
-The final drawing is showed here: \directlua{
+\end{BVerbatim}
+\vspace*{-10pt}
+\tcblower
+\directlua{
     local barracuda = require "barracuda"
-    local drv = barracuda:get_driver()
-    local mm = drv.mm
-    local s, t = 10*mm, 2*mm
     local canvas = barracuda:new_canvas()
-    canvas:encode_linewidth(t)
+    local mm = canvas.mm
+    local s, t = 6*mm, 1*mm
+    assert(canvas:encode_linewidth(t))
     for row = 1, 5 do
         for col = 1, 5 do
             local l = (row + col)/2
             if l == math.floor(l) then
-                local x = (col - 1) * s
-                local y = (row - 1) *s
-                canvas:encode_rect(x+t/2, y+t/2, x+s-t/2, y+s-t/2)
+                local x = (col - 1)*s
+                local y = (row - 1)*s
+                local x1, y1 = x + t/2, y + t/2
+                local x2, y2 = x + s - t/2, y + s - t/2
+                assert(canvas:encode_rect(x1, y1, x2, y2))
             end
         end
     end
-    drv:ga_to_hbox(canvas, "mybox")
-}\box\mybox
+    canvas:ga_to_hbox("mybox")
+}\hfill\box\mybox\hfill\hbox{}
+\end{tcolorbox}
 
-
-\subsubsection{Example number 3}
+\subsubsection{Example 3: a staircase}
 
 A drawing of a zig zag staircase can be represented by a \code{ga} stream with
 a \code{<polyline>} operation. The \code{gaCanvas} method we have to call is
 \code{encode\_polyline()} that accept a Lua table as a flat structure with the
 coordinates of every point of the polyline:
-\begin{Verbatim}
-{ x1, y1, x2, y2, ..., xn, yn }
-\end{Verbatim}
+\begin{BVerbatim}
+{x1, y1, x2, y2, ..., xn, yn}
+\end{BVerbatim}
 
 It is what we do with this code:
-\begin{Verbatim}
+\begin{tcolorbox}
+\begin{BVerbatim}
 % !TeX program = LuaTeX
 \newbox\mybox
 \directlua{
     local barracuda = require "barracuda"
     local pt = 65536
-    local side = 18*pt
+    local side = 16*pt
     local dim = 5
     local x, y = 0, 0
     local point = {x, y}
@@ -1073,17 +1225,17 @@ It is what we do with this code:
         point[i] = y; i = i + 1
     end
     local canvas = barracuda:new_canvas()
-    canvas:encode_linewidth(2.5*pt)
+    canvas:encode_linewidth(2.25*pt)
     canvas:encode_polyline(point)
-    local drv = barracuda:get_driver()
-    drv:ga_to_hbox(canvas, "mybox")
+    canvas:ga_to_hbox("mybox")
 }\leavevmode\box\mybox
 \bye
-\end{Verbatim}
-
-The result is: \directlua{
+\end{BVerbatim}
+\vspace*{-10pt}
+\tcblower
+\directlua{
     local pt = 65536
-    local side = 18*pt
+    local side = 16*pt
     local dim = 5
     local x, y = 0, 0
     local point = {x, y}
@@ -1097,17 +1249,19 @@ The result is: \directlua{
         point[i] = y; i = i + 1
     end
     local canvas = barracuda:new_canvas()
-    canvas:encode_linewidth(2.5*pt)
+    canvas:encode_linewidth(2.25*pt)
     canvas:encode_polyline(point)
-    local drv = barracuda:get_driver()
-    drv:ga_to_hbox(canvas, "mybox")
-}\leavevmode\box\mybox
+    canvas:ga_to_hbox("mybox")
+}\hfill\box\mybox\hfill\hbox{}
+\end{tcolorbox}
 
-A feature of \code{encode\_<opcode>} methods is a \emph{polymorfic} behaviour.
-They accept different types for own arguments. \code{encode\_polyline} is not an
-exception: it accept also a \code{Polyline} object of the \code{libgeo} module
-instead of a flat array of coordinates. This feature is showed by the following
-code that re-implement the previuos version:
+A feature of \code{encode\_<opcode>()} methods is their \emph{polymorphic}
+behavior for their first argument. They accept different types as an object
+of a geometric class or the raw geometric data.
+
+Method \code{encode\_polyline} is not an exception: it accepts a \code{Polyline}
+object provided by the \code{libgeo} module, or instead a flat array of
+coordinates.  For instance the previous code may be re-implement as:
 \begin{Verbatim}
 % !TeX program = LuaTeX
 \newbox\mybox
@@ -1117,8 +1271,7 @@ code that re-implement the previuos version:
     local side = 18*pt
     local dim = 5
     local Polyline = barracuda:libgeo().Polyline
-    local pl = Polyline:new()
-    pl:add_point(0, 0)
+    local pl = Polyline:new(0, 0)
     for _ = 1, dim do
         pl:add_relpoint(0, side)
         pl:add_relpoint(side, 0)
@@ -1126,8 +1279,7 @@ code that re-implement the previuos version:
     local canvas = barracuda:new_canvas()
     canvas:encode_linewidth(2.5*pt)
     canvas:encode_polyline(pl)
-    local drv = barracuda:get_driver()
-    drv:ga_to_hbox(canvas, "mybox")
+    canvas:ga_to_hbox("mybox")
 }\leavevmode\box\mybox
 \bye
 \end{Verbatim}
@@ -1135,19 +1287,18 @@ code that re-implement the previuos version:
 Pretty sure that this new version is more clear and intuitive.
 
 
-%\subsubsection{Example number 4}
+%\subsubsection{Example 4: }
 
-%A polyline that represents a path of ... Hilbert curve
-
-
-%\subsubsection{Example number 5}
-
-%Text pyramid
+% A polyline that represents a path of ... Hilbert curve
+% Text pyramid
 
 
-\section{Example and use cases}
+\section{Practical examples and use cases}
 \label{secExample}
 
-TODO
+Previous sections as shown how \brcd{} is capable to draw simple graphics. This
+section is dedicated to barcode applications.
+
+
 
 \end{document}

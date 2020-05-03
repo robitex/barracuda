@@ -336,12 +336,18 @@ local Polyline = {_classname = "Polyline"}
 Polyline.__index = Polyline
 libgeo.Polyline = Polyline
 
-function Polyline:new() --> <Polyline>
+-- optional argument a first point (x, y)
+function Polyline:new(x, y) --> <Polyline>
     local o = {
         _point = {},
         _n = 0,
     }
     setmetatable(o, self)
+    if x ~= nil then
+        assert(type(x) == "number", "[Polyline:new()] Invalid type for x-coordinate")
+        assert(type(y) == "number", "[Polyline:new()] Invalid type for y-coordinate")
+        self:add_point(x, y)
+    end
     return o
 end
 
@@ -357,8 +363,8 @@ end
 
 -- append a new point with absolute coordinates
 function Polyline:add_point(x, y)
-    assert(type(x) == "number", "Invalid type for x-coordinate")
-    assert(type(y) == "number", "Invalid type for y-coordinate")
+    assert(type(x) == "number", "[Polyline:add_point()] Invalid type for x-coordinate")
+    assert(type(y) == "number", "[Polyline:add_point()] Invalid type for y-coordinate")
     local point = self._point
     point[#point + 1] = x
     point[#point + 1] = y

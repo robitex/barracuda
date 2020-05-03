@@ -6,6 +6,7 @@ local gaCanvas = {_classname = "gaCanvas"}
 gaCanvas.__index = gaCanvas
 gaCanvas.mm = 186467.98110236 -- conversion factor sp -> mm (millimeter)
 gaCanvas.bp = 65781.76 -- conversion factor sp -> bp (big point)
+gaCanvas.pt = 65536 -- sp -> pt
 
 -- ga specification: see the file ga-grammar.pdf in the doc directory
 
@@ -55,6 +56,12 @@ end
 
 -- Ipothetical further constructor
 -- function gaCanvas:from_tcp_server() --> err
+-- end
+
+-- function gaCanvas:get_bbox()
+-- end
+
+-- function gaCanvas:check() --> ok, err 
 -- end
 
 -- line width: opcode <1> <w: DIM>
@@ -124,7 +131,7 @@ function gaCanvas:encode_linejoin(join) --> ok, err
         elseif join == "bevel" then
             join_res = 2
         else
-            return false, "[ArgErr: join] 'miter', 'round' or 'bevel' string expected"
+            return false, "[ArgErr: join] '"..join.."' join style not found"
         end
     else
         return false, "[ArgErr: join] number or string expected"
@@ -188,7 +195,7 @@ function gaCanvas:encode_disable_bbox() --> ok, err
     return true, nil
 end
 
--- and insert the specified bb for the entire object group
+-- insert a figure bbox
 -- code: <31> x1 y1 x2 y2
 function gaCanvas:encode_set_bbox(x1, y1, x2, y2) --> ok, err
     if type(x1) ~= "number" then return false, "[ArgErr: x1] number expected" end
@@ -207,12 +214,24 @@ function gaCanvas:encode_set_bbox(x1, y1, x2, y2) --> ok, err
 end
 
 -- insert a line from point (x1, y1) to the point (x2, y2)
+-- tx optional translator x-vector
+-- ty optional translator y-vector
 -- <32> x1 y1 x2 y2
-function gaCanvas:encode_line(x1, y1, x2, y2) --> ok, err
+function gaCanvas:encode_line(x1, y1, x2, y2, tx, ty) --> ok, err
     if type(x1) ~= "number" then return false, "[ArgErr: x1] number expected" end
     if type(y1) ~= "number" then return false, "[ArgErr: y1] number expected" end
     if type(x2) ~= "number" then return false, "[ArgErr: x2] number expected" end
     if type(y2) ~= "number" then return false, "[ArgErr: y2] number expected" end
+    if tx ~= nil then
+        if type(tx) ~= "number" then return false, "[ArgErr: tx] number expected" end
+        x1 = x1 + tx
+        x2 = x2 + tx
+    end
+    if ty ~= nil then
+        if type(ty) ~= "number" then return false, "[ArgErr: ty] number expected" end
+        y1 = y1 + ty
+        y2 = y2 + ty
+    end
     local data = self._data
     data[#data + 1] = 32 -- append line data
     data[#data + 1] = x1
@@ -223,11 +242,22 @@ function gaCanvas:encode_line(x1, y1, x2, y2) --> ok, err
 end
 
 -- insert an horizontal line from point (x1, y) to point (x2, y)
+-- tx optional translator x-vector
+-- ty optional translator y-vector
 -- <33> x1 x2 y
-function gaCanvas:encode_hline(x1, x2, y) --> ok, err
+function gaCanvas:encode_hline(x1, x2, y, tx, ty) --> ok, err
     if type(x1) ~= "number" then return false, "[ArgErr: x1] number expected" end
     if type(x2) ~= "number" then return false, "[ArgErr: x2] number expected" end
     if type(y) ~= "number" then return false, "[ArgErr: y] number expected" end
+    if tx ~= nil then
+        if type(tx) ~= "number" then return false, "[ArgErr: tx] number expected" end
+        x1 = x1 + tx
+        x2 = x2 + tx
+    end
+    if ty ~= nil then
+        if type(ty) ~= "number" then return false, "[ArgErr: ty] number expected" end
+        y = y + ty
+    end
     local data = self._data
     data[#data + 1] = 33 -- append hline data
     data[#data + 1] = x1
@@ -237,11 +267,22 @@ function gaCanvas:encode_hline(x1, x2, y) --> ok, err
 end
 
 -- vline, Vertical line, from point (x, y1) to point (x, y2)
+-- tx optional translator x-vector
+-- ty optional translator y-vector
 -- <34> y1 y2 x
-function gaCanvas:encode_vline(y1, y2, x) --> ok, err
+function gaCanvas:encode_vline(y1, y2, x, tx, ty) --> ok, err
     if type(y1) ~= "number" then return false, "[ArgErr] 'y1' number expected" end
     if type(y2) ~= "number" then return false, "[ArgErr] 'y2' number expected" end
     if type(x) ~= "number" then return false, "[ArgErr] 'x' number expected" end
+    if tx ~= nil then
+        if type(tx) ~= "number" then return false, "[ArgErr: tx] number expected" end
+        x = x + tx
+    end
+    if ty ~= nil then
+        if type(ty) ~= "number" then return false, "[ArgErr: ty] number expected" end
+        y1 = y1 + ty
+        y2 = y2 + ty
+    end
     local data = self._data
     data[#data + 1] = 34 -- append vline data
     data[#data + 1] = y1
@@ -250,9 +291,11 @@ function gaCanvas:encode_vline(y1, y2, x) --> ok, err
     return true, nil
 end
 
--- insert a polyline
+-- insert an open polyline
+-- tx optional translator x-vector
+-- ty optional translator y-vector
 -- <38> <n> x1 y1 x2, y2, ... , xn, yn
-function gaCanvas:encode_polyline(point) --> ok, err
+function gaCanvas:encode_polyline(point, tx, ty) --> ok, err
     if type(point) ~= "table" then
         return false, "[ArgErr: point] table expected"
     end
@@ -268,29 +311,53 @@ function gaCanvas:encode_polyline(point) --> ok, err
         n = len/2
         for _, coord in ipairs(point) do
             if type(coord) ~= "number" then
-                return false, "[Err] found a not number element in 'point' array"
+                return false, "[Err] found a non-number in the 'point' array"
             end
         end
         p = point
     end
-    if n < 2 then return false, "[Err] a polyline must have at least two points" end
+    if n < 2 then return
+        false, "[Err] a polyline must have at least two points"
+    end
+    if tx ~= nil then
+        if type(tx) ~= "number" then return false, "[ArgErr: tx] number expected" end
+    else
+        tx = 0
+    end
+    if ty ~= nil then
+        if type(ty) ~= "number" then return false, "[ArgErr: ty] number expected" end
+    else
+        ty = 0
+    end
     local data = self._data
     data[#data + 1] = 38
     data[#data + 1] = n
     for i = 1, 2*n, 2 do
-        data[#data + 1] = p[i]
-        data[#data + 1] = p[i + 1]
+        data[#data + 1] = p[i] + tx
+        data[#data + 1] = p[i + 1] + ty
     end
     return true, nil
 end
 
 -- insert a rectangle from point (x1, x2) to (x2, y2)
+-- tx optional translator x-vector
+-- ty optional translator y-vector
 -- <48> <x1: DIM> <y1: DIM> <x2: DIM> <y2: DIM>
-function gaCanvas:encode_rect(x1, y1, x2, y2) --> ok, err
+function gaCanvas:encode_rect(x1, y1, x2, y2, tx, ty) --> ok, err
     if type(x1) ~= "number" then return false, "[ArgErr] 'x1' number expected" end
     if type(y1) ~= "number" then return false, "[ArgErr] 'y1' number expected" end
     if type(x2) ~= "number" then return false, "[ArgErr] 'x2' number expected" end
     if type(y2) ~= "number" then return false, "[ArgErr] 'y2' number expected" end
+    if tx ~= nil then
+        if type(tx) ~= "number" then return false, "[ArgErr: tx] number expected" end
+        x1 = x1 + tx
+        x2 = x2 + tx
+    end
+    if ty ~= nil then
+        if type(ty) ~= "number" then return false, "[ArgErr: ty] number expected" end
+        y1 = y1 + ty
+        y2 = y2 + ty
+    end
     local d = self._data
     d[#d + 1] = 48 -- append rectangle data
     d[#d + 1] = x1
@@ -301,8 +368,10 @@ function gaCanvas:encode_rect(x1, y1, x2, y2) --> ok, err
 end
 
 -- Vbar object: opcode <36>
+-- tx optional translator x-vector
+-- ty optional translator y-vector
 -- x0, y1, y2 ordinates
-function gaCanvas:encode_vbar(vbar, x0, y1, y2) --> ok, err
+function gaCanvas:encode_vbar(vbar, x0, y1, y2, tx, ty) --> ok, err
     if type(vbar) ~= "table" then
         return false, "[ArgErr: vbar] table expected"
     end
@@ -328,6 +397,15 @@ function gaCanvas:encode_vbar(vbar, x0, y1, y2) --> ok, err
         bars = vbar
     end
     if bdim == 0 then return false, "[Err: vbar] the number of bars is zero" end
+    if tx ~= nil then
+        if type(tx) ~= "number" then return false, "[ArgErr: tx] number expected" end
+        x0 = x0 + tx
+    end
+    if ty ~= nil then
+        if type(ty) ~= "number" then return false, "[ArgErr: ty] number expected" end
+        y1 = y1 + ty
+        y2 = y2 + ty
+    end
     local data = self._data
     data[#data + 1] = 36 -- vbar sequence start
     data[#data + 1] = y1
@@ -349,8 +427,10 @@ function gaCanvas:encode_vbar(vbar, x0, y1, y2) --> ok, err
 end
 
 -- print a Vbar queue starting at x position 'xpos', between the horizontal line
+-- tx optional translator x-vector
+-- ty optional translator y-vector
 -- at y0 and y1 y-coordinates
-function gaCanvas:encode_vbar_queue(queue, xpos, y0, y1) --> ok, err
+function gaCanvas:encode_vbar_queue(queue, xpos, y0, y1, tx, ty) --> ok, err
     -- check arg
     if type(queue) ~= "table" then
         return false, "[ArgErr: queue] table expected"
@@ -368,15 +448,17 @@ function gaCanvas:encode_vbar_queue(queue, xpos, y0, y1) --> ok, err
     while queue[i] do
         local x = queue[i - 1] + xpos
         local vbar = queue[i]
-        local _, err = self:encode_vbar(vbar, x, y0, y1)
+        local _, err = self:encode_vbar(vbar, x, y0, y1, tx, ty)
         if err then return false, err end
         i = i + 2
     end
     return true, nil
 end
 
--- [text] <130> ax ay x y chars
-function gaCanvas:encode_Text(txt, xpos, ypos, ax, ay) --> ok, err
+-- tx optional translator x-vector
+-- ty optional translator y-vector
+-- [text] <130> ax ay xpos ypos chars
+function gaCanvas:encode_Text(txt, xpos, ypos, ax, ay, tx, ty) --> ok, err
     if type(txt) ~= "table" then
         return false, "[ArgErr: txt] object table expected"
     end
@@ -396,14 +478,22 @@ function gaCanvas:encode_Text(txt, xpos, ypos, ax, ay) --> ok, err
     elseif type(ay) ~= "number" then
         return false, "[ArgErr: ay] number expected"
     end
+    if tx ~= nil then
+        if type(tx) ~= "number" then return false, "[ArgErr: tx] number expected" end
+        xpos = xpos + tx
+    end
+    if ty ~= nil then
+        if type(ty) ~= "number" then return false, "[ArgErr: ty] number expected" end
+        ypos = ypos + ty
+    end
+    local chars = assert(txt.codepoint, "[InternalErr: txt] no 'codepoint' found")
+    if #chars == 0 then return false, "[InternalErr: txt] no chars found" end
     local data = self._data
     data[#data + 1] = 130
     data[#data + 1] = ax -- relative anchor x-coordinate
     data[#data + 1] = ay -- relative anchor y-coordinate
     data[#data + 1] = xpos -- text x-coordinate
     data[#data + 1] = ypos -- text y-coordinate
-    local chars = assert(txt.codepoint, "[InternalErr: txt] no 'codepoint' found")
-    if #chars == 0 then return false, "[InternalErr: txt] no chars found" end
     for _, c in ipairs(chars) do
         data[#data + 1] = c
     end
@@ -412,11 +502,14 @@ function gaCanvas:encode_Text(txt, xpos, ypos, ax, ay) --> ok, err
 end
 
 -- glyphs equally spaced along the baseline
+-- tx optional translator x-vector
+-- ty optional translator y-vector
 -- [text_xspaced] <131> x1 xgap ay ypos chars
-function gaCanvas:encode_Text_xspaced(txt, x1, xgap, ypos, ay) --> ok, err
+function gaCanvas:encode_Text_xspaced(txt, x1, xgap, ypos, ay, tx, ty) --> ok, err
     if type(txt)~= "table" then return false, "[ArgErr: txt] object table expected" end
     local chars = assert(txt.codepoint, "[InternalErr: txt] no 'codepoint' found")
-    if #chars == 0 then return false, "[InternalErr: txt] no chars found" end
+    local n = #chars
+    if n == 0 then return false, "[InternalErr: txt] no chars found" end
     if type(x1) ~= "number" then return false, "[ArgErr: x1] number expected" end
     if type(xgap) ~= "number" then return false, "[ArgErr: xgap] number expected" end
     if xgap < 0 then
@@ -430,10 +523,18 @@ function gaCanvas:encode_Text_xspaced(txt, x1, xgap, ypos, ay) --> ok, err
     elseif type(ay) ~= "number" then
         return false, "[ArgErr: ay] number expected"
     end
+    if tx ~= nil then
+        if type(tx) ~= "number" then return false, "[ArgErr: tx] number expected" end
+        x1 = x1 + tx
+    end
+    if ty ~= nil then
+        if type(ty) ~= "number" then return false, "[ArgErr: ty] number expected" end
+        ypos = ypos + ty
+    end
     local data = self._data
     data[#data + 1] = 131
     data[#data + 1] = x1   -- x-coordinate of the first axis from left to right
-    data[#data + 1] = xgap -- axial distance among gliphs
+    data[#data + 1] = xgap -- axial distance between gliphs
     data[#data + 1] = ay   -- anchor relative y-coordinate
     data[#data + 1] = ypos -- text y-coordinate
     for _, c in ipairs(chars) do
@@ -444,9 +545,11 @@ function gaCanvas:encode_Text_xspaced(txt, x1, xgap, ypos, ay) --> ok, err
 end
 
 -- text_xwidth
+-- tx optional translator x-vector
+-- ty optional translator y-vector
 -- text equally spaced but within [x1, x2] coordinate interval
 -- <132> <ay: FLOAT> <x1: DIM> <x2: DIM> <y: DIM> <c: CHARS>
-function gaCanvas:encode_Text_xwidth(txt, x1, x2, ypos, ay) --> ok, err
+function gaCanvas:encode_Text_xwidth(txt, x1, x2, ypos, ay, tx, ty) --> ok, err
     if type(txt)~= "table" then return false, "[ArgErr: txt] object table expected" end
     if type(x1) ~= "number" then return false, "[ArgErr: x1] number expected" end
     if type(x2) ~= "number" then return false, "[ArgErr: x2] number expected" end
@@ -459,6 +562,16 @@ function gaCanvas:encode_Text_xwidth(txt, x1, x2, ypos, ay) --> ok, err
     local chars = assert(txt.codepoint, "[InternalErr: txt] no 'codepoint' found")
     if #chars == 0 then return false, "[InternalErr: txt] no chars found" end
     if x1 > x2 then x1, x2 = x2, x1 end -- reorder coordinates
+
+    if tx ~= nil then
+        if type(tx) ~= "number" then return false, "[ArgErr: tx] number expected" end
+        x1 = x1 + tx
+        x2 = x2 + tx
+    end
+    if ty ~= nil then
+        if type(ty) ~= "number" then return false, "[ArgErr: ty] number expected" end
+        ypos = ypos + ty
+    end
     local data = self._data
     data[#data + 1] = 132
     data[#data + 1] = ay -- anchor relative y-coordinate
@@ -532,14 +645,5 @@ function gaCanvas:end_text_group(xpos, ypos, ax, ay) --> ok, err
     data[#data + 1] = ypos -- text y-coordinate
     return true, nil
 end
-
--- function gaCanvas:ga_prettify() --> table
--- end
-
--- function gaCanvas:get_bbox()
--- end
-
--- function gaCanvas:check() --> boolean, err 
--- end
 
 return gaCanvas
