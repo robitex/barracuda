@@ -53,7 +53,9 @@ Ongoing Scheduler:
 2020-__-__: [doc] API reference
 2020-__-__: [doc] barcode symbologies reference: code39
 -------------------------------------------------------------------------------
-2020-05-03:*[libgeo] optional tx, ty moving point for encode_<object>
+2020-05-03:*[barcode] debug_bbox option
+-------------------------------------------------------------------------------
+2020-05-03: [libgeo] optional tx, ty moving point for encode_<object>
 2020-04-06: [driver] new methods for gaCanvas class and default style graphic
 2020-03-20: [upc] new UPC-A barcode symbology
 2020-03-13: [barcode] new method get_code() and get_hri()

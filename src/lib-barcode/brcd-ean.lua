@@ -1103,7 +1103,7 @@ fn_append_ga_variant["13"] = function (ean, canvas, tx, ty, ax, ay)
         -- issn text
         if ean.text_issn_enabled then
             local hri = {"I", "S", "S", "N", " "}
-            local txt = assert(ean._code_text, "[IternalErr] _code_text not found")
+            local txt = assert(ean._code_text, "[InternalErr] _code_text not found")
             for i = 1, 4 do
                 hri[i + 5] = txt[i]
             end
@@ -1117,7 +1117,7 @@ fn_append_ga_variant["13"] = function (ean, canvas, tx, ty, ax, ay)
             assert(canvas:encode_Text(issn_txt, x_issn, y_issn, 0.5, 0))
         end
     end
-    return x0 - qzl, y0, x1 + qzr, y1
+    return {x0, y0, x1, y1, qzl, nil, qzr, nil,}
 end
 
 -- draw EAN8 symbol
@@ -1189,7 +1189,7 @@ fn_append_ga_variant["8"] = function (ean, canvas, tx, ty, ax, ay)
             assert(canvas:encode_polyline(p2))
         end
     end
-    return x0 - qzl, y0, x1 + qzr, y1
+    return {x0, y0, x1, y1, qzl, nil, qzr, nil,}
 end
 
 -- draw EAN5 add-on symbol
@@ -1255,7 +1255,7 @@ fn_append_ga_variant["5"] = function (ean, canvas, tx, ty, ax, ay, h)
             assert(canvas:encode_polyline(p))
         end
     end
-    return x0 - qzl, y0, x1 + qzr, y1
+    return {x0, y0, x1, y1, qzl, nil, qzr, nil,}
 end
 
 -- draw EAN2 symbol
@@ -1323,7 +1323,7 @@ fn_append_ga_variant["2"] = function (ean, canvas, tx, ty, ax, ay, h)
             assert(canvas:encode_polyline(p))
         end
     end
-    return x0 - qzl, y0, x1 + qzr, y1
+    return {x0, y0, x1, y1, qzl, nil, qzr, nil,}
 end
 
 fn_append_ga_variant["13+5"] = function (ean, canvas, tx, ty, ax, ay)
@@ -1337,9 +1337,9 @@ fn_append_ga_variant["13+5"] = function (ean, canvas, tx, ty, ax, ay)
     local fn_ga = ean._append_ga_variant
     local fn_1 = fn_ga["13"]
     local fn_2 = fn_ga["5"]
-    local p1x, p1y, _, p2y = fn_1(ean, canvas, x0, y0, 0, 0)
-    local _, _, p2x, _ = fn_2(ean, canvas, x1, y0, 1, 0, 0.85 * h)
-    return p1x, p1y, p2x, p2y
+    local b1 = fn_1(ean, canvas, x0, y0, 0, 0)
+    local b2 = fn_2(ean, canvas, x1, y0, 1, 0, 0.85 * h)
+    return {b1[1], b1[2], b2[3], b1[4], b1[5], nil, b2[7], nil,}
 end
 
 fn_append_ga_variant["13+2"] = function (ean, canvas, tx, ty, ax, ay)
@@ -1353,9 +1353,9 @@ fn_append_ga_variant["13+2"] = function (ean, canvas, tx, ty, ax, ay)
     local fn_ga = ean._append_ga_variant
     local fn_1 = fn_ga["13"]
     local fn_2 = fn_ga["2"]
-    local p1x, p1y, _, p2y = fn_1(ean, canvas, x0, y0, 0, 0)
-    local _, _, p2x, _ = fn_2(ean, canvas, x1, y0, 1, 0, 0.85 * h)
-    return p1x, p1y, p2x, p2y
+    local b1 = fn_1(ean, canvas, x0, y0, 0, 0)
+    local b2 = fn_2(ean, canvas, x1, y0, 1, 0, 0.85 * h)
+    return {b1[1], b1[2], b2[3], b1[4], b1[5], nil, b2[7], nil,}
 end
 
 fn_append_ga_variant["8+5"] = function (ean, canvas, tx, ty, ax, ay)
@@ -1369,9 +1369,9 @@ fn_append_ga_variant["8+5"] = function (ean, canvas, tx, ty, ax, ay)
     local fn_ga = ean._append_ga_variant
     local fn_1 = fn_ga["8"]
     local fn_2 = fn_ga["5"]
-    local p1x, p1y, _, p2y = fn_1(ean, canvas, x0, y0, 0, 0)
-    local _, _, p2x, _ = fn_2(ean, canvas, x1, y0, 1, 0, 0.85 * h)
-    return p1x, p1y, p2x, p2y
+    local b1 = fn_1(ean, canvas, x0, y0, 0, 0)
+    local b2 = fn_2(ean, canvas, x1, y0, 1, 0, 0.85 * h)
+    return {b1[1], b1[2], b2[3], b1[4], b1[5], nil, b2[7], nil,}
 end
 
 fn_append_ga_variant["8+2"] = function (ean, canvas, tx, ty, ax, ay)
@@ -1385,9 +1385,9 @@ fn_append_ga_variant["8+2"] = function (ean, canvas, tx, ty, ax, ay)
     local fn_ga = ean._append_ga_variant
     local fn_1 = fn_ga["8"]
     local fn_2 = fn_ga["2"]
-    local p1x, p1y, _, p2y = fn_1(ean, canvas, x0, y0, 0, 0)
-    local _, _, p2x, _ = fn_2(ean, canvas, x1, y0, 1, 0, 0.85 * h)
-    return p1x, p1y, p2x, p2y
+    local b1 = fn_1(ean, canvas, x0, y0, 0, 0)
+    local b2 = fn_2(ean, canvas, x1, y0, 1, 0, 0.85 * h)
+    return {b1[1], b1[2], b2[3], b1[4], b1[5], nil, b2[7], nil,}
 end
 
 -- ISBN

@@ -17,7 +17,7 @@ B\barracuda[text_vpos='top']{code39}{123QWE}B
 local barracuda = require "barracuda"
 local barcode = barracuda:barcode()
 local code39 = assert(barcode:enc_by_name("code39"))
-assert(code39:set_param("debug_bbox_on", true))
+assert(code39:set_param{debug_bbox = "qz"})
 }\bigskip
 
 A\barracuda{code39}{123QWE}A

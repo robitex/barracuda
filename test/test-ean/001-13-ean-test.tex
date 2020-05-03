@@ -11,6 +11,7 @@ Test 1: one simple barcode EAN13 with default parameter:
 \directlua{
 barracuda = require "barracuda"
 local barcode = barracuda:barcode()
+barcode:set_param{debug_bbox="qz"}
 
 local ean13, err = barcode:new_encoder("ean-13")
 assert(not err, err)

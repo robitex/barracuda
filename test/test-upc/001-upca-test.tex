@@ -11,7 +11,7 @@ Test 1: one simple barcode UPC-A with default parameter:
 \directlua{
 barracuda = require "barracuda"
 local barcode = barracuda:barcode()
-barcode:set_param("debug_bbox_on", true)
+barcode:set_param("debug_bbox", "qz")
 local upca, err = barcode:new_encoder("upc-A")
 assert(not err, err)
 
@@ -28,11 +28,10 @@ drv:ga_to_hbox(canvas, "mybox")
 
 \bigskip\directlua{
 local barcode = barracuda:barcode()
-barcode:set_param("debug_bbox_on", false)
+barcode:set_param("debug_bbox", "none")
 local upca = assert(barcode:enc_by_name("upc-A"))
 
 local symbo = assert(upca:new("012345678905"))
-
 local canvas = barracuda:new_canvas()
 symbo:draw(canvas)
 
@@ -40,4 +39,3 @@ local drv = barracuda:get_driver()
 drv:ga_to_hbox(canvas, "mybox")
 }\leavevmode\box\mybox
 \bye
-

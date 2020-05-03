@@ -329,7 +329,7 @@ function Code128:_append_ga(canvas, tx, ty) --> bbox
     -- { xmin, ymin, xmax, ymax }
     assert(canvas:encode_set_bbox(x0 - qz, y0, x1 + qz, y1))
     assert(canvas:encode_enable_bbox())
-    return x0 - qz, y0, x1 + qz, y1
+    return {x0, y0, x1, y1, qz, nil, qz, nil,}
 end
 
 return Code128

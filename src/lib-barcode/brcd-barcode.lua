@@ -1,4 +1,3 @@
-
 -- Barcode Abstract Class
 -- Copyright (C) 2020 Roberto Giacomelli
 -- Please see LICENSE.TXT for any legal information about present software
@@ -21,7 +20,7 @@ Barcode._encoder_instances = {} -- encoder instances repository
 Barcode._super_par_order = {
     "ax",
     "ay",
-    "debug_bbox_on",
+    "debug_bbox",
 }
 Barcode._super_par_def = {}
 local pardef = Barcode._super_par_def
@@ -52,15 +51,23 @@ pardef.ay = {
 
 -- debug only purpose
 -- enable/disable bounding box drawing of symbols
-Barcode.debug_bbox_on = false
-pardef.debug_bbox_on = {
-    default    = false,
+Barcode.debug_bbox = "none"
+pardef.debug_bbox = {
+    default    = "none",
     isReserved = false,
-    fncheck    = function (_self, flag, _) --> boolean, err
-        if type(flag) == "boolean" then
+    enum = {
+        none = true, -- do nothing
+        symb = true, -- draw bbox of the symbol
+        qz = true, -- draw a bbox at quietzone border
+        qzsymb = true, -- draw quietzone and symbol bboxes
+    },
+    fncheck    = function (self, e, _) --> boolean, err
+        if type(e) ~= "string" then return false, "[TypeError] not a string" end
+        local keys = self.enum
+        if keys[e] == true then
             return true, nil
         else
-            return false, "[TypeErr] not a boolean value"
+            return false, "[Err] enumeration value '"..e.."' not found"
         end
     end,
 }
@@ -265,7 +272,7 @@ function Barcode:new_encoder(treename, opt) --> object, err
     else
         return nil, "[ArgErr] provided 'opt' is not a table"
     end
-    local enc = {} -- the new encoder
+    local enc = {_classname = "Encoder"} -- the new encoder
     enc.__index = enc
     enc._variant = variant
     setmetatable(enc, {
@@ -715,27 +722,68 @@ end
 -- canvas is a gaCanvas object
 -- tx, ty is an optional point to place symbol local origin on the canvas plane
 function Barcode:draw(canvas, tx, ty) --> canvas, err
+    local nclass = self._classname
+    if nclass == "Barcode" then
+        error("[ErrOOP:Barcode] method 'draw' must be called only on a Symbol object")
+    end
+    if nclass == "Encoder" then
+        error("[ErrOOP:Encoder] method 'draw' must be called only on a Symbol object")
+    end
+    assert(nclass == "BarcodeSymbol")
     if canvas._classname ~= "gaCanvas" then
-        return nil, "[Err: OOP] object 'gaCanvas' expected"
+        return nil, "[ErrOOP:canvas] object 'gaCanvas' expected"
     end
-    local class = self._classname
-    if class == "Barcode" then
-        error("[Err: OOP] method 'draw' must be called on an Encoder object")
-    end
-    assert(class == "BarcodeSymbol")
     local ga_fn = assert(
         self._append_ga,
         "[InternalErr] unimplemented '_append_ga' method"
     )
-    local x1, y1, x2, y2 = ga_fn(self, canvas, tx or 0, ty or 0)
-    if self.debug_bbox_on == true then
-        local bp = 65781.76
-        local w = bp/10 -- 0.1bp
-        local w2 = w/2
-        assert(canvas:encode_linewidth(w))
+    local bb_info = ga_fn(self, canvas, tx or 0, ty or 0)
+    local dbg_bbox = self.debug_bbox
+    if dbg_bbox == "none" then
+        -- do nothing
+    else
         -- dashed style: phase = 3bp, dash pattern = 6bp 3bp
+        local bp = canvas.bp
+        local W = bp/10 -- 0.1bp
+        local w = W/2
+        assert(canvas:encode_linewidth(W))
         assert(canvas:encode_dash_pattern(3*bp, 6*bp, 3*bp))
-        assert(canvas:encode_rect(x1+w2, y1+w2, x2-w2, y2-w2))
+        local x1, y1, x2, y2 = bb_info[1], bb_info[2], bb_info[3], bb_info[4]
+        if dbg_bbox == "symb" then
+            assert(canvas:encode_rect(x1 + w, y1 + w, x2 - w, y2 - w))
+        elseif dbg_bbox == "qz" then
+            local q1, q2, q3, q4 = bb_info[5], bb_info[6], bb_info[7], bb_info[8]
+            x1 = x1 - (q1 or 0) + w
+            y1 = y1 - (q2 or 0) + w
+            x2 = x2 + (q3 or 0) - w
+            y2 = y2 + (q4 or 0) - w
+            assert(canvas:encode_rect(x1, y1, x2, y2))
+        elseif dbg_bbox == "qzsymb" then
+            local q1, q2, q3, q4 = bb_info[5], bb_info[6], bb_info[7], bb_info[8]
+            x1 = x1 + w
+            y1 = y1 + w
+            x2 = x2 - w
+            y2 = y2 - w
+            if q1 then
+                assert(canvas:encode_vline(y1, y2, x1))
+                x1 = x1 - q1
+            end
+            if q3 then
+                assert(canvas:encode_vline(y1, y2, x2))
+                x2 = x2 + q3
+            end 
+            if q2 then
+                assert(canvas:encode_hline(x1, x2, y1))
+                y1 = y1 - q2
+            end
+            if q4 then
+                assert(canvas:encode_hline(x1, x2, y2))
+                y2 = y2 + q4
+            end
+            assert(canvas:encode_rect(x1, y1, x2, y2))
+        else
+            error("[InternalErr:debug_bbox] unrecognized enum value")
+        end
         assert(canvas:encode_reset_pattern())
     end
     return canvas

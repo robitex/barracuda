@@ -1,5 +1,5 @@
 % !TeX program = LuaTeX
-% Copyright (C) 2020 Roberto Giacomelli
+% Copyright (C) 2019-2020 Roberto Giacomelli
 
 \newbox\mybox
 \nopagenumbers
@@ -14,7 +14,7 @@ barracuda = require "barracuda"
 
 \directlua{
 local barcode = barracuda:barcode()
-
+barcode:set_param{debug_bbox="symb"}
 local c128, err = barcode:new_encoder("code128")
 assert(not err, err)
 

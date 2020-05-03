@@ -234,7 +234,7 @@ interpreter along with \brcd{}, open a terminal and run it with the command:
 $ lua first-run.lua
 \end{BVerbatim}
 
-In the same directory of your script you will see a new one called
+Into the same directory of your script you will see a new file called
 \code{my\_barcode.svg} with the drawing:
 \begin{center}
 \includegraphics{image/8006194056290}
@@ -341,9 +341,9 @@ into three phases:
 \item[c.2] print the figure as an external \code{svg} file.
 \end{description}
 
-In the phase \textbf{a} a barcode symbols is created, then in phase \textbf{b}
-a canvas object is filled with graphic elements, and finally in the phase
-\textbf{c} the canvas is send to the driver output channel.
+In the phase \textbf{a} a barcode symbols is created, then in phase \textbf{b} a
+canvas object is filled with the graphic elements of the symbol, and finally in
+the phase \textbf{c} the canvas is sent to the driver output channel.
 
 Following the procedure step by step, the resulting code is as the following
 listing, where the encoder is EAN variant 13:
@@ -367,8 +367,8 @@ assert(ok, err_out)
 \end{tcolorbox}
 
 Anyway, more abstract methods allow the user to write a more compact code. For
-instance, phase \textbf{b} can be fuse with \textbf{c}, because a \code{canvas}
-object include internally a reference to the driver object:
+instance, phase \textbf{b} can be fuse with \textbf{c}, thanks to a
+a reference to the driver object included in the \code{canvas} object:
 \begin{Verbatim}
 -- phase b + c
 local canvas = barracuda:new_canvas() -- step bc.1
@@ -377,7 +377,8 @@ local ok, err_out = canvas:save("svg", "my_barcode") -- step bc.3
 assert(ok, err_out)
 \end{Verbatim}
 
-An high level method provide as we have been seen before, a way to unify phases:
+As we have been seen before an high level method provides a way to unify all the
+phases:
 \begin{Verbatim}
 -- unique phase version
 local require "barracuda"
@@ -450,8 +451,8 @@ source file for Lua\LaTeX{}:
 \barracuda[text_star=true]{code39}{123ABC}
 \end{tcolorbox}
 
-Every macro \verb=\barracuda= typesets a barcode symbol with the encoder defined
-in the first argument, encoding data defined by the second.
+Every macro \brcd{} typesets a barcode symbol with the encoder defined in the
+first argument, encoding data defined by the second.
 
 
 \section{Barcode Reference}
@@ -497,19 +498,22 @@ provides option values. Only these objects are printable in a barcode graphic.
 
 Common options of \code{Barcode} are the following:
 \begin{center}
-\begin{tabular}{cccl}
+\begin{tabular}{@{}ccp{75mm}@{}}
 \toprule
-Option Id & Type & Default & Description\\
+Option Id & Type/default    & Description\\
 \midrule
-\code{ax} & numeric & 0 & Relative x-coordinate for insertion point of the barcode symbol\\
-\code{ay} & numeric & 0 & Relative y-coordinate for insertion point of the barcode symbol\\
-\code{debug\_bbox\_on} & boolean & \code{false} & Draw symbol bounding box with a thin dashed line\\
+\code{ax} & numeric/0 & Relative x-coordinate for insertion point of the barcode symbol\\
+\midrule
+\code{ay} & numeric/0 & Relative y-coordinate for insertion point of the barcode symbol\\
+\midrule
+\code{debug\_bbox} & enum/\code{none} & Draw symbol bounding box with a thin dashed line\\
+ & \code{none}   & \small do nothing\\
+ & \code{symb}   & \small draw the bbox of the symbol\\
+ & \code{qz}     & \small draw the bbox at quietzone border\\
+ & \code{qzsymb} & \small draw symbol and quietzone bboxes\\
 \bottomrule
 \end{tabular}
 \end{center}
-
-
-
 
 
 For each barcode symbologies the next section reports parameters and optional
@@ -710,9 +714,13 @@ local drv = barracuda:get_driver()
 drv:ga_to_hbox(ga, "mybox")
 }\box\mybox
 
-A more abstract way to write a \code{ga} stream is provided by the \code{gacanvas}
-class of the module \code{libgeo}. Every operation has been mapped to a method
-named \code{encode\_<opcode>()}:
+
+\subsubsection{Encoding \code{ga} with the \code{gaCanvas} class}
+
+A more abstract way to write a \code{ga} stream is provided by the
+\code{gaCanvas} class of the \code{libgeo} module. Every operation with
+identifier \code{opcode} is mapped to a method named \code{encode\_<opcode>()}
+of a canvas object:
 \begin{Verbatim}
 % !TeX program = LuaTeX
 \newbox\mybox
@@ -795,10 +803,10 @@ class (the drawing is showed side-by-side the listing):
 \end{tcolorbox}
 
 An automatic process updates the bounding box of the figure meanwhile the stream
-is read instruction after instruction. The \code{<disable\_bbox>} operation
-produce a more fast execution and the figure will get the bounding box computed
-until that instruction. The \code{<set\_bbox>} operation imposes a
-bounding box in comparison to the current figure one.
+is read instruction after instruction. The \code{disable\_bbox} operation
+produces a more fast execution and the figure maintains the bounding box
+computed until that point. The \code{set\_bbox} operation imposes a bounding box
+in comparison to the current one of the figure.
 
 The initial bounding box is simply empty. As a consequence, different
 strategies can be used to optimize runtime execution, such as in the previous

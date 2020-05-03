@@ -355,7 +355,7 @@ function Code39:_append_ga(canvas, tx, ty) --> x1, y1, x2, y2 -- bbox
             assert(canvas:encode_Text(txt, xpos, ypos, tax, tay))
         end
     end
-    return x0 - qz, y0, x1 + qz, y1
+    return {x0, y0, x1, y1, qz, nil, qz, nil}
 end
 
 return Code39

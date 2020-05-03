@@ -624,11 +624,14 @@ function ITF:_append_ga(canvas, tx, ty) --> bbox
     end
     local b1x, b1y = x0 - qz, y0
     local b2x, b2y = x1 + qz, y1
+    local bq1, bq3 = qz, qz
+    local bq2, bq4
     if self.bearer_bars_enabled then
         local t = self.bearer_bars_thickness
         local t2 = t/2
         assert(canvas:encode_linewidth(t))
         b1y, b2y = b1y - t, b2y + t
+        bq2, bq4 = t, t
         local layout = self.bearer_bars_layout
         if layout == "hbar" then
             assert(canvas:encode_hline(b1x, b2x, y0 - t2))
@@ -636,6 +639,7 @@ function ITF:_append_ga(canvas, tx, ty) --> bbox
         elseif layout == "frame" then
             assert(canvas:encode_rect(b1x - t2, y0 - t2, b2x + t2, y1 + t2))
             b1x, b2x = b1x - t, b2x + t
+            bq1, bq3 = bq1 + t, bq3 + t
         else
             error("[InternalErr] unexpected bearer bars layout option value")
         end
@@ -658,7 +662,7 @@ function ITF:_append_ga(canvas, tx, ty) --> bbox
         local x_top = (b1x + b2x)/2
         assert(canvas:encode_Text(t, x_top, y_top, 0.50, 1))
     end
-    return b1x, b1y, b2x, b2y
+    return {x0, y0, x1, y1, bq1, bq2, bq3, bq4,}
 end
 
 return ITF
