@@ -2,7 +2,7 @@
 --
 -- Encode a message into a barcode symbol, in Lua or within a LuaTeX source file
 --
--- Copyright (C) 2020 Roberto Giacomelli
+-- Copyright (C) 2019-2022 Roberto Giacomelli
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -26,8 +26,8 @@
 
 local Barracuda = {
     _NAME        = "barracuda",
-    _VERSION     = "barracuda v0.0.11",
-    _DATE        = "2020-04-04",
+    _VERSION     = "barracuda v0.0.12",
+    _DATE        = "2022-06-23",
     _DESCRIPTION = "Lua library for barcode printing",
     _URL         = "https://github.com/robitex/barracuda",
     _LICENSE     = "GNU GENERAL PUBLIC LICENSE, Version 2, June 1991",

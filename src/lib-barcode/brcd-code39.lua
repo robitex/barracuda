@@ -1,5 +1,5 @@
 -- Code39 barcode encoder implementation
--- Copyright (C) 2020 Roberto Giacomelli
+-- Copyright (C) 2019-2022 Roberto Giacomelli
 --
 -- All dimensions must be in scaled point (sp)
 -- every field that starts with an underscore sign are intended to be private

@@ -15,7 +15,7 @@ stability. The package does not have any dependences.
 
 ## Current version
 
-Version: 0.0.10 - Date: 2020-02-04
+Version: 0.0.12 - Date: 2022-06-23
 
 ## Barcode symbologies list
 
@@ -90,4 +90,4 @@ program.
 Please, for more legal details refer to LICENSE.txt file or visit the web page
 <https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>
 
-Copyright (C) 2019-2020 Roberto Giacomelli
+Copyright (C) 2019-2022 Roberto Giacomelli

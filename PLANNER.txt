@@ -22,39 +22,41 @@ Hypothetical development task list:
 20__-__-__: [prj] test l3build for testing and CTAN files packaging
 20__-__-__: [dev] load barcode parameters from an external file
 20__-__-__: [dev] new Parameter Class
-2020-__-__: [dev][barcode] new `alias` feature
-2020-__-__: [dev][barcode] new `preset` feature
-2020-__-__: [project][build] make a Lua script to easily create the CTAN upload
+202_-__-__: [dev][barcode] new `alias` feature
+202_-__-__: [dev][barcode] new `preset` feature
+202_-__-__: [project][build] make a Lua script to easily create the CTAN upload
           : compressed files
-2020-__-__: [dev] statistical data on how many barcode symbols was printed
-2020-__-__: [upc] UPC-E barcode symbology
+202_-__-__: [dev] statistical data on how many barcode symbols was printed
+202_-__-__: [upc] UPC-E barcode symbology
 
 Scheduled task list for Data Matrix 2D symbology implementation:
 ----------------------------------------------------------------
 
-2020-__-__: [dmx] data matrix first run
-2020-__-__: [dmx] ecc200 error correction code
-2020-__-__: [svg] opcode for grids
-2020-__-__: [pdf] opcode for grids
-2020-__-__: [ga] ga new grid opcode
-2020-__-__: [geo] grid vector object
-2020-__-__: [dev] init source file encoder for Data Matrix
+202_-__-__: [dmx] data matrix first run
+202_-__-__: [dmx] ecc200 error correction code
+202_-__-__: [svg] opcode for grids
+202_-__-__: [pdf] opcode for grids
+202_-__-__: [ga] ga new grid opcode
+202_-__-__: [geo] grid vector object
+202_-__-__: [dev] init source file encoder for Data Matrix
 
 Ongoing Scheduler:
 ==================
 -------------------------------------------------------------------------------
-2020-__-__: [milestone] version 0.1
-2020-__-__: [test] update test files with recent changes
-2020-__-__: [dev][ean] fix the `ean:checksum()` to include ISBN and ISSN variant
-2020-__-__: [dev] control the method call on the right class
-2020-__-__: [code128] add human readeable text
-2020-__-__: [breaking change] refactor Text libgeo object
-2020-__-__: [project] adhere to semver specification
-2020-__-__: [doc] API reference
-2020-__-__: [doc] barcode symbologies reference: code39
+202_-__-__: [milestone] version 0.1
+202_-__-__: [test] update test files with recent changes
+202_-__-__: [dev][ean] fix the `ean:checksum()` to include ISBN and ISSN variant
+202_-__-__: [dev] control the method call on the right class
+202_-__-__: [code128] add human readeable text
+202_-__-__: [breaking change] refactor Text libgeo object
+202_-__-__: [project] adhere to semver specification
+202_-__-__: [doc] API reference
+202_-__-__: [doc] barcode symbologies reference: code39
+
 -------------------------------------------------------------------------------
-2020-05-03:*[barcode] debug_bbox option
+2022-06-22: [code128] fix a bug in the encoder (complete rewriting)
 -------------------------------------------------------------------------------
+2020-05-03: [barcode] debug_bbox option
 2020-05-03: [libgeo] optional tx, ty moving point for encode_<object>
 2020-04-06: [driver] new methods for gaCanvas class and default style graphic
 2020-03-20: [upc] new UPC-A barcode symbology
@@ -106,7 +108,6 @@ Ongoing Scheduler:
           : variant
           : [project] update version number in preparation of the next version
 -------------------------------------------------------------------------------
-(*) this commit
 
 -------------------------------------------------------------------------------
 2020-02-04: [milestone] version <v0.0.10> completed task/commit list:

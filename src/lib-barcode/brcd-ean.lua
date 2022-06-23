@@ -1,6 +1,6 @@
 -- EAN family barcode generator
 --
--- Copyright (C) 2020 Roberto Giacomelli
+-- Copyright (C) 2019-2022 Roberto Giacomelli
 -- see LICENSE.txt file
 
 local EAN = {

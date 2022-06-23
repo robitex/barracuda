@@ -1,5 +1,5 @@
 % !TeX program = LuaTeX
-% Copyright (C) 2019-2020 Roberto Giacomelli
+% Copyright (C) 2019-2022 Roberto Giacomelli
 
 \newbox\mybox
 \nopagenumbers
@@ -120,6 +120,90 @@ drv:ga_to_hbox(canvas, "mybox")
 drv:save("native", canvas, "02-05-pdfliteral")
 }\box\mybox
 
-That's all folks!
+Test 6: encode ABC123:
 
+\directlua{
+local barcode = barracuda:barcode()
+local c128, err = barcode:enc_by_name "code128"; assert(c128, err)
+local s, err = c128:from_string("ABC123"); assert(s, err)
+
+local canvas = barracuda:new_canvas()
+local _, err = s:draw(canvas); assert(not err, err)
+
+local drv = barracuda:get_driver()
+drv:ga_to_hbox(canvas, "mybox")
+}\box\mybox
+
+Test 7: encode ABC123999:
+
+\directlua{
+local barcode = barracuda:barcode()
+local c128, err = barcode:enc_by_name "code128"; assert(c128, err)
+local s, err = c128:from_string("ABC123999"); assert(s, err)
+
+local canvas = barracuda:new_canvas()
+local _, err = s:draw(canvas); assert(not err, err)
+
+local drv = barracuda:get_driver()
+drv:ga_to_hbox(canvas, "mybox")
+}\box\mybox
+
+Test 8: encode ABC123456789:
+
+\directlua{
+local barcode = barracuda:barcode()
+local c128, err = barcode:enc_by_name "code128"; assert(c128, err)
+local s, err = c128:from_string("ABC123456789"); assert(s, err)
+
+local canvas = barracuda:new_canvas()
+local _, err = s:draw(canvas); assert(not err, err)
+
+local drv = barracuda:get_driver()
+drv:ga_to_hbox(canvas, "mybox")
+}\box\mybox
+
+Test 9: encode A1B2C3D999:
+
+\directlua{
+local barcode = barracuda:barcode()
+local c128, err = barcode:enc_by_name "code128"; assert(c128, err)
+local s, err = c128:from_string("A1B2C3D999"); assert(s, err)
+
+local canvas = barracuda:new_canvas()
+local _, err = s:draw(canvas); assert(not err, err)
+
+local drv = barracuda:get_driver()
+drv:ga_to_hbox(canvas, "mybox")
+}\box\mybox
+
+Test 10: encode 123abcedfg:
+
+\directlua{
+local barcode = barracuda:barcode()
+local c128, err = barcode:enc_by_name "code128"; assert(c128, err)
+local s, err = c128:from_string("123abcedfg"); assert(s, err)
+
+local canvas = barracuda:new_canvas()
+local _, err = s:draw(canvas); assert(not err, err)
+
+local drv = barracuda:get_driver()
+drv:ga_to_hbox(canvas, "mybox")
+}\box\mybox
+
+Test 11: encode 999Aaaa:
+
+\directlua{
+local barcode = barracuda:barcode()
+barcode:set_param{debug_bbox="none"}
+local c128, err = barcode:enc_by_name "code128"; assert(c128, err)
+local s, err = c128:from_string("999Aaaa"); assert(s, err)
+
+local canvas = barracuda:new_canvas()
+local _, err = s:draw(canvas); assert(not err, err)
+
+local drv = barracuda:get_driver()
+drv:ga_to_hbox(canvas, "mybox")
+}\box\mybox
+
+That's all folks!
 \bye

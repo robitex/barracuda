@@ -1,5 +1,5 @@
 -- Barcode Abstract Class
--- Copyright (C) 2020 Roberto Giacomelli
+-- Copyright (C) 2019-2022 Roberto Giacomelli
 -- Please see LICENSE.TXT for any legal information about present software
 
 local Barcode = {_classname = "Barcode"}

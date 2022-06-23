@@ -1,5 +1,5 @@
 -- class gaCanvas
--- Copyright (C) 2020 Roberto Giacomelli
+-- Copyright (C) 2019-2022 Roberto Giacomelli
 -- <ga> encoding functions (see barracuda-manual.pdf)
 
 local gaCanvas = {_classname = "gaCanvas"}

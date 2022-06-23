@@ -1,5 +1,5 @@
 -- this file is part of barracuda project
--- Copyright (C) 2020 Roberto Giacomelli
+-- Copyright (C) 2019-2022 Roberto Giacomelli
 -- see https://github.com/robitex/barracuda
 --
 -- libgeo simple Geometric Library

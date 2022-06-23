@@ -1,6 +1,6 @@
 -- Interleaved 2 of 5 (ITF) barcode generator
 --
--- Copyright (C) 2020 Roberto Giacomelli
+-- Copyright (C) 2019-2022 Roberto Giacomelli
 -- see LICENSE.txt file
 
 local ITF = { -- main container

@@ -1,11 +1,11 @@
 -- Code128 barcode generator module
--- Copyright (C) 2020 Roberto Giacomelli
+-- Copyright (C) 2019-2022 Roberto Giacomelli
 --
 -- All dimension must be in scaled point (sp)
 -- every fields that starts with an undercore sign are intended as private
 
 local Code128 = {
-    _VERSION     = "code128 v0.0.5",
+    _VERSION     = "code128 v0.0.6",
     _NAME        = "Code128",
     _DESCRIPTION = "Code128 barcode encoder",
 }
@@ -23,7 +23,7 @@ Code128._int_def_bar = {-- code bar definitions
     111242, 121142, 121241, 114212, 124112, 124211, 411212, 421112, 421211,
     212141, 214121, 412121, 111143, 111341, 131141, 114113, 114311, 411113,
     411311, 113141, 114131, 311141, 411131, 211412, 211214, 211232,
-    2331112, -- this is the stop char at index 106
+    2331112, -- the last number is the stop char at index 106
 }
 
 Code128._codeset = {
@@ -105,166 +105,234 @@ end
 
 -- utility functions
 
--- the number of consecutive digits from the index 'i' in the code array
-local function count_digits_from(arr, i)
-    local start = i
-    local dim = #arr 
-    while i <= dim and (arr[i] > 47 and arr[i] < 58) do
-        i = i + 1
-    end
-    return i - start
-end
-
--- evaluate the check digit of the data representation
+-- evaluate the check digit of encoded data
 local function check_digit(code)
     local sum = code[1] -- this is the start character
     for i = 2, #code do
         sum = sum + code[i]*(i-1)
     end
-    return sum % 103
+    code[#code + 1] = sum % 103
 end
 
--- return a pair of boolean the first one is true
--- if a control char and a lower case char occurs in the data
--- and the second one is true if the control char occurs before
--- the lower case char
-local function ctrl_or_lowercase(pos, data) --> boolean, boolean|nil
-    local len = #data
-    local ctrl_occur, lower_occur = false, false
-    for i = pos, len do
-        local c = data[i]
-        if (not ctrl_occur) and (c >= 0 and c < 32) then
-            -- [0,31] control chars
-            if lower_occur then
-                return true, false -- lowercase char < ctrl char
-            else
-                ctrl_occur = true
-            end
-        elseif (not lower_occur) and (c > 95 and c < 128) then
-            -- [96, 127] lower case chars
-            if ctrl_occur then
-                return true, true -- ctrl char < lowercase char
-            else
-                lower_occur = true
-            end
-        end
-    end
-    return false -- no such data
+local function isdigit(char) --> true/false
+    assert(char)
+    return (char > 47) and (char < 58)
 end
 
--- encode the provided char against a codeset
--- in the future this function will consider FN data
-local function encode_char(t, codesetAorB, char_code, codesetA)
-    local code
-    if codesetAorB == codesetA then -- codesetA
-        if char_code < 32 then
-            code = char_code + 64
-        elseif char_code > 31 and char_code < 96 then
-            code = char_code - 32
-        else
-            error("Not implemented or wrong code")
-        end
-    else -- codesetB
-        if char_code > 31 and char_code < 128 then
-            code = char_code - 32
-        else
-            error("Not implemented or wrong code")
-        end
-    end
-    t[#t + 1] = code
+local function iscontrol(char) --> true/false
+    assert(char)
+    -- [0,31] control chars interval
+    return char < 32
 end
 
--- encode the message in a sequence of Code128 symbol minimizing its lenght
-local function encode128(arr, codeset, switch) --> data, err :TODO:
-    local res = {} -- the result array (the check character will be appended)
-    -- find the Start Character A, B, or C
-    local cur_codeset
-    local ndigit = count_digits_from(arr, 1)
-    local len = #arr
-    --local no_ctrl_lower_char
-    if (ndigit == 2 and len == 2) or ndigit > 3 then -- start char code C
-        cur_codeset = codeset.C
-    else
-        local ok, ctrl_first = ctrl_or_lowercase(1, arr)
-        if ok and ctrl_first then
-            cur_codeset = codeset.A
+local function islower(char)
+    assert(char)
+    -- [96, 127] lower case chars
+    return (char > 95) and (char < 128)
+end
+
+-- count digits
+local function digits_group(data, len) --> counting digits
+    local res = {}
+    local last = false
+    for i = len, 1, -1 do
+        local digit = isdigit(data[i])
+        if last then
+            if digit then
+                res[i] = res[i+1] + 1
+            else
+                res[i] = 0
+                last = false
+            end
         else
-            cur_codeset = codeset.B
-        end
-    end
-    res[#res + 1] = cur_codeset
-    local pos = 1 -- symbol's index to encode
-    while pos <= len do
-        if cur_codeset == codeset.C then
-            if arr[pos] < 48 or arr[pos] > 57 then -- not numeric char
-                local ok, ctrl_first = ctrl_or_lowercase(pos, arr)
-                if ok and ctrl_first then
-                    cur_codeset = codeset.A
-                else
-                    cur_codeset = codeset.B
-                end
-                res[#res + 1] = switch[codeset.C][cur_codeset]
+            if digit then
+                res[i] = 1
+                last = true
             else
-                local imax = pos + 2*math.floor(ndigit/2) - 1
-                for idx = pos, imax, 2 do
-                    res[#res + 1] = (arr[idx] - 48)*10 + arr[idx+1] - 48
-                end
-                pos = pos + imax
-                ndigit = ndigit - imax
-                if ndigit == 1 then
-                    -- cur_codeset setup
-                    local ok, ctrl_first = ctrl_or_lowercase(pos + 1, arr)
-                    if ok and ctrl_first then
-                        cur_codeset = codeset.A
-                    else
-                        cur_codeset = codeset.B
-                    end
-                    res[#res + 1] = switch[codeset.C][cur_codeset]
-                end
-            end
-        else --- current codeset is A or B
-            if ndigit > 3 then
-                if ndigit % 2 > 1 then -- odd number of digits
-                    encode_char(res, cur_codeset, arr[pos], codeset.A)
-                    pos = pos + 1
-                    ndigit = ndigit - 1
-                end
-                res[#res + 1] = switch[cur_codeset][codeset.C]
-                cur_codeset = codeset.C
-            elseif (cur_codeset == codeset.B) and
-                (arr[pos] >= 0 and arr[pos] < 32) then -- ops a control char
-                local ok, ctrl_first = ctrl_or_lowercase(pos + 1, arr)
-                if ok and (not ctrl_first) then -- shift to codeset A
-                    res[#res + 1] = codeset.shift
-                    encode_char(res, codeset.A, arr[pos], codeset.A)
-                    pos = pos + 1
-                    ndigit = count_digits_from(pos, arr)
-                else -- switch to code set A
-                    res[#res + 1] = switch[cur_codeset][codeset.A]
-                    cur_codeset = codeset.A
-                end
-            elseif (cur_codeset == codeset.A) and
-                (arr[pos] > 95 and arr[pos] < 128) then -- ops a lower case char
-                local ok, ctrl_first = ctrl_or_lowercase(pos+1, arr)
-                if ok and ctrl_first then -- shift to codeset B
-                    res[#res + 1] = codeset.shift
-                    encode_char(res, codeset.B, arr[pos], codeset.A)
-                    pos = pos + 1
-                    ndigit = count_digits_from(arr, pos)
-                else -- switch to code set B
-                    res[#res + 1] = switch[cur_codeset][codeset.B]
-                    cur_codeset = codeset.B
-                end
-            else
-                -- insert char
-                encode_char(res, cur_codeset, arr[pos], codeset.A)
-                pos = pos + 1
-                ndigit = count_digits_from(arr, pos)
+                res[i] = 0
             end
         end
     end
-    res[#res + 1] = check_digit(res)
     return res
+end
+
+-- find the first char in the codeset that adhere
+-- with the function argument 'filter'
+local function indexof_char_by(filter, arr, counter) --> index or nil
+    counter = counter or 1
+    local char = arr[counter]
+    while char do
+        if filter(char) then
+            return counter
+        end
+        counter = counter + 1
+        char = arr[counter]
+    end
+end
+
+-- determine the Start character
+local function start_codeset_char(codeset, arr, len)
+    assert(len>0)
+    local ctrl = indexof_char_by(iscontrol, arr)
+    local lowc = indexof_char_by(islower, arr)
+    local t_digits = digits_group(arr, len)
+    local first_digits = t_digits[1]
+    -- case 1
+    if (len == 2) and (first_digits == 2) then
+        return lowc, ctrl, codeset.C, t_digits
+    end
+    -- case 2
+    if first_digits >= 4 then
+        return lowc, ctrl, codeset.C, t_digits
+    end
+    -- case 3
+    local cs = codeset.B
+    if (ctrl and lowc) and (ctrl < lowc) then
+        cs = codeset.A
+    end
+    -- case 4
+    return lowc, ctrl, cs, t_digits
+end
+
+-- codeset A char
+local function encode_char_A(res, char)
+    local code
+    if char < 32 then
+        code = char + 64
+    elseif char > 31 and char < 96 then
+        code = char - 32
+    else
+        error("[InternalErr] Not implemented or wrong code" )
+    end
+    res[#res + 1] = code
+end
+-- codeset B char
+local function encode_char_B(res, char)
+    local code
+    if char > 31 and char < 128 then
+        code = char - 32
+    else
+        error("[InternalErr] Not implemented or wrong code")
+    end
+    res[#res + 1] = code
+end
+
+-- every function encodes a group of chars
+-- A = 103, -- Start char for Codeset A
+-- B = 104, -- Start char for Codeset B
+-- C = 105, -- Start char for Codeset C
+local encode_codeset = {
+    -- A
+    [103] = function (codeset, res, data, index, t_digits, i_low, _ctrl)
+        assert(t_digits[index] < 4, "[InternalErr] in codeset A digits must be less than 4")
+        while data[index] do
+            local char = data[index]
+            if i_low and islower(char) then -- ops a lower case char
+                local next = data[index + 1]
+                local next_next = data[index + 2]
+                if next and next_next then
+                    -- case 5a
+                    if iscontrol(char) and islower(next_next) then
+                        res[#res+1] = codeset.shift
+                        encode_char_B(res, char)
+                        index = index + 1
+                    end
+                else
+                    -- case 5b
+                    return codeset.B, index
+                end
+            else
+                local digits = t_digits[index]
+                if digits > 3 then -- go to codeset C
+                    if (digits % 2) == 1 then -- odd number of a group of digits
+                        encode_char_A(res, char)
+                        digits = digits - 1
+                        index = index + 1
+                    end
+                    return codeset.C, index
+                end
+                encode_char_A(res, char)
+                index = index + 1
+            end
+        end
+        return nil, index
+    end,
+    -- B
+    [104] = function (codeset, res, data, index, t_digits, _low, i_ctrl)
+        assert(t_digits[index] < 4, "[InternalErr] in codeset B digits must be less than 4")
+        while data[index] do
+            local char = data[index]
+            if i_ctrl and iscontrol(char) then -- ops a control char
+                local next = data[index + 1]
+                local next_next = data[index + 2]
+                if next and next_next then
+                    -- case 4a
+                    if islower(next) and iscontrol(next_next) then
+                        res[#res+1] = codeset.shift
+                        encode_char_A(res, char)
+                        index = index + 1
+                    end
+                else
+                    -- case 4b
+                    return codeset.A, index
+                end
+            else
+                local digits = t_digits[index]
+                if digits > 3 then -- go to codeset C
+                    if (digits % 2) == 1 then -- odd number of a group of digits
+                        encode_char_B(res, char)
+                        digits = digits - 1
+                        index = index + 1
+                    end
+                    return codeset.C, index
+                end
+                encode_char_B(res, char)
+                index = index + 1
+            end
+        end
+        return nil, index
+    end,
+    -- C
+    [105] = function (codeset, res, data, index, t_digits, i_low, i_ctrl)
+        local digits = t_digits[index]
+        assert(digits > 1, "[InternalErr] at least a pair of digit is required")
+        while digits > 1 do
+            local d1, d2 = data[index], data[index + 1]
+            res[#res + 1] = (d1 - 48)*10 + d2 - 48
+            digits = digits - 2
+            index = index + 2
+        end
+        local res_codeset
+        if i_ctrl and i_low then
+            local ctrl = indexof_char_by(iscontrol, data, index)
+            local low = indexof_char_by(islower, data, index)
+            if low and (ctrl < low) then
+                res_codeset = codeset.A
+            end
+        else
+            res_codeset = codeset.B
+        end
+        return res_codeset, index
+    end,
+}
+
+-- encode the message in a sequence of Code128 symbol minimizing the symbol width
+local function encode128(arr, codeset, switch) --> data, err
+    local len = #arr
+    local i_low, i_ctrl, cur_codeset, t_digits = start_codeset_char(codeset, arr, len)
+    local res = {cur_codeset} -- the result array (the check character will be appended later)
+    local switch_codeset
+    local cur_index = 1
+    while cur_index <= len do
+        if switch_codeset then
+            res[#res+1] = switch[cur_codeset][switch_codeset]
+            cur_codeset = switch_codeset
+        end
+        local fn = assert(encode_codeset[cur_codeset], "[InternalErr] cur_codeset is "..(cur_codeset or "nil"))
+        switch_codeset, cur_index = fn(codeset, res, arr, cur_index, t_digits, i_low, i_ctrl)
+    end
+    check_digit(res)
+    return res, nil
 end
 
 -- Code 128 internal functions used by Barcode costructors
